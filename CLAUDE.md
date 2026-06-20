@@ -113,3 +113,4 @@ fonctions, c'est un signal de blocage (voir Méthode de travail).
 - **Le panneau latéral ne s'ouvre que sur action explicite** de
   l'utilisateur. Jamais d'auto-ouverture en arrière-plan.
 - Convention de message de commit : @.claude/rules/git.md
+- **Composants React** : voir `.claude/rules/react.md`.
