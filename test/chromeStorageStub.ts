@@ -6,7 +6,9 @@ type StorageRecord = Record<string, unknown>;
 
 export interface ChromeStorageStub {
   local: {
-    get(keys?: string | string[] | StorageRecord | null): Promise<StorageRecord>;
+    get(
+      keys?: string | string[] | StorageRecord | null,
+    ): Promise<StorageRecord>;
     set(items: StorageRecord): Promise<void>;
   };
 }

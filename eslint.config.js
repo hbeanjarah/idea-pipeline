@@ -23,7 +23,10 @@ export default tseslint.config(
     rules: {
       // Only this rule from eslint-plugin-react: one component per file.
       'react/no-multi-comp': 'error',
-      'max-lines': ['warn', { max: 200, skipBlankLines: true, skipComments: true }],
+      'max-lines': [
+        'warn',
+        { max: 200, skipBlankLines: true, skipComments: true },
+      ],
     },
   },
   prettier,

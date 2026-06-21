@@ -10,8 +10,14 @@ export default function HomeScreen({ navigate }: Props) {
   return (
     <main>
       <h1>Accueil</h1>
-      <button onClick={() => navigate({ screen: 'list' })}>Aller à la liste</button>
-      <button onClick={() => navigate({ screen: 'detail', ideaId: 'demo-id' })}>
+      <button onClick={() => navigate({ screen: 'list' })}>
+        Aller à la liste
+      </button>
+      <button
+        onClick={() =>
+          navigate({ screen: 'detail', ideaId: 'demo-id' })
+        }
+      >
         Aller au détail
       </button>
     </main>
