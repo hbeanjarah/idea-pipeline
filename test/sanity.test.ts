@@ -9,7 +9,9 @@ describe('vitest runner', () => {
 describe('chrome.storage.local stub', () => {
   it('round-trips set then get', async () => {
     await chrome.storage.local.set({ ideas: ['a'] });
-    expect(await chrome.storage.local.get('ideas')).toEqual({ ideas: ['a'] });
+    expect(await chrome.storage.local.get('ideas')).toEqual({
+      ideas: ['a'],
+    });
   });
 
   it('is reset between tests', async () => {

@@ -1,4 +1,11 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+  vi,
+} from 'vitest';
 import { ideaRepository } from '../src/storage/storage';
 
 // A fresh chrome.storage stub is installed before every test (test/setup.ts),
@@ -48,7 +55,10 @@ describe('ChromeStorageIdeaRepository', () => {
       const created = await ideaRepository.create('v1');
       const firstId = created.variations[0].id;
 
-      const updated = await ideaRepository.addVariation(created.id, 'v2');
+      const updated = await ideaRepository.addVariation(
+        created.id,
+        'v2',
+      );
 
       expect(updated.variations).toHaveLength(2);
       // Append-only: the original variation keeps its id and text.
@@ -66,7 +76,9 @@ describe('ChromeStorageIdeaRepository', () => {
     });
 
     it('throws on an unknown id', async () => {
-      await expect(ideaRepository.addVariation('unknown', 'x')).rejects.toThrow();
+      await expect(
+        ideaRepository.addVariation('unknown', 'x'),
+      ).rejects.toThrow();
     });
   });
 
@@ -74,14 +86,19 @@ describe('ChromeStorageIdeaRepository', () => {
     it('updates the status and keeps createdAt immutable', async () => {
       const created = await ideaRepository.create('x');
 
-      const updated = await ideaRepository.changeStatus(created.id, 'ready');
+      const updated = await ideaRepository.changeStatus(
+        created.id,
+        'ready',
+      );
 
       expect(updated.status).toBe('ready');
       expect(updated.createdAt).toBe(created.createdAt);
     });
 
     it('throws on an unknown id', async () => {
-      await expect(ideaRepository.changeStatus('unknown', 'ready')).rejects.toThrow();
+      await expect(
+        ideaRepository.changeStatus('unknown', 'ready'),
+      ).rejects.toThrow();
     });
   });
 
@@ -120,7 +137,10 @@ describe('ChromeStorageIdeaRepository', () => {
       expect(created.createdAt).toBe('2026-01-01T00:00:00.000Z');
 
       vi.setSystemTime(new Date('2026-01-02T00:00:00.000Z'));
-      const updated = await ideaRepository.changeStatus(created.id, 'ready');
+      const updated = await ideaRepository.changeStatus(
+        created.id,
+        'ready',
+      );
 
       expect(updated.createdAt).toBe('2026-01-01T00:00:00.000Z');
       expect(updated.updatedAt).toBe('2026-01-02T00:00:00.000Z');
@@ -134,10 +154,15 @@ describe('ChromeStorageIdeaRepository', () => {
       const created = await ideaRepository.create('x');
 
       vi.setSystemTime(new Date('2026-01-03T12:00:00.000Z'));
-      const updated = await ideaRepository.addVariation(created.id, 'v2');
+      const updated = await ideaRepository.addVariation(
+        created.id,
+        'v2',
+      );
 
       expect(updated.updatedAt).toBe('2026-01-03T12:00:00.000Z');
-      expect(updated.variations[1].createdAt).toBe('2026-01-03T12:00:00.000Z');
+      expect(updated.variations[1].createdAt).toBe(
+        '2026-01-03T12:00:00.000Z',
+      );
     });
   });
 });

@@ -13,5 +13,7 @@ chrome.sidePanel
 chrome.commands.onCommand.addListener((command, tab) => {
   if (command !== 'open-panel') return;
   if (tab?.windowId === undefined) return;
-  chrome.sidePanel.open({ windowId: tab.windowId }).catch((error) => console.error(error));
+  chrome.sidePanel
+    .open({ windowId: tab.windowId })
+    .catch((error) => console.error(error));
 });
