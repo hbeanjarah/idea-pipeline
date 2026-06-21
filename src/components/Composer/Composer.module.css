@@ -1,0 +1,78 @@
+/* Reusable idea input. Visual reference: design/mockup.html #composer (.cap).
+ * Colors / radius / focus ring / box padding via tokens; one-off geometry
+ * (chevron offsets, 120px cap, icon size) and font sizes are local literals. */
+
+.composer {
+  position: relative;
+  background: var(--card);
+  border: 1px solid var(--capbd);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+}
+
+/* Native focus state replaces the mockup's JS-driven .focus class. */
+.composer:focus-within {
+  box-shadow: var(--focus-ring);
+}
+
+.input {
+  display: block;
+  width: 100%;
+  border: none;
+  outline: none;
+  resize: none;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  /* Grows from one line up to the cap, then scrolls internally. */
+  min-height: 21px;
+  max-height: 120px;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  padding: 0;
+  padding-right: 26px; /* keep text clear of the chevron */
+}
+
+.input::placeholder {
+  color: var(--hint);
+}
+
+/* Thin scrollbar, cut above the chevron via the track's bottom margin. */
+.input::-webkit-scrollbar {
+  width: 8px;
+}
+
+.input::-webkit-scrollbar-thumb {
+  background: var(--capbd);
+  border-radius: var(--radius-xs);
+}
+
+.input::-webkit-scrollbar-thumb:hover {
+  background: var(--faint);
+}
+
+.input::-webkit-scrollbar-track {
+  background: transparent;
+  margin-bottom: 26px;
+}
+
+.send {
+  position: absolute;
+  right: 9px;
+  bottom: 8px;
+  display: flex;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  cursor: pointer;
+  line-height: 0;
+}
+
+.send svg {
+  display: block;
+  width: 19px;
+  height: 19px;
+}
