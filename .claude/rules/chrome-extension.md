@@ -1,8 +1,8 @@
 ---
 description: Contraintes Manifest V3, Side Panel, permissions, et verrou d'ouverture du panneau.
 paths:
-  - 'src/manifest.ts'
-  - 'src/background/**'
+  - "src/manifest.ts"
+  - "src/background/**"
 ---
 
 # Extension Chrome (MV3)
