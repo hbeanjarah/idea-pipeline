@@ -1,15 +1,20 @@
 import type { Navigate } from '../routes/routes';
+import { useIdeas } from '../hooks/useIdeas';
+import Composer from '../components/Composer/Composer';
 
 interface Props {
   navigate: Navigate;
 }
 
-// Skeleton surface. Temporary navigation buttons — thrown away once the real
-// navigation lands in later lots.
+// Data access via the hook only — never the repository directly. The nav
+// buttons are temporary, thrown away once the real navigation lands.
 export default function HomeScreen({ navigate }: Props) {
+  const { create } = useIdeas();
+
   return (
     <main>
       <h1>Accueil</h1>
+      <Composer onSubmit={create} />
       <button onClick={() => navigate({ screen: 'list' })}>
         Aller à la liste
       </button>
