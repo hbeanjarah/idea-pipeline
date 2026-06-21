@@ -1,0 +1,69 @@
+/* Reusable idea card. Visual reference: design/mockup.html #idea-card (.card).
+ * Colors / radius / box padding / status dots via tokens; one-off geometry
+ * (dot size, gaps) and font sizes are local literals. */
+
+.card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: var(--card);
+  border: 1px solid var(--cardbd);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-sans);
+  cursor: pointer;
+}
+
+.card:hover {
+  border-color: var(--panelbd);
+}
+
+/* Preview of the latest variation, clamped to two lines. */
+.text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 5px;
+}
+
+/* Status dot only — the label lives in the detail view (lot 4). */
+.dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.captured {
+  background: var(--status-captured);
+}
+
+.maturing {
+  background: var(--status-maturing);
+}
+
+.ready {
+  background: var(--status-ready);
+}
+
+.published {
+  background: var(--status-published);
+}
+
+/* Metadata: mono + tabular-nums, per css.md. */
+.versions {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  color: var(--hint);
+}
