@@ -1,7 +1,7 @@
 ---
 description: Conventions des composants React — réutilisabilité, séparation présentation/données, props.
 paths:
-  - "src/**/*.tsx"
+  - 'src/**/*.tsx'
 ---
 
 # Composants React

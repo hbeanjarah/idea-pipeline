@@ -11,9 +11,7 @@ chrome.sidePanel
 // Keyboard shortcut opens the side panel. onCommand is a user gesture, so
 // sidePanel.open() is allowed here.
 chrome.commands.onCommand.addListener((command, tab) => {
-  if (command !== "open-panel") return;
+  if (command !== 'open-panel') return;
   if (tab?.windowId === undefined) return;
-  chrome.sidePanel
-    .open({ windowId: tab.windowId })
-    .catch((error) => console.error(error));
+  chrome.sidePanel.open({ windowId: tab.windowId }).catch((error) => console.error(error));
 });

@@ -1,7 +1,7 @@
 ---
 description: Organisation du CSS (CSS Modules, colocalisation), design tokens et charte typographique.
 paths:
-  - "src/**/*.css"
+  - 'src/**/*.css'
 ---
 
 # CSS & design tokens
