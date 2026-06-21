@@ -1,8 +1,8 @@
 ---
 description: Modèle de données canonique (Idea, Variation, Status) et couche repository. Référence unique pour toute lecture/écriture du stockage.
 paths:
-  - "src/**/*.ts"
-  - "src/**/*.tsx"
+  - 'src/**/*.ts'
+  - 'src/**/*.tsx'
 ---
 
 # Stockage & modèle de données
@@ -14,7 +14,7 @@ noms — en anglais. Les libellés français vivent côté UI uniquement.
 
 ```typescript
 // Les 4 étapes du pipeline.
-type Status = "captured" | "maturing" | "ready" | "published";
+type Status = 'captured' | 'maturing' | 'ready' | 'published';
 
 // Un état du texte à un instant T.
 // APPEND-ONLY : on n'édite ni ne supprime jamais une variation existante ;

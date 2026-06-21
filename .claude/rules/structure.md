@@ -1,7 +1,7 @@
 ---
 description: Arborescence du projet et règle d'organisation — où placer chaque type de fichier.
 paths:
-  - "src/**"
+  - 'src/**'
 ---
 
 # Structure du projet
