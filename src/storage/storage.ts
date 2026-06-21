@@ -41,14 +41,15 @@ export class ChromeStorageIdeaRepository implements IdeaRepository {
   async addVariation(ideaId: string, text: string): Promise<Idea> {
     const ideas = await this.readAll();
     const idea = this.require(ideas, ideaId);
+    const now = this.now();
     // Append-only: never edit or drop an existing variation.
     const variation: Variation = {
       id: crypto.randomUUID(),
       text,
-      createdAt: this.now(),
+      createdAt: now,
     };
     idea.variations.push(variation);
-    idea.updatedAt = this.now();
+    idea.updatedAt = now;
     await this.writeAll(ideas);
     return idea;
   }
