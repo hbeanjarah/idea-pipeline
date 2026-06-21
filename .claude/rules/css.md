@@ -15,7 +15,7 @@ CSS pur, **aucun framework UI** (ni Tailwind, ni librairie de composants).
   préfixe à tenir. Côté JSX : `import styles from './IdeaCard.module.css'` puis
   `className={styles.ideaCard}`.
 - **Colocalisation** : le CSS d'un composant vit à côté de lui — `IdeaCard.tsx`
-  - `IdeaCard.module.css` dans le même dossier.
+  + `IdeaCard.module.css` dans le même dossier.
 - **Deux fichiers globaux** dans `src/styles/`, non scopés :
   - `tokens.css` — design tokens (variables CSS sur `:root`). **Uniquement des
     variables**, aucune règle visuelle.
@@ -32,38 +32,55 @@ côté JS (`styles.ideaCard`). CSS idiomatique d'un côté, accès propre de l'a
 ## Design tokens
 
 Toute valeur partagée est une variable CSS dans `tokens.css`. Le code ne pose
-**jamais** une couleur ou un espacement en dur — toujours via un token.
+**jamais** une couleur ou un espacement en dur — toujours via un token. Les
+valeurs ci-dessous sont extraites de la maquette de référence
+(`design/mockup.html`), qui fait foi.
 
-Familles : couleurs de marque, couleurs de statut, neutres, typographie,
-espacements, rayons.
+L'ambiance est **froide** (gris-bleu), rehaussée de turquoise. Aucun ton chaud.
 
-**Palette de marque** (valeurs de référence, calées sur la maquette validée) :
+**Surfaces & fonds**
 
-| Token            | Valeur    | Usage                        |
-| ---------------- | --------- | ---------------------------- |
-| `--brand-navy`   | `#323859` | bleu nuit, ancrage           |
-| `--brand-turq`   | `#038C8C` | turquoise, action principale |
-| `--brand-violet` | `#4A3F73` | violet                       |
-| `--brand-taupe`  | `#A68776` | taupe                        |
-| `--brand-sky`    | `#BDD9F2` | bleu clair                   |
-| `--brand-mint`   | `#5DCCB0` | menthe                       |
-| `--bg-cream`     | `#F7F3D7` | fond de l'app                |
+| Token       | Valeur    | Usage                            |
+| ----------- | --------- | -------------------------------- |
+| `--bg`      | `#e8ebf1` | fond de l'app (gris-bleu froid)  |
+| `--panel`   | `#f2f6fc` | panneau / surface principale     |
+| `--card`    | `#ffffff` | cartes, champ de saisie          |
+| `--panelbd` | `#dce4f0` | bordure de panneau               |
+| `--cardbd`  | `#e4ebf4` | bordure de carte                 |
+| `--capbd`   | `#cdddf0` | bordure du champ de saisie       |
+| `--ring`    | `#e3edf9` | halo de focus                    |
+| `--spine`   | `#dce4f0` | filet vertical de l'historique   |
 
-Le dégradé `--brand-navy → --brand-turq` est le motif d'accent récurrent ; le
-turquoise plein porte l'action (chevron d'envoi, etc.).
+**Texte**
 
-**Couleurs de statut** (pastilles) — réutilisent la marque :
+| Token     | Valeur    | Usage                       |
+| --------- | --------- | --------------------------- |
+| `--ink`   | `#323859` | texte principal (bleu nuit) |
+| `--muted` | `#6f7891` | texte secondaire            |
+| `--hint`  | `#9aa3b5` | placeholder, indices        |
+| `--faint` | `#aab2c4` | texte le plus discret       |
 
-| `Status`    | Token                | Couleur   |
-| ----------- | -------------------- | --------- |
-| `captured`  | `--status-captured`  | taupe     |
-| `maturing`  | `--status-maturing`  | violet    |
-| `ready`     | `--status-ready`     | turquoise |
-| `published` | `--status-published` | bleu nuit |
+**Accents & marque**
 
-Les **neutres** (texte, bordures beige, carte sélectionnée blanche),
-**espacements**, **rayons** et **ombres** suivent la maquette validée : ce sont
-ses valeurs qui font foi. Le ticket « Base CSS » les transcrit dans `tokens.css`.
+| Token      | Valeur    | Usage                           |
+| ---------- | --------- | ------------------------------- |
+| `--accent` | `#038c8c` | turquoise — action (chevron…)   |
+| `--hl`     | `#bdd9f2` | surbrillance (filtre actif)     |
+| `--violet` | `#4a3f73` | violet                          |
+| `--taupe`  | `#a68776` | taupe                           |
+| `--tagbg`  | `#e7eef8` | fond de tag                     |
+| `--tagink` | `#5b6480` | texte de tag                    |
+
+**Couleurs de statut** (pastilles) — réutilisent la palette ci-dessus :
+
+| `Status`    | Couleur                |
+| ----------- | ---------------------- |
+| `captured`  | taupe (`--taupe`)      |
+| `maturing`  | violet (`--violet`)    |
+| `ready`     | turquoise (`--accent`) |
+| `published` | bleu nuit (`--ink`)    |
+
+Les **espacements**, **rayons** et **ombres** suivent eux aussi la maquette.
 
 ## Typographie
 
@@ -84,8 +101,8 @@ ou les titres.
 
 Zones scrollables (liste, composer auto-extensible) : scrollbar fine et discrète
 (~8px, coins arrondis), stylée via `::-webkit-scrollbar`. Le détail propre à un
-composant (ex. décalage de piste du composer pour ne pas chevaucher le chevron)
-est colocalisé dans son module.
+composant — par ex. la **piste de scroll du composer raccourcie en bas** pour
+qu'elle s'arrête au-dessus du chevron d'envoi — est colocalisé dans son module.
 
 ## Hors-périmètre
 
