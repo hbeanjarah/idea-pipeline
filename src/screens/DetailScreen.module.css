@@ -1,0 +1,158 @@
+/* Idea detail (read-only). Visual reference: design/mockup.html #surface-detail
+ * (.bar / .thread / .ver). Colors / radius / status dots via tokens; one-off
+ * geometry and font sizes are local literals. Fills the side panel height: only
+ * .body scrolls, never the page. Structure leaves room for later actions
+ * (status control, reformulation field, overflow menu). */
+
+.detail {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--panel);
+  padding: var(--space-3);
+}
+
+/* Header: back-to-list control, pinned above the scroll area. The overflow
+ * menu (delete, later lots) will sit at the far end of this bar. */
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 var(--space-3);
+  color: var(--muted);
+}
+
+.back {
+  display: flex;
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.back:hover {
+  color: var(--ink);
+}
+
+.body {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 3px;
+}
+
+.body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.body::-webkit-scrollbar-thumb {
+  background: var(--panelbd);
+  border-radius: var(--radius-xs);
+}
+
+.body::-webkit-scrollbar-thumb:hover {
+  background: var(--faint);
+}
+
+.body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Current status — dot + label (we have room here, unlike the card). */
+.status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 var(--space-3);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.captured {
+  background: var(--status-captured);
+}
+
+.maturing {
+  background: var(--status-maturing);
+}
+
+.ready {
+  background: var(--status-ready);
+}
+
+.published {
+  background: var(--status-published);
+}
+
+/* Chronological thread: first capture on top, latest at the bottom — where the
+ * reformulation field will land next lot. The spine runs down the left. */
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border-left: 2px solid var(--spine);
+  padding-left: 11px;
+}
+
+.ver {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* Previous variations sit back in --tagink; the current one (last) is primary. */
+.text {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--tagink);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.current .text {
+  font-size: 14px;
+  color: var(--ink);
+}
+
+/* Timestamp: mono + tabular-nums metadata, per css.md. */
+.date {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  color: var(--hint);
+}
+
+/* Defensive not-found state — sober message, not a worked screen. */
+.empty {
+  padding: 24px 6px 8px;
+  text-align: center;
+}
+
+.empty-title {
+  margin: 0 0 var(--space-3);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.empty-back {
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--tagbg);
+  color: var(--ink);
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.empty-back:hover {
+  background: var(--ring);
+}
