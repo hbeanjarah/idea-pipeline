@@ -1,0 +1,34 @@
+/* Search field. Visual reference: design/mockup.html #surface-list (.search).
+ * Colors / radius via tokens; one-off geometry and font sizes are local literals. */
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 var(--space-3);
+  padding: 8px 10px;
+  background: var(--card);
+  border: 1px solid var(--capbd);
+  border-radius: var(--radius-md);
+  color: var(--hint);
+}
+
+.icon {
+  flex: none;
+  color: var(--hint);
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  outline: none;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 13px;
+}
+
+.input::placeholder {
+  color: var(--hint);
+}
