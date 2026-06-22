@@ -50,7 +50,7 @@ export default function HomeScreen({ navigate }: Props) {
         </div>
       )}
 
-      <Composer onSubmit={create} />
+      <Composer onSubmit={create} autoFocus />
       <p className={styles.hint}>
         ⏎ enregistrer · ⇧⏎ retour à la ligne
       </p>

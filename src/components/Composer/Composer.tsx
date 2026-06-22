@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import styles from './Composer.module.css';
 
@@ -7,13 +7,23 @@ const PLACEHOLDER = 'Une idée…';
 
 interface Props {
   onSubmit: (text: string) => void;
+  autoFocus?: boolean;
 }
 
 // Presentational only: owns its draft text locally and hands the trimmed text
 // up on submit. Knows nothing of useIdeas or the repository.
-export default function Composer({ onSubmit }: Props) {
+export default function Composer({
+  onSubmit,
+  autoFocus = false,
+}: Props) {
   const [text, setText] = useState('');
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Focus on mount when requested — programmatic, via the existing textarea ref
+  // (more robust than React's native autoFocus attribute in a Side Panel).
+  useEffect(() => {
+    if (autoFocus) inputRef.current?.focus();
+  }, [autoFocus]);
 
   // Auto-resize: grow to fit the content; CSS max-height caps it and scrolls.
   useLayoutEffect(() => {
