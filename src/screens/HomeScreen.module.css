@@ -1,0 +1,133 @@
+/* Home surface. Visual reference: design/mockup.html #surface-home (+ #empty-states).
+ * Colors / radius / status dots / box spacing via tokens; one-off geometry and
+ * font sizes are local literals. Never-scroll surface (bounded to 5 cards). */
+
+.home {
+  background: var(--panel);
+  border: 1px solid var(--panelbd);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+}
+
+.title {
+  margin: 0 0 var(--space-3);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.pipe {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-3);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.seg {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.captured {
+  background: var(--status-captured);
+}
+
+.maturing {
+  background: var(--status-maturing);
+}
+
+.ready {
+  background: var(--status-ready);
+}
+
+.published {
+  background: var(--status-published);
+}
+
+/* Counters are metadata: mono + tabular-nums, per css.md. */
+.count {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.hint {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--hint);
+}
+
+.eyebrow {
+  margin: var(--space-4) 0 var(--space-2);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--hint);
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.more {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--tagbg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.more:hover {
+  background: var(--ring);
+}
+
+.more-count {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  color: var(--hint);
+}
+
+.empty {
+  padding: 24px 6px 8px;
+  text-align: center;
+}
+
+.empty-cue {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+  color: var(--faint);
+}
+
+.empty-title {
+  margin: 0 0 5px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.empty-sub {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--hint);
+}
