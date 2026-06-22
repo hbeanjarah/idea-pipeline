@@ -130,6 +130,12 @@
   color: var(--hint);
 }
 
+/* Reformulation field, in-flow below the thread (the thread grows downward, the
+ * next variation is written just under the history). The Composer is reused as-is. */
+.reform {
+  margin-top: var(--space-3);
+}
+
 /* Defensive not-found state — sober message, not a worked screen. */
 .empty {
   padding: 24px 6px 8px;

@@ -1,6 +1,7 @@
 import type { Navigate } from '../routes/routes';
 import type { Status } from '../storage/types';
 import { useIdeas } from '../hooks/useIdeas';
+import Composer from '../components/Composer/Composer';
 import styles from './DetailScreen.module.css';
 
 interface Props {
@@ -31,7 +32,7 @@ function formatTimestamp(iso: string): string {
 // looked up in the in-memory list; mutations (reformulate / status / delete)
 // land on this structure in the next lots.
 export default function DetailScreen({ navigate, ideaId }: Props) {
-  const { ideas, loading } = useIdeas();
+  const { ideas, loading, addVariation } = useIdeas();
   const idea = ideas.find((candidate) => candidate.id === ideaId);
 
   return (
@@ -85,6 +86,15 @@ export default function DetailScreen({ navigate, ideaId }: Props) {
                   </span>
                 </div>
               ))}
+            </div>
+
+            {/* Reformulation: the Composer is reused as-is (single onSubmit
+                prop). A new variation appends, never edits — and leaves the
+                status untouched. */}
+            <div className={styles.reform}>
+              <Composer
+                onSubmit={(text) => addVariation(idea.id, text)}
+              />
             </div>
           </div>
         ) : (
