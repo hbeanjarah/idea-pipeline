@@ -1,0 +1,85 @@
+/* Full idea list. Visual reference: design/mockup.html #surface-list (.bar / .ttl).
+ * Colors / radius / box spacing via tokens; one-off geometry and font sizes are
+ * local literals. Fills the side panel height: only .rows scrolls, never the body. */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--panel);
+  padding: var(--space-3);
+}
+
+/* Header: back-to-home control + title, pinned above the scroll area. */
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 var(--space-3);
+}
+
+.back {
+  display: flex;
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.back:hover {
+  color: var(--ink);
+}
+
+.title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* The only scroll surface — fine 8px scrollbar, per css.md. */
+.rows {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-right: 3px;
+}
+
+.rows::-webkit-scrollbar {
+  width: 8px;
+}
+
+.rows::-webkit-scrollbar-thumb {
+  background: var(--panelbd);
+  border-radius: var(--radius-xs);
+}
+
+.rows::-webkit-scrollbar-thumb:hover {
+  background: var(--faint);
+}
+
+.rows::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Defensive empty state — sober message, not a worked screen. */
+.empty {
+  padding: 24px 6px 8px;
+  text-align: center;
+}
+
+.empty-title {
+  margin: 0 0 5px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.empty-sub {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--hint);
+}
