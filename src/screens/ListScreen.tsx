@@ -1,19 +1,35 @@
+import { useState } from 'react';
 import type { Navigate } from '../routes/routes';
 import { useIdeas } from '../hooks/useIdeas';
+import { filterIdeas } from '../lib/filterIdeas';
+import type { FilterStatus } from '../lib/filterIdeas';
 import IdeaCard from '../components/IdeaCard/IdeaCard';
+import StatusFilter from '../components/StatusFilter/StatusFilter';
 import styles from './ListScreen.module.css';
 
 interface Props {
   navigate: Navigate;
 }
 
-// Data access via the hook only — never the repository directly. Read-only here:
-// the full list, sorted like the Home preview. Filters / search land in later lots.
+// Data access via the hook only — never the repository directly. Read-only here;
+// the active filter is local UI state, applied in memory via the pure filterIdeas.
 export default function ListScreen({ navigate }: Props) {
   const { ideas, loading } = useIdeas();
+  const [status, setStatus] = useState<FilterStatus>('all');
 
-  // Most recently active first — consistent with the Home preview, but unbounded.
-  const sorted = [...ideas].sort((a, b) =>
+  // Counts run on the full list, independent of the active filter — otherwise
+  // every non-active counter would drop to 0.
+  const counts: Record<FilterStatus, number> = {
+    all: ideas.length,
+    captured: 0,
+    maturing: 0,
+    ready: 0,
+    published: 0,
+  };
+  for (const idea of ideas) counts[idea.status]++;
+
+  // Filter first, then sort: most recently active first, like the Home preview.
+  const visible = [...filterIdeas(ideas, { status })].sort((a, b) =>
     b.updatedAt.localeCompare(a.updatedAt),
   );
 
@@ -45,19 +61,17 @@ export default function ListScreen({ navigate }: Props) {
         <p className={styles.title}>Mes idées</p>
       </div>
 
+      {!loading && hasIdeas && (
+        <StatusFilter
+          active={status}
+          counts={counts}
+          onChange={setStatus}
+        />
+      )}
+
       {!loading && (
         <div className={styles.rows}>
-          {hasIdeas ? (
-            sorted.map((idea) => (
-              <IdeaCard
-                key={idea.id}
-                idea={idea}
-                onClick={() =>
-                  navigate({ screen: 'detail', ideaId: idea.id })
-                }
-              />
-            ))
-          ) : (
+          {!hasIdeas ? (
             <div className={styles.empty}>
               <p className={styles.emptyTitle}>
                 Aucune idée pour l'instant.
@@ -66,6 +80,22 @@ export default function ListScreen({ navigate }: Props) {
                 Reviens à l'accueil pour capturer ta première idée.
               </p>
             </div>
+          ) : visible.length === 0 ? (
+            <div className={styles.empty}>
+              <p className={styles.emptyTitle}>
+                Aucune idée à cette étape.
+              </p>
+            </div>
+          ) : (
+            visible.map((idea) => (
+              <IdeaCard
+                key={idea.id}
+                idea={idea}
+                onClick={() =>
+                  navigate({ screen: 'detail', ideaId: idea.id })
+                }
+              />
+            ))
           )}
         </div>
       )}

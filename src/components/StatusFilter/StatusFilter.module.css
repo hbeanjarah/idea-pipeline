@@ -1,0 +1,48 @@
+/* Status filter bar. Visual reference: design/mockup.html #surface-list (.filters / .pill).
+ * Colors / radius via tokens; one-off geometry and font sizes are local literals.
+ * Horizontally scrollable, scrollbar hidden — like the mockup. */
+
+.filters {
+  display: flex;
+  gap: 5px;
+  overflow-x: auto;
+  padding-bottom: 3px;
+  margin: 0 0 var(--space-3);
+}
+
+.filters::-webkit-scrollbar {
+  height: 0;
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: none;
+  padding: 4px 11px;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.pill.on {
+  background: var(--hl);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* Counter: mono + tabular-nums metadata, per css.md. */
+.count {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--faint);
+}
+
+.pill.on .count {
+  color: var(--tagink);
+}
