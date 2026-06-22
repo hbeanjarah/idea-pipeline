@@ -5,6 +5,7 @@ import { filterIdeas } from '../lib/filterIdeas';
 import type { FilterStatus } from '../lib/filterIdeas';
 import IdeaCard from '../components/IdeaCard/IdeaCard';
 import StatusFilter from '../components/StatusFilter/StatusFilter';
+import SearchInput from '../components/SearchInput/SearchInput';
 import styles from './ListScreen.module.css';
 
 interface Props {
@@ -16,6 +17,7 @@ interface Props {
 export default function ListScreen({ navigate }: Props) {
   const { ideas, loading } = useIdeas();
   const [status, setStatus] = useState<FilterStatus>('all');
+  const [query, setQuery] = useState('');
 
   // Counts run on the full list, independent of the active filter — otherwise
   // every non-active counter would drop to 0.
@@ -28,12 +30,14 @@ export default function ListScreen({ navigate }: Props) {
   };
   for (const idea of ideas) counts[idea.status]++;
 
-  // Filter first, then sort: most recently active first, like the Home preview.
-  const visible = [...filterIdeas(ideas, { status })].sort((a, b) =>
-    b.updatedAt.localeCompare(a.updatedAt),
+  // Filter (status + query) first, then sort: most recently active first, like
+  // the Home preview.
+  const visible = [...filterIdeas(ideas, { status, query })].sort(
+    (a, b) => b.updatedAt.localeCompare(a.updatedAt),
   );
 
   const hasIdeas = ideas.length > 0;
+  const searchTerm = query.trim();
 
   return (
     <main className={styles.list}>
@@ -62,11 +66,14 @@ export default function ListScreen({ navigate }: Props) {
       </div>
 
       {!loading && hasIdeas && (
-        <StatusFilter
-          active={status}
-          counts={counts}
-          onChange={setStatus}
-        />
+        <>
+          <SearchInput value={query} onChange={setQuery} />
+          <StatusFilter
+            active={status}
+            counts={counts}
+            onChange={setStatus}
+          />
+        </>
       )}
 
       {!loading && (
@@ -83,7 +90,9 @@ export default function ListScreen({ navigate }: Props) {
           ) : visible.length === 0 ? (
             <div className={styles.empty}>
               <p className={styles.emptyTitle}>
-                Aucune idée à cette étape.
+                {searchTerm
+                  ? `Aucune idée ne contient « ${searchTerm} ».`
+                  : 'Aucune idée à cette étape.'}
               </p>
             </div>
           ) : (

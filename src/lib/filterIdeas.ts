@@ -11,13 +11,26 @@ export interface FilterCriteria {
 }
 
 // Pure, in-memory filtering — no React, no repository. Preserves input order,
-// so the caller keeps owning the sort.
+// so the caller keeps owning the sort. Status and query combine (intersection).
 export function filterIdeas(
   ideas: Idea[],
   criteria: FilterCriteria,
 ): Idea[] {
-  const { status } = criteria;
-  // `query` is intentionally unused until the Search ticket wires it in.
-  if (status === 'all') return ideas;
-  return ideas.filter((idea) => idea.status === status);
+  const { status, query } = criteria;
+
+  const byStatus =
+    status === 'all'
+      ? ideas
+      : ideas.filter((idea) => idea.status === status);
+
+  // Empty / blank query is a no-op. Case-insensitive substring match, no accent
+  // normalization (MVP: é ≠ e). Scans every variation, not just the latest.
+  const term = query?.trim().toLowerCase();
+  if (!term) return byStatus;
+
+  return byStatus.filter((idea) =>
+    idea.variations.some((variation) =>
+      variation.text.toLowerCase().includes(term),
+    ),
+  );
 }
