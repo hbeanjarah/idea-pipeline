@@ -10,6 +10,11 @@ export interface IdeasContextValue {
   loading: boolean;
   create: (text: string) => Promise<Idea>;
   addVariation: (ideaId: string, text: string) => Promise<Idea>;
+  editVariation: (
+    ideaId: string,
+    variationId: string,
+    text: string,
+  ) => Promise<Idea>;
   changeStatus: (ideaId: string, status: Status) => Promise<Idea>;
   deleteIdea: (ideaId: string) => Promise<void>;
 }

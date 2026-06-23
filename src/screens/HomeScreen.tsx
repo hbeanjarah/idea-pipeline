@@ -75,7 +75,7 @@ export default function HomeScreen({ navigate }: Props) {
               className={styles.more}
               onClick={() => navigate({ screen: 'list' })}
             >
-              <span>Voir toutes mes idées</span>
+              <span>Toutes mes idées</span>
               <span className={styles.moreCount}>{ideas.length}</span>
             </button>
           </>
@@ -98,10 +98,6 @@ export default function HomeScreen({ navigate }: Props) {
             </div>
             <p className={styles.emptyTitle}>
               Ta première idée commence ici.
-            </p>
-            <p className={styles.emptySub}>
-              Tape-la dans le champ ci-dessus, ⏎ pour la garder. Elle
-              apparaîtra dans cette liste.
             </p>
           </div>
         ))}

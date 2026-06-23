@@ -12,6 +12,11 @@ export interface IdeaRepository {
   list(): Promise<Idea[]>;
   create(text: string): Promise<Idea>; // creates the idea + its first variation
   addVariation(ideaId: string, text: string): Promise<Idea>;
+  editVariation(
+    ideaId: string,
+    variationId: string,
+    text: string,
+  ): Promise<Idea>; // fixes a variation's text in place (id/createdAt frozen)
   changeStatus(ideaId: string, status: Status): Promise<Idea>;
   delete(ideaId: string): Promise<void>; // permanent deletion
 }
@@ -50,6 +55,27 @@ export class ChromeStorageIdeaRepository implements IdeaRepository {
     };
     idea.variations.push(variation);
     idea.updatedAt = now;
+    await this.writeAll(ideas);
+    return idea;
+  }
+
+  async editVariation(
+    ideaId: string,
+    variationId: string,
+    text: string,
+  ): Promise<Idea> {
+    const ideas = await this.readAll();
+    const idea = this.require(ideas, ideaId);
+    const variation = idea.variations.find(
+      (candidate) => candidate.id === variationId,
+    );
+    if (!variation) {
+      throw new Error(`Variation not found: ${variationId}`);
+    }
+    // Append-only in structure: edit the text in place only. id and createdAt
+    // stay frozen, and the array keeps its length and order — no add/remove.
+    variation.text = text;
+    idea.updatedAt = this.now();
     await this.writeAll(ideas);
     return idea;
   }
