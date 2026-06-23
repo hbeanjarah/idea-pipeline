@@ -50,6 +50,30 @@ describe('ChromeStorageIdeaRepository', () => {
     });
   });
 
+  describe('readAll guard against a corrupted store', () => {
+    // The stub only stores what the code writes (always arrays), so a
+    // corrupted value is seeded explicitly before the call. This mirrors a
+    // real chrome.storage where the key holds a non-array value (e.g. the
+    // DevTools editor writes "" instead of removing the key).
+    it('returns [] when the ideas key holds a non-array value', async () => {
+      for (const corrupted of ['', '[]', {}]) {
+        await chrome.storage.local.set({ ideas: corrupted });
+        expect(await ideaRepository.list()).toEqual([]);
+      }
+    });
+
+    it('lets create() succeed (no r.push TypeError) over a corrupted value', async () => {
+      await chrome.storage.local.set({ ideas: '' });
+
+      const idea = await ideaRepository.create('after corruption');
+
+      expect(idea.variations[0].text).toBe('after corruption');
+      const all = await ideaRepository.list();
+      expect(all).toHaveLength(1);
+      expect(all[0].id).toBe(idea.id);
+    });
+  });
+
   describe('addVariation', () => {
     it('appends a new variation and leaves the existing one untouched', async () => {
       const created = await ideaRepository.create('v1');

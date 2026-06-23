@@ -71,7 +71,11 @@ export class ChromeStorageIdeaRepository implements IdeaRepository {
 
   private async readAll(): Promise<Idea[]> {
     const result = await chrome.storage.local.get(STORAGE_KEY);
-    return (result[STORAGE_KEY] as Idea[] | undefined) ?? [];
+    const value = result[STORAGE_KEY];
+    // Storage is untyped (structured clone): a corrupted non-array value
+    // ("", "[]" as a string, an object) must fall back to an empty list
+    // instead of slipping through and crashing every mutator (r.push…).
+    return Array.isArray(value) ? (value as Idea[]) : [];
   }
 
   private async writeAll(ideas: Idea[]): Promise<void> {
