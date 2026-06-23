@@ -83,9 +83,6 @@ export default function ListScreen({ navigate }: Props) {
               <p className={styles.emptyTitle}>
                 Aucune idée pour l'instant.
               </p>
-              <p className={styles.emptySub}>
-                Reviens à l'accueil pour capturer ta première idée.
-              </p>
             </div>
           ) : visible.length === 0 ? (
             <div className={styles.empty}>

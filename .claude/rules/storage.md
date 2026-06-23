@@ -54,8 +54,10 @@ interface IdeaRepository {
 
 - `variations` n'est jamais vide : `create` pose la première, les suivantes
   arrivent par `addVariation`.
-- Variations **append-only** : aucune édition, aucune suppression d'une
-  variation déjà enregistrée.
+- Variations **append-only en structure** : pas de suppression ni de
+  réordonnancement, `id` + `createdAt` immuables. Le `text`, lui, reste
+  corrigible via `editVariation` — pour réparer une erreur, pas pour marquer
+  une étape ; l'`updatedAt` de l'idée est rafraîchi.
 - Les mutateurs (`create`, `addVariation`, `changeStatus`) renvoient l'`Idea`
   à jour — l'appelant ne relit pas via `list()`.
 - `updatedAt` est rafraîchi à chaque mutation ; `createdAt` ne bouge jamais.

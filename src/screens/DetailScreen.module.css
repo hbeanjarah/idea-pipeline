@@ -36,6 +36,84 @@
   color: var(--ink);
 }
 
+/* ⋮ idea-actions trigger, at the far end of the bar. */
+.menu-icon {
+  color: var(--muted);
+}
+
+.menu-icon:hover {
+  color: var(--ink);
+}
+
+/* Idea-actions menu (popover content). Today a single destructive entry. */
+.action-menu {
+  display: flex;
+  flex-direction: column;
+}
+
+.delete-option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  padding: var(--space-2) var(--space-2);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--danger);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.delete-option:hover {
+  background: var(--danger-bg);
+}
+
+/* Inline confirmation bar, pinned under the header (does not scroll). */
+.confirm-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--danger-bg);
+}
+
+.confirm-text {
+  flex: 1;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.confirm-cancel {
+  border: none;
+  background: none;
+  padding: var(--space-1) var(--space-2);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.confirm-cancel:hover {
+  color: var(--ink);
+}
+
+/* Filled-red confirm — white text reuses --card (#ffffff), no new token. */
+.confirm-delete {
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--danger);
+  padding: var(--space-1) var(--space-3);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--card);
+  cursor: pointer;
+}
+
 .body {
   flex: 1;
   overflow-y: auto;
@@ -59,14 +137,58 @@
   background: transparent;
 }
 
-/* Current status — dot + label (we have room here, unlike the card). */
+/* Current status row — spacing wrapper around the clickable badge. */
 .status {
+  margin: 0 0 var(--space-3);
+}
+
+/* The badge is the popover trigger: a tag pill (dot + label + chevron). */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--tagbg);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Chevron hints the badge is clickable; turquoise = action, per css.md. */
+.chevron {
+  color: var(--accent);
+}
+
+/* Status picker inside the popover — one row per step. */
+.status-menu {
+  display: flex;
+  flex-direction: column;
+}
+
+.status-option {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 0 0 var(--space-3);
+  width: 100%;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  padding: var(--space-2) var(--space-2);
+  font-family: var(--font-sans);
   font-size: 13px;
-  color: var(--muted);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.status-option:hover {
+  background: var(--ring);
+}
+
+/* Check marks the current step; pushed to the row's end. */
+.check {
+  margin-left: auto;
+  color: var(--accent);
 }
 
 .dot {
@@ -108,8 +230,48 @@
   gap: 3px;
 }
 
+/* Text + its ⋮ menu on one row; the timestamp sits below. */
+.ver-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+/* ⋮ variation trigger: always visible but faint, darkens on hover. */
+.ver-menu {
+  flex: none;
+  margin-left: auto;
+  color: var(--faint);
+}
+
+.ver-menu:hover {
+  color: var(--ink);
+}
+
+/* Single neutral entry in the variation-actions popover (today: edit). */
+.edit-option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  padding: var(--space-2) var(--space-2);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--ink);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.edit-option:hover {
+  background: var(--ring);
+}
+
 /* Previous variations sit back in --tagink; the current one (last) is primary. */
 .text {
+  flex: 1;
   font-size: 13px;
   line-height: 1.5;
   color: var(--tagink);
@@ -127,6 +289,15 @@
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   font-size: 11px;
+  color: var(--hint);
+}
+
+/* Eyebrow above the reformulation field — same style as Home's "Récentes". */
+.eyebrow {
+  margin: var(--space-4) 0 var(--space-2);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   color: var(--hint);
 }
 

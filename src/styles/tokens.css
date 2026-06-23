@@ -33,6 +33,10 @@
   --status-ready: var(--accent);
   --status-published: var(--ink);
 
+  /* Danger — the only warm color, reserved for destructive actions (delete) */
+  --danger: #c0453b;
+  --danger-bg: #f6ece9;
+
   /* Typography — system stacks only, no webfont */
   --font-sans:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica,
@@ -56,6 +60,9 @@
   --radius-lg: 14px;
   --radius-pill: 999px;
 
-  /* Shadows — the only one in the mockup is the focus ring */
+  /* Shadows */
   --focus-ring: 0 0 0 3px var(--ring);
+  /* Soft elevation for floating surfaces (popover, later: delete confirm),
+   * derived from --ink (#323859 = rgb 50 56 89), kept low-opacity and discreet. */
+  --shadow-popover: 0 6px 20px rgba(50, 56, 89, 0.16);
 }

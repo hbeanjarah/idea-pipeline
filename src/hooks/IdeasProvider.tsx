@@ -51,6 +51,23 @@ export function IdeasProvider({ children }: Props) {
     [],
   );
 
+  const editVariation = useCallback(
+    async (ideaId: string, variationId: string, text: string) => {
+      const idea = await ideaRepository.editVariation(
+        ideaId,
+        variationId,
+        text,
+      );
+
+      setIdeas((current) =>
+        current.map((item) => (item.id === idea.id ? idea : item)),
+      );
+
+      return idea;
+    },
+    [],
+  );
+
   const changeStatus = useCallback(
     async (ideaId: string, status: Status) => {
       const idea = await ideaRepository.changeStatus(ideaId, status);
@@ -78,10 +95,19 @@ export function IdeasProvider({ children }: Props) {
       loading,
       create,
       addVariation,
+      editVariation,
       changeStatus,
       deleteIdea,
     }),
-    [ideas, loading, create, addVariation, changeStatus, deleteIdea],
+    [
+      ideas,
+      loading,
+      create,
+      addVariation,
+      editVariation,
+      changeStatus,
+      deleteIdea,
+    ],
   );
 
   return <IdeasContext value={value}>{children}</IdeasContext>;

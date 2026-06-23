@@ -6,11 +6,11 @@ interface Props {
   onClick: () => void;
 }
 
-// Presentational only: reads the idea, never mutates. Shows the latest
-// variation as a preview + a status dot. Click opens the detail (lot 4).
+// Presentational only: reads the idea, never mutates. Shows the original
+// (first) variation as a preview + a status dot. Click opens the detail (lot 4).
 export default function IdeaCard({ idea, onClick }: Props) {
-  // variations is guaranteed >= 1, so the last one is always present.
-  const text = idea.variations[idea.variations.length - 1].text;
+  // variations is guaranteed >= 1, so the first one is always present.
+  const text = idea.variations[0].text;
   const versionCount = idea.variations.length;
 
   return (

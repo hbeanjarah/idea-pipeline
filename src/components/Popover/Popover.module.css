@@ -1,0 +1,40 @@
+/* Reusable popover primitive. Behavior in Popover.tsx; here only the wrapper,
+ * a reset trigger button, and the floating surface. Colors / radius / elevation
+ * via tokens; the stacking literal is one-off geometry. */
+
+.popover {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Reset button: the visual trigger (e.g. the status badge) is passed as
+ * content, so the button itself stays neutral. */
+.trigger {
+  display: inline-flex;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* Floating surface — lifted off the plane with the dedicated elevation token. */
+.content {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  left: 0;
+  z-index: 10;
+  min-width: 160px;
+  background: var(--card);
+  border: 1px solid var(--panelbd);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-popover);
+  padding: var(--space-1);
+}
+
+/* Right-anchored variant, for a trigger at the end of its row. */
+.end {
+  left: auto;
+  right: 0;
+}
