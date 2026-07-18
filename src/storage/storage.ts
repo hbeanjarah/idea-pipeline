@@ -37,15 +37,21 @@ export class ChromeStorageIdeaRepository implements IdeaRepository {
       createdAt: now,
       updatedAt: now,
     };
+
     const ideas = await this.readAll();
+
     ideas.push(idea);
+
     await this.writeAll(ideas);
+
     return idea;
   }
 
   async addVariation(ideaId: string, text: string): Promise<Idea> {
     const ideas = await this.readAll();
+
     const idea = this.require(ideas, ideaId);
+
     const now = this.now();
     // Append-only: never edit or drop an existing variation.
     const variation: Variation = {
@@ -53,9 +59,13 @@ export class ChromeStorageIdeaRepository implements IdeaRepository {
       text,
       createdAt: now,
     };
+
     idea.variations.push(variation);
+
     idea.updatedAt = now;
+
     await this.writeAll(ideas);
+
     return idea;
   }
 
@@ -65,39 +75,55 @@ export class ChromeStorageIdeaRepository implements IdeaRepository {
     text: string,
   ): Promise<Idea> {
     const ideas = await this.readAll();
+
     const idea = this.require(ideas, ideaId);
+
     const variation = idea.variations.find(
       (candidate) => candidate.id === variationId,
     );
+
     if (!variation) {
       throw new Error(`Variation not found: ${variationId}`);
     }
+
     // Append-only in structure: edit the text in place only. id and createdAt
     // stay frozen, and the array keeps its length and order — no add/remove.
     variation.text = text;
+
     idea.updatedAt = this.now();
+
     await this.writeAll(ideas);
+
     return idea;
   }
 
   async changeStatus(ideaId: string, status: Status): Promise<Idea> {
     const ideas = await this.readAll();
+
     const idea = this.require(ideas, ideaId);
+
     idea.status = status;
+
     idea.updatedAt = this.now();
+
     await this.writeAll(ideas);
+
     return idea;
   }
 
   async delete(ideaId: string): Promise<void> {
     const ideas = await this.readAll();
+
     const next = ideas.filter((idea) => idea.id !== ideaId);
+
     await this.writeAll(next);
   }
 
   private async readAll(): Promise<Idea[]> {
     const result = await chrome.storage.local.get(STORAGE_KEY);
+
     const value = result[STORAGE_KEY];
+
     // Storage is untyped (structured clone): a corrupted non-array value
     // ("", "[]" as a string, an object) must fall back to an empty list
     // instead of slipping through and crashing every mutator (r.push…).
@@ -111,9 +137,11 @@ export class ChromeStorageIdeaRepository implements IdeaRepository {
   // Locate an idea or fail: a mutator must return an Idea, impossible if absent.
   private require(ideas: Idea[], ideaId: string): Idea {
     const idea = ideas.find((candidate) => candidate.id === ideaId);
+
     if (!idea) {
       throw new Error(`Idea not found: ${ideaId}`);
     }
+
     return idea;
   }
 
