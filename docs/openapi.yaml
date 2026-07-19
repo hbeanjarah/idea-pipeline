@@ -1,0 +1,326 @@
+openapi: 3.0.3
+
+info:
+  title: idea-pipeline API
+  version: 1.0.0
+
+paths:
+  /ideas:
+    get:
+      operationId: listIdeas
+      summary: Liste des idées
+      description: Retourne la collection complète des idées.
+      responses:
+        '200':
+          description: Collection des idées.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Idea'
+        '500':
+          description: Erreur inattendue côté serveur.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      operationId: createIdea
+      summary: Crée une nouvelle idée
+      description: Crée une idée avec une variation initiale.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateIdeaRequest'
+      responses:
+        '201':
+          description: Idée créée.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Idea'
+        '400':
+          description: Requête invalide.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erreur inattendue côté serveur.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /ideas/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdeaId'
+
+    delete:
+      operationId: deleteIdea
+      summary: Supprime une idée
+      description: Supprime l'idée identifiée par son id.
+      responses:
+        '204':
+          description: Idée supprimée.
+        '404':
+          description: Idée introuvable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erreur inattendue côté serveur.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      operationId: changeIdeaStatus
+      summary: Modifie le statut d'une idée
+      description: Met à jour le statut de l'idée.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeStatusRequest'
+      responses:
+        '200':
+          description: Idée mise à jour.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Idea'
+        '400':
+          description: Statut invalide ou champs non autorisés.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Idée introuvable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erreur inattendue côté serveur.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /ideas/{id}/variations:
+    parameters:
+      - $ref: '#/components/parameters/IdeaId'
+
+    post:
+      operationId: addVariation
+      summary: Ajoute une variation à une idée
+      description: Ajoute une nouvelle variation à l'idée ciblée.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateVariationRequest'
+      responses:
+        '201':
+          description: Idée complète avec la nouvelle variation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Idea'
+        '400':
+          description: Texte invalide.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Idée introuvable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erreur inattendue côté serveur.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /ideas/{id}/variations/{variationId}:
+    parameters:
+      - $ref: '#/components/parameters/IdeaId'
+      - $ref: '#/components/parameters/VariationId'
+
+    patch:
+      operationId: editVariation
+      summary: Modifie une variation existante
+      description: Modifie le texte d'une variation appartenant à une idée.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditVariationRequest'
+      responses:
+        '200':
+          description: Idée complète mise à jour.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Idea'
+        '400':
+          description: Texte invalide.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Idée ou variation introuvable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erreur inattendue côté serveur.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  parameters:
+    IdeaId:
+      name: id
+      in: path
+      required: true
+      description: Identifiant de l'idée.
+      schema:
+        type: string
+        format: uuid
+
+    VariationId:
+      name: variationId
+      in: path
+      required: true
+      description: Identifiant de la variation.
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    Status:
+      type: string
+      enum:
+        - captured
+        - maturing
+        - ready
+        - published
+
+    Variation:
+      type: object
+      required:
+        - id
+        - text
+        - createdAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identifiant unique de la variation généré par le serveur.
+        text:
+          type: string
+          description: Texte de la variation.
+        createdAt:
+          type: string
+          format: date-time
+          description: Date de création de la variation.
+
+    Idea:
+      type: object
+      required:
+        - id
+        - status
+        - createdAt
+        - updatedAt
+        - variations
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identifiant unique de l'idée généré par le serveur.
+        status:
+          $ref: '#/components/schemas/Status'
+        createdAt:
+          type: string
+          format: date-time
+          description: Date de création de l'idée.
+        updatedAt:
+          type: string
+          format: date-time
+          description: Date de dernière modification de l'idée.
+        variations:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Variation'
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Message décrivant l'erreur.
+
+    CreateIdeaRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          minLength: 1
+          description: Texte initial de l'idée.
+
+    CreateVariationRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          minLength: 1
+          description: Texte de la variation.
+
+    EditVariationRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          minLength: 1
+          description: Nouveau texte de la variation.
+
+    ChangeStatusRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - status
+      properties:
+        status:
+          $ref: '#/components/schemas/Status'
