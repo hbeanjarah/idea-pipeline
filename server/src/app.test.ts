@@ -203,3 +203,40 @@ describe('fallbacks', () => {
     expect(res.status).toBe(400);
   });
 });
+
+describe('documentation', () => {
+  it('serves the spec as YAML', async () => {
+    const res = await api('/openapi.yaml');
+
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toContain('yaml');
+    expect(await res.text()).toContain('openapi: 3.0.3');
+  });
+
+  // @scalar/api-reference's exports map does not cover the browser bundle, so
+  // its path is derived from the filesystem and nothing in the package
+  // guarantees it. An upgrade that moves the file fails here rather than
+  // serving a blank page with a 404 only visible in the browser console.
+  it('serves the Scalar bundle', async () => {
+    const res = await api('/scalar.js');
+
+    expect(res.status).toBe(200);
+    expect((await res.text()).length).toBeGreaterThan(1_000_000);
+  });
+
+  it('renders a page wired to the local spec and bundle', async () => {
+    const html = await (await api('/docs')).text();
+
+    expect(html).toContain('/openapi.yaml');
+    expect(html).toContain('/scalar.js');
+  });
+
+  // The point of vendoring a 3.6 MB bundle: the page must not reach out to a
+  // CDN, which is exactly what Scalar does by default.
+  it('reaches no CDN', async () => {
+    const html = await (await api('/docs')).text();
+
+    expect(html).not.toContain('jsdelivr');
+    expect(html).not.toContain('cdn.');
+  });
+});
