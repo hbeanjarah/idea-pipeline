@@ -621,7 +621,18 @@ après `environment: 'node'` :
 ```typescript
           globalSetup: ['./test/global-setup.ts'],
           setupFiles: ['./test/setup.ts'],
+          // One container serves the whole project, and each test truncates it.
+          // Run files one at a time, or a worker wipes the rows another one is
+          // still asserting on.
+          fileParallelism: false,
 ```
+
+`fileParallelism` n'est pas un détail de performance, c'est une **condition de
+correction**. Vitest exécute les fichiers en parallèle par défaut ; avec une base
+unique et un `TRUNCATE` par test, les workers se détruisent mutuellement leurs
+données. Le symptôme est trompeur — certains tests voient une base vide, d'autres
+des lignes en trop — et il ne se reproduit pas à l'identique d'un passage à
+l'autre.
 
 - [ ] **Étape 5 : écrire le garde-fou des statuts (test d'abord)**
 
