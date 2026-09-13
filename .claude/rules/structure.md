@@ -63,6 +63,7 @@ idea-pipeline/
 │   ├── api-design.md       # contrat REST + table exhaustive des messages
 │   ├── openapi.yaml        # spécification OpenAPI des 6 endpoints
 │   └── persistence-design.md # conception de la persistance (PostgreSQL)
+├── README.md               # prérequis, installation, comment lancer les deux moitiés
 ├── CLAUDE.md
 ├── package.json
 ├── tsconfig.json
