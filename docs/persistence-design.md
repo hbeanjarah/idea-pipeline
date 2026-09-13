@@ -157,15 +157,22 @@ server/migrations/001_initial.sql     ← LA source
                  └── src/store/schema.generated.ts
 ```
 
-**Ce fichier généré est commité** — à l'inverse de `api.generated.ts`, qui est
-gitignoré et recréé par le hook `prepare`. La raison : `kysely-codegen`
-introspecte une **base vivante**. Sur un checkout neuf sans Docker démarré, il ne
-pourrait pas tourner, et `typecheck` échouerait. Deux fichiers générés, deux
-politiques opposées, pour une raison précise — à écrire dans `storage.md` pour
-que ça ne passe pas pour une incohérence.
+**Ce fichier généré n'est pas versionné**, comme `api.generated.ts` — mais
+aucun hook ne le recrée, contrairement à lui. `kysely-codegen` introspecte une
+**base vivante** : l'appeler depuis `prepare` obligerait `pnpm install` à
+démarrer et migrer une base, c'est-à-dire à devenir une opération
+d'infrastructure. La régénération est donc une **étape explicite**, lancée après
+chaque migration, dans cet ordre — régénérer contre une base non migrée produit
+une interface `DB` vide sans lever d'erreur.
 
-Le runner de migrations utilise l'API de migration de Kysely en lisant les
-fichiers `.sql` — pas de dépendance supplémentaire.
+Contrepartie assumée : un clone neuf ne compile qu'une fois `db:migrate` puis
+`db:types` passés. C'est le prix pour que l'installation des dépendances reste
+inerte.
+
+Le runner de migrations lit les fichiers `.sql` et les applique sur le pool
+`pg` — pas de dépendance supplémentaire. L'API `Migrator` de Kysely ne convient
+pas : elle passe toujours un tableau de paramètres, ce qui bascule Postgres sur
+le protocole étendu, lequel refuse plusieurs instructions dans une même requête.
 
 ## Tests
 

@@ -7,7 +7,13 @@ import prettier from 'eslint-config-prettier';
 import globals from 'globals';
 
 export default tseslint.config(
-  { ignores: ['**/dist', 'server/src/domain/api.generated.ts'] },
+  {
+    ignores: [
+      '**/dist',
+      'server/src/domain/api.generated.ts',
+      'server/src/store/schema.generated.ts',
+    ],
+  },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   reactHooks.configs.flat['recommended-latest'],
