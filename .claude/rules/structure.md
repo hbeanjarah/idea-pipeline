@@ -61,7 +61,8 @@ idea-pipeline/
 │       └── store/          # persistance (Map en mémoire)
 ├── docs/
 │   ├── api-design.md       # contrat REST + table exhaustive des messages
-│   └── openapi.yaml        # spécification OpenAPI des 6 endpoints
+│   ├── openapi.yaml        # spécification OpenAPI des 6 endpoints
+│   └── persistence-design.md # conception de la persistance (PostgreSQL)
 ├── CLAUDE.md
 ├── package.json
 ├── tsconfig.json

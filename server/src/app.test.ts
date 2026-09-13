@@ -240,3 +240,28 @@ describe('documentation', () => {
     expect(html).not.toContain('cdn.');
   });
 });
+
+describe('GET /ideas ordering', () => {
+  // Date resolution is one millisecond and three in-process requests fit
+  // inside it. Without a real pause every timestamp ties, the order falls back
+  // to the id tiebreaker, and the assertions below become a coin toss.
+  const tick = () => new Promise((resolve) => setTimeout(resolve, 2));
+
+  it('answers with ideas sorted by descending updatedAt', async () => {
+    const first = await createIdea('une');
+    await tick();
+    await createIdea('deux');
+    await tick();
+    await createIdea('trois');
+    await tick();
+    await send('PATCH', `/ideas/${first.id}`, { status: 'ready' });
+
+    const ideas = (await (await api('/ideas')).json()) as Idea[];
+    const stamps = ideas.map((idea) => idea.updatedAt);
+
+    // Without distinct timestamps the ordering assertion proves nothing.
+    expect(new Set(stamps).size).toBe(3);
+    expect(ideas[0]?.id).toBe(first.id);
+    expect(stamps).toEqual([...stamps].sort().reverse());
+  });
+});

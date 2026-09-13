@@ -67,7 +67,7 @@ L'application ne prévoit pas la consultation individuelle d'une idée. Les beso
 
 **Requête :** aucune.
 
-**Réponse :** `200` + collection d'idées (`[]` si aucune idée n'existe).
+**Réponse :** `200` + collection d'idées (`[]` si aucune idée n'existe), triée par `updatedAt` décroissant puis `id` décroissant.
 
 Aucune donnée n'est envoyée à l'API : le client appelle simplement l'endpoint. Le corps de la réponse contient une collection JSON représentant les idées.
 
@@ -193,9 +193,15 @@ Le corps de la requête doit contenir uniquement le champ `status`.
 
 ## Décision : `GET /ideas`
 
-**Décision : la collection complète est renvoyée.**
+**Décision : la collection complète est renvoyée, triée par le serveur.**
 
-L'endpoint `GET /ideas` renvoie l'ensemble des idées, sans filtrage, tri ni pagination. Les besoins fonctionnels de l'application sont couverts par cette approche et le volume de données attendu reste faible. Les éventuels filtres, recherches ou tris sont réalisés côté client. Ajouter des paramètres de requête (`?status=`, `?sort=`, `?search=`…) constituerait une complexité inutile à ce stade (principe **YAGNI**).
+L'endpoint `GET /ideas` renvoie l'ensemble des idées, sans filtrage ni pagination. Le volume attendu reste faible ; filtres et recherche sont réalisés côté client. Ajouter des paramètres de requête (`?status=`, `?search=`…) constituerait une complexité inutile à ce stade (principe **YAGNI**).
+
+**Le tri, lui, appartient au serveur** : `updated_at` décroissant, l'idée touchée le plus récemment en premier. C'est ce qu'attend la section « Récentes » de l'accueil. Le laisser au client obligerait chaque consommateur à réimplémenter la même règle, et à se tromper de la même façon.
+
+**Départage des égalités** : deux idées peuvent porter le même `updatedAt` — deux mutations dans la même milliseconde suffisent. L'`id` décroissant sert alors de second critère. Arbitraire, mais **déterministe** : sans lui, l'ordre varierait d'un appel à l'autre.
+
+Ordre complet : `updatedAt DESC, id DESC`.
 
 ## Décision : génération des identifiants
 

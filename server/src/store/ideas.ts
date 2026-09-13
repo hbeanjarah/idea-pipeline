@@ -2,9 +2,6 @@ import { randomUUID } from 'node:crypto';
 
 import type { Idea, Status } from '#domain/types';
 
-// Async throughout even though nothing awaits: swapping this Map for a real
-// database must not ripple through every caller.
-
 const ideas = new Map<string, Idea>();
 
 const snapshot = (idea: Idea): Idea => structuredClone(idea);
@@ -12,7 +9,16 @@ const snapshot = (idea: Idea): Idea => structuredClone(idea);
 const now = (): string => new Date().toISOString();
 
 export async function listIdeas(): Promise<Idea[]> {
-  return [...ideas.values()].map(snapshot);
+  // The contract fixes the order: most recently touched first. ISO 8601 strings
+  // compare chronologically, and the id breaks ties so two ideas sharing a
+  // millisecond still come back in the same order on every call.
+  return [...ideas.values()]
+    .sort(
+      (a, b) =>
+        b.updatedAt.localeCompare(a.updatedAt) ||
+        b.id.localeCompare(a.id),
+    )
+    .map(snapshot);
 }
 
 export async function createIdea(text: string): Promise<Idea> {
