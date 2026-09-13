@@ -527,14 +527,27 @@ Dans `server/tsconfig.json`, remplacer la ligne `include` :
 "include": ["src/**/*.ts", "test/**/*.ts"]
 ```
 
-Dans `server/tsconfig.build.json`, remplacer la ligne `exclude` :
+Toujours dans `server/tsconfig.json`, élargir `rootDir`, qui vaut `"src"` et
+interdirait à `tsc` de voir un fichier situé en dehors :
 
 ```json
-"exclude": ["**/*.test.ts", "test/**"]
+"rootDir": ".",
 ```
 
-Sans ce second changement, le harnais — qui importe une dépendance de
-développement — serait compilé dans `dist/`.
+Dans `server/tsconfig.build.json`, lui rendre sa valeur — c'est lui qui émet,
+et `dist/` doit garder sa forme actuelle — et exclure le harnais :
+
+```json
+  "compilerOptions": {
+    "noEmit": false,
+    "rootDir": "src"
+  },
+  "exclude": ["**/*.test.ts", "test/**"]
+```
+
+Sans le premier changement, `typecheck` échoue en `TS6059`. Sans le second, le
+harnais — qui importe une dépendance de développement — serait compilé dans
+`dist/`, et les chemins de sortie deviendraient `dist/src/…`.
 
 - [ ] **Étape 2 : écrire le démarrage global du conteneur**
 
