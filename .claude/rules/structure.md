@@ -13,9 +13,13 @@ pas de dossier hors de cette structure sans qu'un ticket l'autorise.
 idea-pipeline/
 ├── .claude/
 │   └── rules/
+│       ├── chrome-extension.md
+│       ├── code-style.md
+│       ├── css.md
+│       ├── git.md
+│       ├── react.md
 │       ├── storage.md
-│       ├── structure.md
-│       └── css.md
+│       └── structure.md
 ├── public/
 │   └── icons/              # icônes de l'extension (16/32/48/128)
 ├── src/

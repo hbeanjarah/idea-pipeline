@@ -56,14 +56,13 @@ Seul `suggested_key` du raccourci diffère par plateforme.
 
 - **Qualité** : ESLint + Prettier, TypeScript en mode strict. Le code livré
   passe `lint`, `format` et `typecheck` sans erreur.
-- **Langue du code : anglais, partout.** Variables, types, entités métier,
-  noms de fichiers et de composants — tout en anglais (`Idea`, `Variation`,
-  `Status`, `IdeaCard`, `ideaRepository`…). Le **français est réservé
-  uniquement aux textes affichés à l'utilisateur** (libellés d'UI / microcopie).
-- **Pas de sur-ingénierie** : la solution la plus simple qui respecte les bonnes pratiques. Pas d'abstraction « au cas où » non demandée.
+- **Style de code** (commentaires, langue, sur-ingénierie) : voir
+  `.claude/rules/code-style.md`.
 - **Arborescence** : voir `.claude/rules/structure.md`.
+- **Composants React** : voir `.claude/rules/react.md`.
 - **Styles (CSS pur, tokens)** : voir `.claude/rules/css.md`.
 - **Stockage (repository)** : voir `.claude/rules/storage.md`.
+- **Messages de commit** : voir `.claude/rules/git.md`.
 
 ## Hors-scope du MVP (ne pas construire)
 
@@ -84,5 +83,3 @@ Claude Code de sa propre initiative.
   pas de restauration.
 - **Le panneau latéral ne s'ouvre que sur action explicite** de
   l'utilisateur. Jamais d'auto-ouverture en arrière-plan.
-- Convention de message de commit : @.claude/rules/git.md
-- **Composants React** : voir `.claude/rules/react.md`.
