@@ -65,7 +65,7 @@ mais deux d'entre eux changent la commande d'installation.
 | `server/src/store/migrations.ts`               | **créer** — runner, réutilisé par les tests              |
 | `server/src/store/migrate-cli.ts`              | **créer** — point d'entrée `db:migrate`                  |
 | `server/src/store/db.ts`                       | **créer** — instance Kysely paresseuse                   |
-| `server/src/store/schema.generated.ts`         | **généré, commité**                                      |
+| `server/src/store/schema.generated.ts`         | **généré, non versionné**                                |
 | `server/src/store/ideas.ts`                    | **réécrire** — signatures inchangées                     |
 | `server/src/store/ideas.test.ts`               | **réécrire**                                             |
 | `server/src/store/status-constraint.test.ts`   | **créer** — garde-fou `CHECK` ↔ `STATUSES`               |
@@ -415,9 +415,25 @@ Dans `eslint.config.js`, ligne 10, étendre la liste :
 { ignores: ['**/dist', 'server/src/domain/api.generated.ts', 'server/src/store/schema.generated.ts'] },
 ```
 
-Ce fichier-ci est **commité**, contrairement à `api.generated.ts` : il ne peut
-être régénéré que contre une base vivante, donc un checkout sans Docker ne
-pourrait pas le reconstruire et `typecheck` échouerait.
+Puis **l'exclure de Git**, dans `server/.gitignore` :
+
+```
+# Généré par kysely-codegen depuis la base migrée.
+src/store/schema.generated.ts
+```
+
+Il n'est ni versionné, ni recréé par un hook. `prepare` doit rester **hors
+ligne** : faire migrer une base pendant un `pnpm install` transformerait
+l'installation de dépendances en opération d'infrastructure. La régénération est
+une **étape explicite**, à lancer après chaque migration :
+
+```bash
+pnpm --dir server db:migrate && pnpm --dir server db:types
+```
+
+L'ordre compte : régénérer contre une base **non migrée** ne lève aucune erreur,
+elle produit une interface `DB` **vide**. Contrepartie assumée : sur un clone
+neuf, `typecheck` échoue tant que ces deux commandes n'ont pas tourné.
 
 - [ ] **Étape 4 : écrire la connexion**
 
@@ -475,9 +491,10 @@ Attendu : aucune erreur. Le fichier généré ne doit produire ni erreur ESLint 
 ```
 feat(server): connect kysely to postgres
 
-Commit the generated schema types, unlike the OpenAPI ones: kysely-codegen
-introspects a live database, so a fresh checkout without Docker could not
-rebuild them and typecheck would fail.
+Keep the generated schema types out of Git and out of the prepare hook:
+installing dependencies must not require a database, and migrating one from
+prepare would turn an install into an infrastructure operation. Regenerating
+them is an explicit step, run after each migration.
 ```
 
 ---
@@ -1209,11 +1226,12 @@ Dans `.claude/rules/storage.md`, ajouter au blockquote de tête :
 ```markdown
 > Côté serveur, la **forme** du modèle vient toujours du spec OpenAPI, mais son
 > **stockage** est décrit par `server/migrations/*.sql`. Ne modifie jamais
-> `src/store/schema.generated.ts` : écris une migration, applique-la
-> (`pnpm --dir server db:migrate`), régénère (`pnpm --dir server db:types`).
-> Ce fichier généré est **commité**, contrairement à `api.generated.ts` :
-> kysely-codegen introspecte une base vivante, qu'un checkout neuf sans Docker
-> n'a pas.
+> `src/store/schema.generated.ts` : écris une migration, puis lance
+> `pnpm --dir server db:migrate && pnpm --dir server db:types` — dans cet ordre,
+> car régénérer contre une base non migrée produit une interface `DB` vide sans
+> lever d'erreur. Ce fichier n'est **pas versionné**, et aucun hook ne le
+> recrée : `prepare` reste hors ligne. Un clone neuf ne compile donc qu'après
+> ces deux commandes.
 ```
 
 - [ ] **Étape 3 : déclarer les nouveaux fichiers dans `structure.md`**
