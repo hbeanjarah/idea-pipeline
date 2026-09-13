@@ -24,6 +24,10 @@ export default defineConfig({
           environment: 'node',
           globalSetup: ['./test/global-setup.ts'],
           setupFiles: ['./test/setup.ts'],
+          // One container serves the whole project, and each test truncates it.
+          // Run files one at a time, or a worker wipes the rows another one is
+          // still asserting on.
+          fileParallelism: false,
         },
       },
     ],

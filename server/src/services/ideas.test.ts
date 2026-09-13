@@ -1,15 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-// Fresh module graph per test so the store underneath starts empty. Assertions
-// match on shape, not `instanceof`: the ApiError class is re-created too.
-type Service = typeof import('#services/ideas');
-
-let service: Service;
-
-beforeEach(async () => {
-  vi.resetModules();
-  service = await import('#services/ideas');
-});
+import * as service from '#services/ideas';
 
 const REQUIRED_TEXT = {
   status: 400,
