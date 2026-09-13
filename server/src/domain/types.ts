@@ -1,24 +1,3 @@
-// Mirrors the schemas in docs/openapi.yaml.
+export type { Idea, Variation, Status } from '#domain/api.generated';
 
-export const STATUSES = [
-  'captured',
-  'maturing',
-  'ready',
-  'published',
-] as const;
-
-export type Status = (typeof STATUSES)[number];
-
-export interface Variation {
-  id: string;
-  text: string;
-  createdAt: string;
-}
-
-export interface Idea {
-  id: string;
-  status: Status;
-  createdAt: string;
-  updatedAt: string;
-  variations: Variation[];
-}
+export { statusValues as STATUSES } from '#domain/api.generated';

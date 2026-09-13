@@ -3,12 +3,24 @@ description: Modèle de données canonique (Idea, Variation, Status) et couche r
 paths:
   - "src/**/*.ts"
   - "src/**/*.tsx"
+  - "server/**/*.ts"
 ---
 
 # Stockage & modèle de données
 
-Référence **canonique** du modèle. Tout le code s'aligne sur ces types et ces
-noms — en anglais. Les libellés français vivent côté UI uniquement.
+> **Source de vérité — à lire en premier.** Depuis que les types du serveur
+> sont générés (`docs/openapi.yaml` → `server/src/domain/api.generated.ts`),
+> c'est le **spec OpenAPI qui fait foi pour la _forme_ du modèle**. Ne modifie
+> jamais un type généré : édite le spec, puis `pnpm --dir server generate:types`.
+> Le fichier généré n'est pas versionné (hook `prepare`) ; un test échoue si la
+> copie locale a pris du retard sur le spec.
+>
+> Ce fichier reste la référence pour ce que le spec ne sait **pas** exprimer :
+> les **invariants** ci-dessous. Le front (`src/storage/types.ts`) est encore
+> écrit à la main — sa génération est une brique à venir.
+
+Tout le code s'aligne sur ces types et ces noms — en anglais. Les libellés
+français vivent côté UI uniquement.
 
 ## Modèle
 

@@ -57,6 +57,10 @@ cette liste sans qu'on discute et l'autorise explicitement.
 
 - **Runtime** : Node en ESM (`"type": "module"`)
 - **Framework** : Express 5
+- **Modèle** : types **générés** depuis `docs/openapi.yaml` via
+  `openapi-typescript`. Le spec est la source unique. Le fichier généré n'est
+  **pas** versionné : le hook `prepare` le recrée à chaque `pnpm install`, et
+  un test échoue si la copie locale a pris du retard sur le spec.
 - **Validation** : Zod — schémas stricts, calqués sur `docs/openapi.yaml`
 - **Stockage** : `Map` en mémoire. **Rien n'est persisté** : tout disparaît au
   redémarrage. La vraie persistance est un sujet ouvert, pas une omission.

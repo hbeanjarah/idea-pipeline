@@ -8,3 +8,6 @@ dist/
 # Environment variables
 .env
 .env.local
+
+# Généré depuis ../docs/openapi.yaml — recréé par le hook `prepare`.
+src/domain/api.generated.ts
