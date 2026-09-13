@@ -5,7 +5,7 @@
     "types": ["node"],
     "lib": ["ES2022"],
     "outDir": "dist",
-    "rootDir": "src",
+    "rootDir": ".",
     "customConditions": ["development"],
     "noEmit": true,
     "isolatedModules": true,
@@ -18,5 +18,5 @@
     "noUncheckedIndexedAccess": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts", "test/**/*.ts"]
 }
