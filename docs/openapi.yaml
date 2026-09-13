@@ -3,6 +3,13 @@ openapi: 3.0.3
 info:
   title: idea-pipeline API
   version: 1.0.0
+  description: |
+    Toute réponse d'erreur a la forme `{ "error": "…" }`. La liste exhaustive
+    des messages vit dans docs/api-design.md, section « Messages » — le serveur
+    les reprend mot pour mot.
+
+    Une URL ne correspondant à aucun chemin déclaré ici renvoie
+    `404 — Ressource introuvable.`, hors du périmètre de cette spécification.
 
 paths:
   /ideas:
@@ -20,7 +27,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/Idea'
         '500':
-          description: Erreur inattendue côté serveur.
+          description: |
+            `Erreur inattendue côté serveur.`
           content:
             application/json:
               schema:
@@ -44,13 +52,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/Idea'
         '400':
-          description: Requête invalide.
+          description: |
+            Requête invalide. Messages possibles :
+            - `Le champ "text" est obligatoire.` — champ absent, vide, ne contenant que
+              des espaces, ou corps non lu faute de `Content-Type: application/json`.
+            - `Champs non autorisés.` — au moins un champ hors du schéma est présent.
+            - `Corps de requête JSON invalide.` — JSON malformé.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
         '500':
-          description: Erreur inattendue côté serveur.
+          description: |
+            `Erreur inattendue côté serveur.`
           content:
             application/json:
               schema:
@@ -68,13 +82,15 @@ paths:
         '204':
           description: Idée supprimée.
         '404':
-          description: Idée introuvable.
+          description: |
+            `Idée introuvable.`
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
         '500':
-          description: Erreur inattendue côté serveur.
+          description: |
+            `Erreur inattendue côté serveur.`
           content:
             application/json:
               schema:
@@ -98,19 +114,26 @@ paths:
               schema:
                 $ref: '#/components/schemas/Idea'
         '400':
-          description: Statut invalide ou champs non autorisés.
+          description: |
+            Requête invalide. Messages possibles :
+            - `Le champ "status" est obligatoire.` — champ absent, corps vide inclus.
+            - `Statut invalide.` — valeur présente mais hors de l'énumération.
+            - `Champs non autorisés.` — au moins un champ hors du schéma est présent.
+            - `Corps de requête JSON invalide.` — JSON malformé.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
         '404':
-          description: Idée introuvable.
+          description: |
+            `Idée introuvable.`
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
         '500':
-          description: Erreur inattendue côté serveur.
+          description: |
+            `Erreur inattendue côté serveur.`
           content:
             application/json:
               schema:
@@ -138,19 +161,26 @@ paths:
               schema:
                 $ref: '#/components/schemas/Idea'
         '400':
-          description: Texte invalide.
+          description: |
+            Requête invalide. Messages possibles :
+            - `Le champ "text" est obligatoire.` — champ absent, vide, ne contenant que
+              des espaces, ou corps non lu faute de `Content-Type: application/json`.
+            - `Champs non autorisés.` — au moins un champ hors du schéma est présent.
+            - `Corps de requête JSON invalide.` — JSON malformé.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
         '404':
-          description: Idée introuvable.
+          description: |
+            `Idée introuvable.`
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
         '500':
-          description: Erreur inattendue côté serveur.
+          description: |
+            `Erreur inattendue côté serveur.`
           content:
             application/json:
               schema:
@@ -179,19 +209,28 @@ paths:
               schema:
                 $ref: '#/components/schemas/Idea'
         '400':
-          description: Texte invalide.
+          description: |
+            Requête invalide. Messages possibles :
+            - `Le champ "text" est obligatoire.` — champ absent, vide, ne contenant que
+              des espaces, ou corps non lu faute de `Content-Type: application/json`.
+            - `Champs non autorisés.` — au moins un champ hors du schéma est présent.
+            - `Corps de requête JSON invalide.` — JSON malformé.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
         '404':
-          description: Idée ou variation introuvable.
+          description: |
+            Deux causes distinctes, deux messages :
+            - `Idée introuvable.` — aucune idée ne porte cet `id`.
+            - `Variation introuvable.` — l'idée existe, mais pas la variation ciblée.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
         '500':
-          description: Erreur inattendue côté serveur.
+          description: |
+            `Erreur inattendue côté serveur.`
           content:
             application/json:
               schema:
@@ -281,7 +320,11 @@ components:
       properties:
         error:
           type: string
-          description: Message décrivant l'erreur.
+          description: |
+            Message décrivant l'erreur. La liste exhaustive des messages vit
+            dans docs/api-design.md, section « Messages » — le serveur les
+            reprend mot pour mot.
+          example: Idée introuvable.
 
     CreateIdeaRequest:
       type: object

@@ -1,6 +1,7 @@
 # idea-pipeline
 
-> Extension Chrome perso de capture et de maturation d'idées de posts LinkedIn.
+> Extension Chrome perso de capture et de maturation d'idées de posts LinkedIn,
+> et l'API locale qui la servira.
 
 ## Contexte & objectif
 
@@ -8,6 +9,12 @@ Outil **personnel, mono-utilisateur**. Ce n'est pas une appli de notes :
 c'est un **pipeline de contenu**. L'unité n'est pas une note figée mais une
 **idée vivante** qui évolue par variations successives, de la capture
 jusqu'à la publication.
+
+Le dépôt tient deux moitiés : l'**extension** (`src/`), fonctionnelle et qui
+persiste dans `chrome.storage.local`, et une **API locale** (`server/`) qui
+sert le contrat de `docs/`. **Les deux ne sont pas encore branchées** — le
+front n'appelle pas le serveur, et le sort des données déjà en local reste
+à décider.
 
 ## Méthode de travail
 
@@ -35,14 +42,27 @@ gère le dépôt.
 Pile **figée**. Ne propose aucune alternative ni ajout de dépendance hors de
 cette liste sans qu'on discute et l'autorise explicitement.
 
-- **Gestionnaire de paquets** : pnpm
+**Commun aux deux moitiés** : pnpm · TypeScript (mode strict) · vitest.
+
+**Front — l'extension (`src/`)**
+
 - **Build** : Vite + `@crxjs/vite-plugin@beta`
-- **Langage** : TypeScript (mode strict)
 - **UI** : React
 - **Type d'app** : extension Chrome, Manifest V3 (service worker)
 - **Surface** : Chrome Side Panel API
 - **Stockage** : `chrome.storage.local` derrière une couche repository → voir `.claude/rules/storage.md`
 - **Styles** : CSS pur, aucun framework UI (ni Tailwind, ni librairie de composants)
+
+**Back — l'API locale (`server/`)**
+
+- **Runtime** : Node en ESM (`"type": "module"`)
+- **Framework** : Express 5
+- **Validation** : Zod — schémas stricts, calqués sur `docs/openapi.yaml`
+- **Stockage** : `Map` en mémoire. **Rien n'est persisté** : tout disparaît au
+  redémarrage. La vraie persistance est un sujet ouvert, pas une omission.
+- **Exécution** : `tsx` en dev, `tsc` pour le build
+- **Imports** : subpath imports Node (`#services/ideas`), sans extension →
+  voir `.claude/rules/structure.md`
 
 **Versions des dépendances.** Quand on autorise l'installation d'une lib,
 prends toujours sa **dernière version stable** au moment de l'install. Tiens-les
@@ -73,8 +93,9 @@ Claude Code de sa propre initiative.
 
 - **Pas d'images ni de médias** : une idée et ses variations sont du texte.
 - **Pas d'export** (fichier, partage, copie en masse).
-- **Pas de synchronisation ni de backend** : tout reste en local via
-  `chrome.storage.local`, sur un seul appareil.
+- **Pas de synchronisation ni de cloud** : le serveur tourne en local, sur un
+  seul appareil. Aucun hébergement distant, aucun compte, aucun multi-appareil.
+  Le backend local, lui, fait désormais partie du périmètre.
 - **Pas d'IA** : aucune génération, reformulation ou suggestion automatique.
   La maturation d'une idée est 100 % manuelle.
 - **Changement de statut : dans la vue détail uniquement.** Pas de

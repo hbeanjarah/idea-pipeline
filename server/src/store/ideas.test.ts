@@ -44,3 +44,34 @@ describe('createIdea', () => {
     expect(stored?.status).toBe('captured');
   });
 });
+
+describe('editVariation', () => {
+  it('tells an unknown idea apart from an unknown variation', async () => {
+    const idea = await store.createIdea('une idée');
+    const variationId = idea.variations[0]!.id;
+
+    expect(await store.editVariation('nope', variationId, 'x')).toBe(
+      'idea-not-found',
+    );
+    expect(await store.editVariation(idea.id, 'nope', 'x')).toBe(
+      'variation-not-found',
+    );
+  });
+
+  it('rewrites the text while freezing id and createdAt', async () => {
+    const created = await store.createIdea('une idée');
+    const before = created.variations[0]!;
+
+    const edited = await store.editVariation(
+      created.id,
+      before.id,
+      'corrigée',
+    );
+
+    expect(edited).not.toBe('idea-not-found');
+    const after = (edited as typeof created).variations[0]!;
+    expect(after.text).toBe('corrigée');
+    expect(after.id).toBe(before.id);
+    expect(after.createdAt).toBe(before.createdAt);
+  });
+});

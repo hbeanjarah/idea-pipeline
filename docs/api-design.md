@@ -14,11 +14,23 @@ Toutes les réponses d'erreur (`400`, `404` et `500`) renvoient un corps JSON de
 }
 ```
 
-Exemples :
+### Messages
 
-- `400` : `{ "error": "Le champ \"text\" est obligatoire." }`
-- `404` : `{ "error": "Idée introuvable." }`
-- `500` : `{ "error": "Erreur inattendue côté serveur." }`
+La liste est exhaustive : l'API n'en renvoie pas d'autres.
+
+| Code  | Message                              | Quand                                                                                                                                             |
+| ----- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `400` | `Le champ "text" est obligatoire.`   | `text` absent, vide ou ne contenant que des espaces — y compris quand le corps n'a pas été lu du tout (`Content-Type: application/json` manquant) |
+| `400` | `Le champ "status" est obligatoire.` | `status` absent du corps, corps vide inclus                                                                                                       |
+| `400` | `Statut invalide.`                   | `status` présent mais hors des valeurs autorisées                                                                                                 |
+| `400` | `Champs non autorisés.`              | au moins un champ hors du schéma est présent                                                                                                      |
+| `400` | `Corps de requête JSON invalide.`    | JSON malformé                                                                                                                                     |
+| `404` | `Idée introuvable.`                  | l'`id` ne correspond à aucune idée                                                                                                                |
+| `404` | `Variation introuvable.`             | l'idée existe, mais pas la variation ciblée                                                                                                       |
+| `404` | `Ressource introuvable.`             | l'URL ne correspond à aucun endpoint                                                                                                              |
+| `500` | `Erreur inattendue côté serveur.`    | toute erreur non prévue                                                                                                                           |
+
+Le texte est repris **mot pour mot** côté serveur : le contrat fait foi.
 
 | Action        | Méthode  | Endpoint                               | Pourquoi ce choix ?                                                                                                                                                                                                                                                              |
 | ------------- | -------- | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -86,7 +98,8 @@ Aucune donnée n'est envoyée à l'API : le client appelle simplement l'endpoint
 **Réponse :**
 
 - `201` + l'idée qui vient d'être créée.
-- `400` si `text` est absent, vide ou ne contient que des espaces.
+- `400` — `Le champ "text" est obligatoire.` si `text` est absent, vide ou ne contient que des espaces.
+- `400` — `Champs non autorisés.` si un champ hors schéma est présent.
 
 ### Delete idea
 
@@ -97,7 +110,7 @@ Aucune donnée n'est envoyée à l'API : le client appelle simplement l'endpoint
 **Réponse :**
 
 - `204` (sans corps). Après une suppression, la ressource n'existe plus ; renvoyer un corps vide est plus cohérent que d'inventer une représentation.
-- `404` si l'identifiant est inconnu.
+- `404` — `Idée introuvable.` si l'identifiant est inconnu.
 
 ### Add new variation
 
@@ -114,8 +127,9 @@ Aucune donnée n'est envoyée à l'API : le client appelle simplement l'endpoint
 **Réponse :**
 
 - `201` + l'idée complète avec l'ensemble de ses variations. Ce choix reste cohérent avec les méthodes de mutation du repository, qui renvoient déjà un objet `Idea`. Le client récupère ainsi l'état complet sans avoir à le recomposer.
-- `400` si `text` est absent, vide ou ne contient que des espaces.
-- `404` si l'idée à modifier est introuvable.
+- `400` — `Le champ "text" est obligatoire.` si `text` est absent, vide ou ne contient que des espaces.
+- `400` — `Champs non autorisés.` si un champ hors schéma est présent.
+- `404` — `Idée introuvable.` si l'idée ciblée n'existe pas.
 
 ### Edit existing variation
 
@@ -132,8 +146,13 @@ Aucune donnée n'est envoyée à l'API : le client appelle simplement l'endpoint
 **Réponse :**
 
 - `200` + l'idée complète. Il ne s'agit pas d'une création (`201`), mais d'une modification. Le retour de l'idée entière permet de rester cohérent avec les autres opérations de mutation.
-- `400` si `text` est absent, vide ou ne contient que des espaces.
-- `404` si l'idée ou la variation à modifier est introuvable.
+- `400` — `Le champ "text" est obligatoire.` si `text` est absent, vide ou ne contient que des espaces.
+- `400` — `Champs non autorisés.` si un champ hors schéma est présent.
+- `404` — `Idée introuvable.` si l'`id` ne correspond à aucune idée.
+- `404` — `Variation introuvable.` si l'idée existe mais pas la variation ciblée.
+
+Les deux causes sont distinguées : un seul message couvrant les deux ne
+permettrait pas de savoir laquelle des deux ressources manque.
 
 ### Change status
 
@@ -150,8 +169,8 @@ Aucune donnée n'est envoyée à l'API : le client appelle simplement l'endpoint
 **Réponse :**
 
 - `200` + l'idée mise à jour.
-- `400` si le statut envoyé par le client n'est pas valide.
-- `404` si l'idée à modifier est introuvable.
+- `400` si le corps est invalide — détail des trois cas ci-dessous.
+- `404` — `Idée introuvable.` si l'idée à modifier est introuvable.
 
 Le champ `status` accepte uniquement les valeurs suivantes :
 
@@ -162,10 +181,9 @@ Le champ `status` accepte uniquement les valeurs suivantes :
 
 Le corps de la requête doit contenir uniquement le champ `status`.
 
-- `400` si le corps est vide.
-- `400` si `status` est absent ou ne correspond pas à l'une des valeurs autorisées (`captured`, `maturing`, `ready`, `published`).
-- `400` si un ou plusieurs champs non autorisés sont présents dans la requête.
--
+- `400` — `Le champ "status" est obligatoire.` si `status` est absent, corps vide inclus.
+- `400` — `Statut invalide.` si `status` est présent mais ne correspond à aucune des valeurs autorisées.
+- `400` — `Champs non autorisés.` si un ou plusieurs champs hors schéma sont présents.
 
 ## Décision : `GET /ideas`
 

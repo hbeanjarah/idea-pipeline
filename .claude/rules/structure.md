@@ -1,7 +1,8 @@
 ---
-description: Arborescence du projet et règle d'organisation — où placer chaque type de fichier.
+description: Arborescence du projet (extension + API locale) et règle d'organisation — où placer chaque type de fichier.
 paths:
   - "src/**"
+  - "server/**"
 ---
 
 # Structure du projet
@@ -41,6 +42,24 @@ idea-pipeline/
 │   └── styles/
 │       ├── tokens.css      # design tokens (palette, typo mono, espacements)
 │       └── global.css      # reset + base
+├── server/                 # API locale (Express 5) — pas encore branchée au front
+│   ├── package.json        # ses propres deps + le bloc "imports" (alias #*)
+│   ├── tsconfig.json       # éditeur + typecheck (voit les tests)
+│   ├── tsconfig.build.json # build seul — exclut les *.test.ts de dist/
+│   └── src/
+│       ├── index.ts        # bootstrap (listen)
+│       ├── app.ts          # assemblage Express : json, routes, fallbacks
+│       ├── config/         # env.ts (PORT) · api-error.ts (ApiError)
+│       ├── domain/
+│       │   └── types.ts    # Idea, Variation, Status — miroir du front
+│       ├── middleware/     # not-found.ts · error-handler.ts
+│       ├── routes/         # URLs et verbes
+│       ├── controllers/    # req → service → code HTTP
+│       ├── services/       # validation Zod + règles métier
+│       └── store/          # persistance (Map en mémoire)
+├── docs/
+│   ├── api-design.md       # contrat REST + table exhaustive des messages
+│   └── openapi.yaml        # spécification OpenAPI des 6 endpoints
 ├── CLAUDE.md
 ├── package.json
 ├── tsconfig.json
@@ -61,6 +80,30 @@ idea-pipeline/
   base). Le CSS spécifique à un composant est colocalisé avec lui (détail dans
   `css.md`).
 - **Service worker** → `src/background/index.ts`.
+
+## Où va quoi — backend (`server/src/`)
+
+- **Modèle du domaine** → `domain/types.ts`. Miroir de `src/storage/types.ts`
+  (front) et de `docs/openapi.yaml` : les trois évoluent **ensemble**.
+- **Une requête traverse les couches dans cet ordre**, jamais autrement :
+
+  `routes/` (URL + verbe) → `controllers/` (lit `req`, pose le code HTTP) →
+  `services/` (valide avec Zod, applique les règles, lève `ApiError`) →
+  `store/` (persistance)
+
+- Un **controller** ne valide pas et ne touche jamais au store. Un **service**
+  ne connaît ni `req` ni `res` — c'est ce qui le rend testable sans HTTP.
+- **Erreurs** → `config/api-error.ts`. `middleware/error-handler.ts` est le
+  **seul** endroit qui écrit un corps d'erreur ; les messages sont ceux du
+  contrat, mot pour mot (`docs/api-design.md`).
+- **Imports entre couches** : subpath imports Node, sans extension de fichier —
+  `#services/ideas`, `#config/api-error`. Jamais de chemin relatif d'une couche
+  à l'autre. Le mapping vit dans `server/package.json`, avec une condition
+  `development` pour que `tsc`, `tsx` et vitest lisent `src/` plutôt qu'un
+  `dist/` périmé.
+- **Tests colocalisés** : `ideas.test.ts` à côté de `ideas.ts`. C'est une
+  divergence assumée avec le front, qui garde les siens dans `test/` à la
+  racine.
 
 ## Navigation
 

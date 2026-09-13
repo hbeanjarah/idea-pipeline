@@ -62,18 +62,24 @@ export async function addVariation(
   return snapshot(idea);
 }
 
+// A plain null cannot say which of the two lookups failed, and the API owes a
+// different message for each.
+export type EditVariationFailure =
+  | 'idea-not-found'
+  | 'variation-not-found';
+
 export async function editVariation(
   id: string,
   variationId: string,
   text: string,
-): Promise<Idea | null> {
+): Promise<Idea | EditVariationFailure> {
   const idea = ideas.get(id);
-  if (!idea) return null;
+  if (!idea) return 'idea-not-found';
 
   const variation = idea.variations.find(
     (candidate) => candidate.id === variationId,
   );
-  if (!variation) return null;
+  if (!variation) return 'variation-not-found';
 
   variation.text = text;
   idea.updatedAt = now();
