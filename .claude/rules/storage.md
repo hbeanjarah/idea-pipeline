@@ -18,6 +18,14 @@ paths:
 > Ce fichier reste la référence pour ce que le spec ne sait **pas** exprimer :
 > les **invariants** ci-dessous. Le front (`src/storage/types.ts`) est encore
 > écrit à la main — sa génération est une brique à venir.
+>
+> **Le stockage, lui, est décrit par `server/migrations/*.sql`.** Ne modifie
+> jamais `server/src/store/schema.generated.ts` : écris une migration, puis
+> lance `pnpm --dir server db:migrate && pnpm --dir server db:types`. L'ordre
+> compte — régénérer contre une base non migrée ne lève aucune erreur, elle
+> produit une interface `DB` **vide**. Ce fichier n'est pas versionné et aucun
+> hook ne le recrée : `prepare` reste hors ligne, donc un clone neuf ne compile
+> qu'après ces deux commandes.
 
 Tout le code s'aligne sur ces types et ces noms — en anglais. Les libellés
 français vivent côté UI uniquement.
@@ -74,8 +82,13 @@ interface IdeaRepository {
   à jour — l'appelant ne relit pas via `list()`.
 - `updatedAt` est rafraîchi à chaque mutation ; `createdAt` ne bouge jamais.
 - Dates en chaînes **ISO 8601** (lisibles, triables, heure incluse).
-- Implémentation MVP sur `chrome.storage.local`, derrière l'interface async —
-  un futur adaptateur (IndexedDB, backend) ne touchera pas aux appelants.
+- Deux implémentations coexistent : le **front** sur `chrome.storage.local`
+  derrière `IdeaRepository`, le **serveur** sur PostgreSQL derrière
+  `server/src/store/ideas.ts`. Les deux respectent les mêmes invariants ; elles
+  ne se parlent pas encore.
+- Côté serveur, « `variations` n'est jamais vide » est tenu par la **transaction**
+  de `createIdea`, pas par une contrainte SQL — le relationnel ne sait pas
+  l'exprimer. Un `INSERT` manuel peut donc le violer.
 
 ## Étapes <-> libellés UI
 

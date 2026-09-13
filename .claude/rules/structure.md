@@ -43,14 +43,16 @@ idea-pipeline/
 │   └── styles/
 │       ├── tokens.css      # design tokens (palette, typo mono, espacements)
 │       └── global.css      # reset + base
-├── server/                 # API locale (Express 5) — pas encore branchée au front
+├── server/                 # API locale (Express 5 + PostgreSQL) — pas encore branchée au front
 │   ├── package.json        # ses propres deps + le bloc "imports" (alias #*)
-│   ├── tsconfig.json       # éditeur + typecheck (voit les tests)
-│   ├── tsconfig.build.json # build seul — exclut les *.test.ts de dist/
+│   ├── tsconfig.json       # éditeur + typecheck (voit src/ et test/)
+│   ├── tsconfig.build.json # build seul — exclut les *.test.ts et test/ de dist/
+│   ├── migrations/         # *.sql versionnés — LA source du schéma
+│   ├── test/               # harnais vitest : conteneur PostgreSQL + TRUNCATE
 │   └── src/
 │       ├── index.ts        # bootstrap (listen)
 │       ├── app.ts          # assemblage Express : json, routes, fallbacks
-│       ├── config/         # env.ts (PORT) · api-error.ts (ApiError)
+│       ├── config/         # env.ts (PORT, DATABASE_URL) · api-error.ts (ApiError)
 │       ├── domain/
 │       │   ├── api.generated.ts # GÉNÉRÉ, non versionné — ne pas éditer
 │       │   └── types.ts    # façade : noms du projet + invariants
@@ -58,16 +60,24 @@ idea-pipeline/
 │       ├── routes/         # URLs et verbes
 │       ├── controllers/    # req → service → code HTTP
 │       ├── services/       # validation Zod + règles métier
-│       └── store/          # persistance (Map en mémoire)
+│       └── store/          # persistance PostgreSQL, via Kysely
+│           ├── db.ts               # instance Kysely, construite à la 1re requête
+│           ├── ideas.ts            # les 6 opérations du domaine
+│           ├── migrations.ts       # runner : applique les fichiers .sql
+│           ├── migrate-cli.ts      # point d'entrée de `db:migrate`
+│           └── schema.generated.ts # GÉNÉRÉ depuis la base, non versionné
 ├── docs/
 │   ├── api-design.md       # contrat REST + table exhaustive des messages
 │   ├── openapi.yaml        # spécification OpenAPI des 6 endpoints
-│   └── persistence-design.md # conception de la persistance (PostgreSQL)
+│   ├── persistence-design.md # conception de la persistance (PostgreSQL)
+│   └── persistence-plan.md # son plan d'implémentation
+├── docker-compose.yml      # PostgreSQL de développement
 ├── README.md               # prérequis, installation, comment lancer les deux moitiés
 ├── CLAUDE.md
 ├── package.json
 ├── tsconfig.json
-└── vite.config.ts
+├── vite.config.ts
+└── vitest.config.ts        # 2 projets : front · server (conteneur PostgreSQL)
 ```
 
 ## Où va quoi
@@ -107,7 +117,11 @@ idea-pipeline/
   `dist/` périmé.
 - **Tests colocalisés** : `ideas.test.ts` à côté de `ideas.ts`. C'est une
   divergence assumée avec le front, qui garde les siens dans `test/` à la
-  racine.
+  racine. `server/test/` ne contient **pas** de tests : seulement le harnais
+  qui démarre le conteneur PostgreSQL et vide la base entre chaque test.
+- **Schéma de la base** → une nouvelle migration dans `server/migrations/`,
+  jamais un `ALTER` à la main. Puis `db:migrate && db:types` (détail dans
+  `storage.md`).
 
 ## Navigation
 
