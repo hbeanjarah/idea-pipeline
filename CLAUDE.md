@@ -12,9 +12,9 @@ jusqu'à la publication.
 
 Le dépôt tient deux moitiés : l'**extension** (`src/`), fonctionnelle et qui
 persiste dans `chrome.storage.local`, et une **API locale** (`server/`) qui
-sert le contrat de `docs/`. **Les deux ne sont pas encore branchées** — le
-front n'appelle pas le serveur, et le sort des données déjà en local reste
-à décider.
+sert le contrat de `docs/` et persiste dans PostgreSQL. **Les deux ne sont pas
+encore branchées** — le front n'appelle pas le serveur, et le sort des données
+déjà en local reste à décider.
 
 ## Méthode de travail
 
@@ -62,8 +62,10 @@ cette liste sans qu'on discute et l'autorise explicitement.
   **pas** versionné : le hook `prepare` le recrée à chaque `pnpm install`, et
   un test échoue si la copie locale a pris du retard sur le spec.
 - **Validation** : Zod — schémas stricts, calqués sur `docs/openapi.yaml`
-- **Stockage** : `Map` en mémoire. **Rien n'est persisté** : tout disparaît au
-  redémarrage. La vraie persistance est un sujet ouvert, pas une omission.
+- **Stockage** : PostgreSQL 17 (Docker Compose), accédé avec **Kysely**. Le
+  schéma vit dans `server/migrations/*.sql` — c'est lui la source de vérité, les
+  types TS en sont dérivés par `kysely-codegen` → voir
+  `.claude/rules/storage.md`
 - **Exécution** : `tsx` en dev, `tsc` pour le build
 - **Imports** : subpath imports Node (`#services/ideas`), sans extension →
   voir `.claude/rules/structure.md`

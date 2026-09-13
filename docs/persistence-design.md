@@ -225,7 +225,5 @@ pnpm --dir server add -D @types/pg kysely-codegen testcontainers
 
 ## Notes / Blocage
 
-- `CLAUDE.md` annonce encore un stockage `Map` en mémoire dans la section Stack ;
-  `storage.md` devra décrire la nouvelle source de vérité.
-- Docker entre dans le dépôt (`docker-compose.yml`) : nouvelle catégorie de
-  fichier, à déclarer dans `structure.md`.
+Aucun. Les deux entrées précédentes — le discours périmé de `CLAUDE.md` et
+l'arrivée de Docker dans le dépôt — ont été traitées en refermant la brique.
