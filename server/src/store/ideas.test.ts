@@ -1,22 +1,19 @@
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-// The store holds its ideas in a module-level Map. Rather than add a reset hook
-// to production code, each test gets a fresh module graph.
-type Store = typeof import('#store/ideas');
+import { db } from '#store/db';
+import * as store from '#store/ideas';
 
-let store: Store;
+// The database stamps updated_at with now(); fake timers cannot reach it.
+// Rewriting the column is the only way to build a deterministic ordering.
+const backdate = async (id: string, iso: string): Promise<void> => {
+  await db()
+    .updateTable('ideas')
+    .set({ updated_at: new Date(iso) })
+    .where('id', '=', id)
+    .execute();
+};
 
-beforeEach(async () => {
-  vi.resetModules();
-  store = await import('#store/ideas');
-});
+const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 
 describe('listIdeas', () => {
   it('starts empty', async () => {
@@ -42,13 +39,51 @@ describe('createIdea', () => {
     expect(idea.createdAt).toBe(idea.updatedAt);
   });
 
-  it('hands back a copy, never the stored object', async () => {
+  it('renders timestamps as strict ISO 8601, not as driver Dates', async () => {
     const idea = await store.createIdea('une idée');
 
-    idea.status = 'published';
+    expect(idea.createdAt).toMatch(ISO);
+    expect(idea.variations[0]?.createdAt).toMatch(ISO);
+  });
+});
 
-    const [stored] = await store.listIdeas();
-    expect(stored?.status).toBe('captured');
+describe('deleteIdea', () => {
+  it('takes the variations down with the idea', async () => {
+    const idea = await store.createIdea('une idée');
+
+    expect(await store.deleteIdea(idea.id)).toBe(true);
+
+    const left = await db()
+      .selectFrom('variations')
+      .select('id')
+      .where('idea_id', '=', idea.id)
+      .execute();
+    expect(left).toEqual([]);
+  });
+});
+
+describe('unknown identifiers', () => {
+  // Postgres rejects a malformed uuid outright. Without a guard in the store
+  // these would raise a 500 where the contract owes a 404.
+  it('treats a non-uuid id as not found', async () => {
+    expect(await store.deleteIdea('nope')).toBe(false);
+    expect(await store.changeStatus('nope', 'ready')).toBeNull();
+    expect(await store.addVariation('nope', 'suite')).toBeNull();
+    expect(await store.editVariation('nope', 'nope', 'x')).toBe(
+      'idea-not-found',
+    );
+  });
+});
+
+describe('addVariation', () => {
+  it('appends after the initial variation', async () => {
+    const created = await store.createIdea('première');
+
+    const updated = await store.addVariation(created.id, 'seconde');
+
+    expect(
+      updated?.variations.map((variation) => variation.text),
+    ).toEqual(['première', 'seconde']);
   });
 });
 
@@ -56,11 +91,12 @@ describe('editVariation', () => {
   it('tells an unknown idea apart from an unknown variation', async () => {
     const idea = await store.createIdea('une idée');
     const variationId = idea.variations[0]!.id;
+    const absent = '00000000-0000-4000-8000-000000000000';
 
-    expect(await store.editVariation('nope', variationId, 'x')).toBe(
+    expect(await store.editVariation(absent, variationId, 'x')).toBe(
       'idea-not-found',
     );
-    expect(await store.editVariation(idea.id, 'nope', 'x')).toBe(
+    expect(await store.editVariation(idea.id, absent, 'x')).toBe(
       'variation-not-found',
     );
   });
@@ -84,44 +120,40 @@ describe('editVariation', () => {
 });
 
 describe('listIdeas ordering', () => {
-  // Real timestamps collide: several ideas created in the same millisecond
-  // share an updatedAt, which is exactly the case the tiebreaker exists for.
-  // Driving the clock makes both cases reachable on purpose.
-  const at = (iso: string) => vi.setSystemTime(new Date(iso));
-
-  beforeEach(() => {
-    vi.useFakeTimers();
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
   it('returns the most recently touched idea first', async () => {
-    at('2026-01-01T10:00:00.000Z');
     const first = await store.createIdea('la plus ancienne');
-    at('2026-01-01T11:00:00.000Z');
-    await store.createIdea('celle du milieu');
-    at('2026-01-01T12:00:00.000Z');
+    const middle = await store.createIdea('celle du milieu');
     const last = await store.createIdea('la plus récente');
+
+    await backdate(first.id, '2026-01-01T10:00:00.000Z');
+    await backdate(middle.id, '2026-01-01T11:00:00.000Z');
+    await backdate(last.id, '2026-01-01T12:00:00.000Z');
 
     expect((await store.listIdeas())[0]?.id).toBe(last.id);
 
-    // Touching the oldest idea moves it to the front.
-    at('2026-01-01T13:00:00.000Z');
+    // Touching the oldest idea stamps it with now() and moves it to the front.
     await store.changeStatus(first.id, 'ready');
 
     expect((await store.listIdeas())[0]?.id).toBe(first.id);
   });
 
   it('orders ideas sharing a timestamp by descending id', async () => {
-    at('2026-01-01T10:00:00.000Z');
-    await store.createIdea('a');
-    await store.createIdea('b');
-    await store.createIdea('c');
+    const ideas = [
+      await store.createIdea('a'),
+      await store.createIdea('b'),
+      await store.createIdea('c'),
+    ];
+    for (const idea of ideas) {
+      await backdate(idea.id, '2026-01-01T10:00:00.000Z');
+    }
 
-    const ids = (await store.listIdeas()).map((idea) => idea.id);
+    const listed = await store.listIdeas();
+    const ids = listed.map((idea) => idea.id);
 
+    // Without a genuine tie the assertion below would prove nothing.
+    expect(new Set(listed.map((idea) => idea.updatedAt)).size).toBe(
+      1,
+    );
     expect(ids).toEqual([...ids].sort().reverse());
   });
 });

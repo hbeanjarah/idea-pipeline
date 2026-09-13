@@ -1,14 +1,8 @@
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { AddressInfo } from 'node:net';
 import type { Server } from 'node:http';
 
+import { app } from '#app';
 import type { Idea } from '#domain/types';
 
 // The layer tests below this one never touch app.ts, routes/ or controllers/:
@@ -18,9 +12,6 @@ let server: Server;
 let base: string;
 
 beforeEach(async () => {
-  vi.resetModules();
-  const { app } = await import('#app');
-
   server = app.listen(0);
   await new Promise<void>((resolve) =>
     server.once('listening', resolve),
