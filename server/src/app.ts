@@ -1,33 +1,15 @@
-import express, {
-  type ErrorRequestHandler,
-  type RequestHandler,
-} from 'express';
+import express from 'express';
+
+import { errorHandler } from '#middleware/error-handler';
+import { notFound } from '#middleware/not-found';
+import { ideasRouter } from '#routes/ideas';
 
 export const app = express();
 
 app.use(express.json());
 
-// Business routes mount here, above the fallbacks.
+app.use('/ideas', ideasRouter);
 
-const notFound: RequestHandler = (_req, res) => {
-  res.status(404).json({ error: 'Ressource introuvable.' });
-};
-
-// express.json() rejects malformed bodies with a SyntaxError carrying the raw body.
-const isJsonParseError = (error: unknown): boolean =>
-  error instanceof SyntaxError && 'body' in error;
-
-const onError: ErrorRequestHandler = (error, _req, res, _next) => {
-  if (isJsonParseError(error)) {
-    res
-      .status(400)
-      .json({ error: 'Corps de requête JSON invalide.' });
-    return;
-  }
-
-  console.error(error);
-  res.status(500).json({ error: 'Erreur inattendue côté serveur.' });
-};
-
+// Order matters: the fallbacks only make sense below every business route.
 app.use(notFound);
-app.use(onError);
+app.use(errorHandler);

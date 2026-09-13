@@ -1,13 +1,12 @@
 import { randomUUID } from 'node:crypto';
 
-import type { Idea, Status } from './types.js';
+import type { Idea, Status } from '#domain/types';
 
-// Async throughout even though nothing awaits: ticket B swaps this module for
-// Postgres, and every caller must already be written for it.
+// Async throughout even though nothing awaits: swapping this Map for a real
+// database must not ripple through every caller.
 
 const ideas = new Map<string, Idea>();
 
-// Callers get copies, never the stored object.
 const snapshot = (idea: Idea): Idea => structuredClone(idea);
 
 const now = (): string => new Date().toISOString();

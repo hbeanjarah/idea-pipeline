@@ -29,5 +29,19 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    files: ['server/**/*.ts'],
+    languageOptions: {
+      globals: { ...globals.node },
+    },
+    rules: {
+      // Express identifies an error handler by its 4-argument signature, so an
+      // unused `_next` is mandatory, not an oversight.
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+    },
+  },
   prettier,
 );

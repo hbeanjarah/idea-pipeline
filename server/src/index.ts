@@ -1,7 +1,6 @@
-import { app } from './app.js';
+import { app } from '#app';
+import { env } from '#config/env';
 
-const port = Number(process.env.PORT ?? 3000);
-
-app.listen(port, () => {
-  console.log(`Server listening on http://localhost:${port}`);
+app.listen(env.port, () => {
+  console.log(`Server listening on http://localhost:${env.port}`);
 });
