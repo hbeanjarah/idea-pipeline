@@ -17,8 +17,6 @@ const REQUIRED_TEXT = {
 };
 
 describe('createIdea validation', () => {
-  // Express 5 leaves req.body undefined when no parser matched — typically a
-  // request sent without Content-Type. That must be a 400, never a 500.
   it('rejects an absent body', async () => {
     await expect(service.createIdea(undefined)).rejects.toMatchObject(
       REQUIRED_TEXT,
