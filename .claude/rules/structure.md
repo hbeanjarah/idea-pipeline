@@ -51,7 +51,8 @@ idea-pipeline/
 │       ├── app.ts          # assemblage Express : json, routes, fallbacks
 │       ├── config/         # env.ts (PORT) · api-error.ts (ApiError)
 │       ├── domain/
-│       │   └── types.ts    # Idea, Variation, Status — miroir du front
+│       │   ├── api.generated.ts # GÉNÉRÉ, non versionné — ne pas éditer
+│       │   └── types.ts    # façade : noms du projet + invariants
 │       ├── middleware/     # not-found.ts · error-handler.ts
 │       ├── routes/         # URLs et verbes
 │       ├── controllers/    # req → service → code HTTP

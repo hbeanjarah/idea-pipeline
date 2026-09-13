@@ -2,3 +2,4 @@ dist
 pnpm-lock.yaml
 .claude
 design
+server/src/domain/api.generated.ts
