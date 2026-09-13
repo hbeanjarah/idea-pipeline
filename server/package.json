@@ -15,15 +15,20 @@
     "dev": "tsx watch --env-file=.env --conditions=development src/index.ts",
     "generate:types": "openapi-typescript ../docs/openapi.yaml --root-types --root-types-no-schema-prefix --enum-values -o src/domain/api.generated.ts",
     "typecheck": "tsc --noEmit",
-    "build": "tsc -p tsconfig.build.json"
+    "build": "tsc -p tsconfig.build.json",
+    "db:migrate": "tsx --env-file=.env --conditions=development src/store/migrate-cli.ts",
+    "db:types": "kysely-codegen --dialect postgres --out-file src/store/schema.generated.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.28.2",
   "devDependencies": {
+    "@testcontainers/postgresql": "^12.1.0",
     "@types/express": "^5.0.6",
     "@types/node": "^26.1.2",
+    "@types/pg": "^8.23.1",
+    "kysely-codegen": "^0.20.0",
     "openapi-typescript": "^7.13.0",
     "tsx": "^4.23.13",
     "typescript": "~6.0.3"
@@ -32,6 +37,8 @@
     "@scalar/api-reference": "^1.68.0",
     "@scalar/express-api-reference": "^0.10.18",
     "express": "^5.2.1",
+    "kysely": "^0.29.5",
+    "pg": "^8.23.0",
     "zod": "^4.6.4"
   }
 }
