@@ -4,6 +4,12 @@
 
 > En cas d'erreur inattendue côté serveur, toutes les requêtes renvoient **`500 - Erreur inattendue côté serveur`**.
 
+## Serveur & authentification
+
+**Base URL** : `http://localhost:3000`. L'API n'est hébergée nulle part ailleurs — elle tourne en local, sur un seul appareil. Tous les chemins ci-dessous sont relatifs à cette base.
+
+**Aucune authentification.** Outil mono-utilisateur : ni compte, ni jeton, ni en-tête à fournir. `docs/openapi.yaml` le déclare par un `security: []` à la racine plutôt que de laisser le silence l'impliquer — l'absence de champ ne distingue pas « pas d'authentification » de « oubli de le documenter ».
+
 ## Format des erreurs
 
 Toutes les réponses d'erreur (`400`, `404` et `500`) renvoient un corps JSON de la forme suivante :

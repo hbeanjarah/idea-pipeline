@@ -11,6 +11,15 @@ info:
     Une URL ne correspondant à aucun chemin déclaré ici renvoie
     `404 — Ressource introuvable.`, hors du périmètre de cette spécification.
 
+servers:
+  - url: http://localhost:3000
+    description: Serveur local — l'API n'est pas hébergée ailleurs.
+
+# L'API ne demande aucune authentification : outil mono-utilisateur, local.
+# Une liste vide le déclare explicitement, là où l'absence de champ laisserait
+# planer le doute entre « pas d'auth » et « oubli de le documenter ».
+security: []
+
 paths:
   /ideas:
     get:
