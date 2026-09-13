@@ -15,3 +15,15 @@ function readPort(): number {
 export const env = {
   port: readPort(),
 };
+
+// Read on each call rather than at import time: under vitest the test container
+// only publishes its port once the global setup has run, long after this module
+// was first imported.
+export function databaseUrl(): string {
+  const raw = process.env.DATABASE_URL;
+  if (raw === undefined || raw === '') {
+    throw new Error('DATABASE_URL is required');
+  }
+
+  return raw;
+}
