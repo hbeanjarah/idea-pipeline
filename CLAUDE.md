@@ -68,10 +68,8 @@ cette liste sans qu'on discute et l'autorise explicitement.
 - **Imports** : subpath imports Node (`#services/ideas`), sans extension →
   voir `.claude/rules/structure.md`
 
-**Versions des dépendances.** Quand on autorise l'installation d'une lib,
-prends toujours sa **dernière version stable** au moment de l'install. Tiens-les
-à jour au fil des patchs et des nouvelles versions stables publiées. N'épingle
-une version précise que si on en a déjà discuté (raison de compat).
+**Dépendances** — qui installe, ce que tu peux lancer, politique de versions :
+voir `.claude/rules/dependencies.md`.
 
 **Contrainte multi-OS** : rester dans les API Chrome pures, aucun code natif.
 Seul `suggested_key` du raccourci diffère par plateforme.
@@ -87,6 +85,8 @@ Seul `suggested_key` du raccourci diffère par plateforme.
 - **Styles (CSS pur, tokens)** : voir `.claude/rules/css.md`.
 - **Stockage (repository)** : voir `.claude/rules/storage.md`.
 - **Messages de commit** : voir `.claude/rules/git.md`.
+- **Dépendances** (installation, versions) : voir
+  `.claude/rules/dependencies.md`.
 
 ## Hors-scope du MVP (ne pas construire)
 

@@ -16,6 +16,7 @@ idea-pipeline/
 │   └── rules/
 │       ├── chrome-extension.md
 │       ├── code-style.md
+│       ├── dependencies.md
 │       ├── css.md
 │       ├── git.md
 │       ├── react.md
