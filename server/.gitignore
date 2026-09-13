@@ -11,3 +11,6 @@ dist/
 
 # Généré depuis ../docs/openapi.yaml — recréé par le hook `prepare`.
 src/domain/api.generated.ts
+
+# Généré par kysely-codegen depuis la base migrée — recréé par le hook `prepare`.
+src/store/schema.generated.ts

@@ -3,3 +3,4 @@ pnpm-lock.yaml
 .claude
 design
 server/src/domain/api.generated.ts
+server/src/store/schema.generated.ts
