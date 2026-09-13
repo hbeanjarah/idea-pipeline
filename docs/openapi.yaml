@@ -25,7 +25,11 @@ paths:
     get:
       operationId: listIdeas
       summary: Liste des idées
-      description: Retourne la collection complète des idées.
+      description: |
+        Retourne la collection complète des idées, sans filtrage ni pagination.
+
+        Triée par le serveur : `updatedAt` décroissant, puis `id` décroissant
+        pour départager les égalités. L'ordre est donc déterministe.
       responses:
         '200':
           description: Collection des idées.
