@@ -4,9 +4,8 @@ import { ApiError } from '#config/api-error';
 import type { Idea } from '#domain/types';
 import * as store from '#store/ideas';
 
-// strictObject mirrors `additionalProperties: false` in docs/openapi.yaml: an
-// extra field is a 400, not something we silently drop. trim() before min(1)
-// is what rejects a text made only of spaces — and what gets stored.
+// strictObject is docs/openapi.yaml's `additionalProperties: false`. trim() is
+// a transform, so the trimmed value is the one that ends up stored.
 const CreateIdeaBody = z.strictObject({
   text: z.string().trim().min(1),
 });
