@@ -1,6 +1,7 @@
 // Data access layer. The ONLY place that touches chrome.storage.
 // Model + invariants: canonical reference is .claude/rules/storage.md.
 
+import { MessagingIdeaRepository } from './remote';
 import type { Idea, Status, Variation } from './types';
 
 // Single storage key holding the whole collection.
@@ -150,5 +151,8 @@ export class ChromeStorageIdeaRepository implements IdeaRepository {
   }
 }
 
-// Singleton the screens import for all data access.
-export const ideaRepository = new ChromeStorageIdeaRepository();
+// Singleton the screens import for all data access. Backed by the API through
+// the service worker; ChromeStorageIdeaRepository above is kept because the
+// migration script will need it to read what the old storage still holds.
+export const ideaRepository: IdeaRepository =
+  new MessagingIdeaRepository();
