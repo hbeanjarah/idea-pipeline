@@ -1,4 +1,4 @@
-import type { Idea, Status } from '../storage/types';
+import type { Idea, Status } from '@/storage/types';
 
 export type Request =
   | { kind: 'ideas/list' }

@@ -1,4 +1,4 @@
-import type { Idea, Status } from '../storage/types';
+import type { Idea, Status } from '@/storage/types';
 
 // 'all' = no status filtering (explicit, preferred over an optional status).
 export type FilterStatus = Status | 'all';

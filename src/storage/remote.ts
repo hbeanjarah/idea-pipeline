@@ -3,7 +3,7 @@ import type {
   Reply,
   ReplyData,
   Request,
-} from '../lib/protocol';
+} from '@/lib/protocol';
 import type { IdeaRepository } from './storage';
 import type { Idea, Status } from './types';
 

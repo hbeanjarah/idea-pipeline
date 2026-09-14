@@ -4,7 +4,7 @@
 // background event — that lock is a non-intrusion guarantee, not a preference.
 
 import { handle } from './messages';
-import type { Request } from '../lib/protocol';
+import type { Request } from '@/lib/protocol';
 
 // Icon click opens the side panel.
 chrome.sidePanel

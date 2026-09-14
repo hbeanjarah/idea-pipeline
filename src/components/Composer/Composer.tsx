@@ -6,7 +6,8 @@ import styles from './Composer.module.css';
 const PLACEHOLDER = 'Une idée…';
 
 interface Props {
-  onSubmit: (text: string) => void;
+  // Returns a promise so the draft is only cleared once the write succeeded.
+  onSubmit: (text: string) => Promise<unknown>;
   autoFocus?: boolean;
 }
 
@@ -17,6 +18,7 @@ export default function Composer({
   autoFocus = false,
 }: Props) {
   const [text, setText] = useState('');
+  const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Focus on mount when requested — programmatic, via the existing textarea ref
@@ -33,11 +35,21 @@ export default function Composer({
     input.style.height = `${input.scrollHeight}px`;
   }, [text]);
 
-  const submit = () => {
+  const submit = async () => {
     const trimmed = text.trim();
-    if (!trimmed) return;
-    onSubmit(trimmed);
-    setText('');
+    if (!trimmed || busy) return;
+
+    setBusy(true);
+    try {
+      await onSubmit(trimmed);
+      // Cleared only once the write is confirmed: an idea typed and lost to a
+      // network failure would be worse than the local-only behaviour we left.
+      setText('');
+    } catch {
+      // The screen shows the failure; the text stays where it was typed.
+    } finally {
+      setBusy(false);
+    }
   };
 
   const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
@@ -50,7 +62,7 @@ export default function Composer({
     // Enter submits; Shift+Enter falls through to a newline.
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
-      submit();
+      void submit();
     }
   };
 
@@ -68,7 +80,7 @@ export default function Composer({
       <button
         type="button"
         className={styles.send}
-        onClick={submit}
+        onClick={() => void submit()}
         aria-label="Enregistrer"
       >
         <svg

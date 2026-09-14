@@ -1,4 +1,4 @@
-import type { FilterStatus } from '../../lib/filterIdeas';
+import type { FilterStatus } from '@/lib/filterIdeas';
 import styles from './StatusFilter.module.css';
 
 interface Props {

@@ -1,7 +1,7 @@
 import * as api from './api';
 import { ApiFailure } from './api';
 import { clearToken, readToken, writeToken } from './session';
-import type { Failure, Request } from '../lib/protocol';
+import type { Failure, Request } from '@/lib/protocol';
 
 type AnyReply =
   | { ok: true; data: unknown }

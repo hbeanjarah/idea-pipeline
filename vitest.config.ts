@@ -4,6 +4,11 @@ export default defineConfig({
   test: {
     projects: [
       {
+        // The front project does not extend vite.config.ts, so the alias has to
+        // be repeated here or every @/ import fails to resolve under vitest.
+        resolve: {
+          alias: { '@': new URL('./src', import.meta.url).pathname },
+        },
         test: {
           name: 'front',
           include: ['test/**/*.test.ts'],

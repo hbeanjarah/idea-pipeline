@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { handle } from '../src/background/messages';
-import { readToken } from '../src/background/session';
+import { handle } from '@/background/messages';
+import { readToken } from '@/background/session';
 
 const respond = (status: number, body: unknown) =>
   vi.fn().mockResolvedValue({
