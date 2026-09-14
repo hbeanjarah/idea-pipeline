@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { handle } from '@/background/messages';
-import { readToken } from '@/background/session';
+import { readToken, writeToken } from '@/background/session';
+import type { createChromeIdentityStub } from './chromeIdentityStub';
 
 const respond = (status: number, body: unknown) =>
   vi.fn().mockResolvedValue({
@@ -12,9 +13,17 @@ const respond = (status: number, body: unknown) =>
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
 });
 
-const signedIn = () => handle({ kind: 'session/set', token: 'tok' });
+// A test seeds its own state: there is no protocol message for handing the
+// worker a token any more, and there should not be one.
+const signedIn = () => writeToken('tok');
+
+const identity = () =>
+  globalThis.chrome.identity as unknown as ReturnType<
+    typeof createChromeIdentityStub
+  >;
 
 describe('the session requests', () => {
   it('reports no session before one is set', async () => {
@@ -31,7 +40,8 @@ describe('the session requests', () => {
       data: { connected: true },
     });
 
-    await handle({ kind: 'session/clear' });
+    vi.stubGlobal('fetch', respond(204, null));
+    await handle({ kind: 'session/signOut' });
 
     expect(await handle({ kind: 'session/status' })).toEqual({
       ok: true,
@@ -118,5 +128,125 @@ describe('the idea requests', () => {
     await handle({ kind: 'ideas/list' });
 
     expect(await readToken()).toBe('tok');
+  });
+});
+
+describe('signing in with Google', () => {
+  const CLIENT = 'client-123.apps.googleusercontent.com';
+
+  it('asks for a code with an S256 challenge, then keeps the token', async () => {
+    vi.stubEnv('VITE_GOOGLE_CLIENT_ID', CLIENT);
+    // The state is generated inside the flow, so the stub echoes back the one
+    // it was given: that is what makes a nominal round-trip playable.
+    identity().answerWith(
+      'https://x.chromiumapp.org/?code=the-code&state={state}',
+    );
+    const fetched = respond(201, {
+      token: 'fresh',
+      user: { id: 'u1', email: 'c@example.com' },
+    });
+    vi.stubGlobal('fetch', fetched);
+
+    expect(await handle({ kind: 'session/signIn' })).toEqual({
+      ok: true,
+      data: { user: { id: 'u1', email: 'c@example.com' } },
+    });
+    expect(await readToken()).toBe('fresh');
+
+    const sent = new URL(identity().lastUrl() ?? 'https://x/');
+    expect(sent.searchParams.get('code_challenge_method')).toBe(
+      'S256',
+    );
+    expect(sent.searchParams.get('client_id')).toBe(CLIENT);
+    expect(sent.searchParams.get('code_challenge')).toMatch(
+      /^[A-Za-z0-9_-]{43}$/,
+    );
+    // The verifier is what proves we hold the challenge; it must reach the
+    // server and never the authorization URL.
+    expect(sent.searchParams.get('code_verifier')).toBeNull();
+    expect(
+      JSON.parse(
+        (fetched.mock.calls[0] as [string, RequestInit])[1]
+          .body as string,
+      ).codeVerifier,
+    ).toMatch(/^[A-Za-z0-9_-]{43}$/);
+  });
+
+  it('reports a closed window as cancelled, and stays signed out', async () => {
+    vi.stubEnv('VITE_GOOGLE_CLIENT_ID', CLIENT);
+    identity().rejectWith('The user did not approve access.');
+
+    expect(await handle({ kind: 'session/signIn' })).toEqual({
+      ok: false,
+      failure: { reason: 'cancelled' },
+    });
+    expect(await readToken()).toBeNull();
+  });
+
+  it('refuses a redirect whose state is not the one it sent', async () => {
+    vi.stubEnv('VITE_GOOGLE_CLIENT_ID', CLIENT);
+    identity().answerWith(
+      'https://x.chromiumapp.org/?code=c&state=forged',
+    );
+    const fetched = respond(201, {});
+    vi.stubGlobal('fetch', fetched);
+
+    expect(await handle({ kind: 'session/signIn' })).toEqual({
+      ok: false,
+      failure: { reason: 'server' },
+    });
+    expect(fetched).not.toHaveBeenCalled();
+    expect(await readToken()).toBeNull();
+  });
+});
+
+describe('signing out', () => {
+  it('revokes the session server side, then forgets the token', async () => {
+    await signedIn();
+    const fetched = respond(204, null);
+    vi.stubGlobal('fetch', fetched);
+
+    expect(await handle({ kind: 'session/signOut' })).toEqual({
+      ok: true,
+      data: { revoked: true },
+    });
+
+    const [url, init] = fetched.mock.calls[0] as [
+      string,
+      RequestInit,
+    ];
+    expect(`${init.method} ${String(url)}`).toMatch(
+      /DELETE .*\/auth\/session$/,
+    );
+    expect(await readToken()).toBeNull();
+  });
+
+  it('leaves anyway when the server cannot be told', async () => {
+    await signedIn();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockRejectedValue(new Error('offline')),
+    );
+
+    expect(await handle({ kind: 'session/signOut' })).toEqual({
+      ok: true,
+      data: { revoked: false },
+    });
+    // Leaving is what the user asked for: refusing because the network is
+    // down would keep them signed in against their will.
+    expect(await readToken()).toBeNull();
+  });
+
+  it('counts an already dead session as revoked', async () => {
+    await signedIn();
+    vi.stubGlobal(
+      'fetch',
+      respond(401, { error: 'Authentification requise.' }),
+    );
+
+    expect(await handle({ kind: 'session/signOut' })).toEqual({
+      ok: true,
+      data: { revoked: true },
+    });
   });
 });

@@ -4,9 +4,13 @@ import type { Failure } from './protocol';
 // the same thing: one asks "are my ideas lost?", the other "is my text lost?".
 export type Attempted = 'read' | 'write';
 
+// A cancelled sign-in displays nothing, so it has no wording. Excluding it
+// here makes that a compile error rather than an empty alert.
+export type Displayable = Exclude<Failure, { reason: 'cancelled' }>;
+
 const TEXT: Record<
   Attempted,
-  Record<Failure['reason'], { title: string; body: string }>
+  Record<Displayable['reason'], { title: string; body: string }>
 > = {
   write: {
     offline: {
@@ -49,7 +53,7 @@ const TEXT: Record<
 };
 
 export function failureText(
-  failure: Failure,
+  failure: Displayable,
   attempted: Attempted,
 ): { title: string; body: string } {
   const { title, body } = TEXT[attempted][failure.reason];

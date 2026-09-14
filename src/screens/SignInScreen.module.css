@@ -32,30 +32,12 @@
   color: var(--hint);
 }
 
-.field {
-  width: 100%;
-  padding: 10px var(--space-3);
-  background: var(--card);
-  border: 1px solid var(--capbd);
-  border-radius: var(--radius-md);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--ink);
-}
-
-.field::placeholder {
-  color: var(--hint);
-  font-family: var(--font-sans);
-}
-
-.field:focus {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-
 .button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
   width: 100%;
-  margin-top: var(--space-2);
   padding: 10px var(--space-4);
   background: var(--card);
   border: 1px solid var(--capbd);
@@ -74,6 +56,17 @@
 .button:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
+}
+
+/* The window is open and waiting on the user; a second click would open a
+ * second one. */
+.button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.google-mark {
+  flex: none;
 }
 
 .legal {

@@ -6,7 +6,7 @@ import { createContext, useContext } from 'react';
 export interface SessionContextValue {
   connected: boolean;
   checking: boolean;
-  signIn: (token: string) => Promise<void>;
+  signIn: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
