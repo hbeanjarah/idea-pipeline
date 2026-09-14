@@ -7,7 +7,10 @@ import {
   createIdea,
   deleteIdea,
   editVariation,
+  fetchIdentity,
   listIdeas,
+  revokeSession,
+  signInWithGoogle,
 } from '@/background/api';
 
 const respond = (status: number, body: unknown) =>
@@ -143,5 +146,70 @@ describe('the http client', () => {
     );
 
     expect(await deleteIdea('token', 'id')).toBeNull();
+  });
+});
+
+describe('signing in with Google', () => {
+  it('posts the code without an Authorization header', async () => {
+    const fetched = respond(201, {
+      token: 'tok',
+      user: { id: 'u1', email: 'c@example.com' },
+    });
+    vi.stubGlobal('fetch', fetched);
+
+    const result = await signInWithGoogle('the-code', 'the-verifier');
+
+    expect(result.token).toBe('tok');
+
+    const [, init] = fetched.mock.calls[0] as [string, RequestInit];
+    expect(init.headers).not.toHaveProperty('Authorization');
+    expect(JSON.parse(init.body as string)).toEqual({
+      code: 'the-code',
+      codeVerifier: 'the-verifier',
+    });
+  });
+
+  it('surfaces a refused code as the server worded it', async () => {
+    vi.stubGlobal(
+      'fetch',
+      respond(400, { error: "Code d'autorisation invalide." }),
+    );
+
+    await expect(
+      signInWithGoogle('bad', 'verifier'),
+    ).rejects.toMatchObject({
+      failure: {
+        reason: 'rejected',
+        message: "Code d'autorisation invalide.",
+      },
+    });
+  });
+});
+
+describe('the identity and the sign-out', () => {
+  it('reads the current user', async () => {
+    vi.stubGlobal(
+      'fetch',
+      respond(200, { id: 'u1', email: 'c@example.com' }),
+    );
+
+    expect(await fetchIdentity('tok')).toEqual({
+      id: 'u1',
+      email: 'c@example.com',
+    });
+  });
+
+  it('revokes the session with a DELETE', async () => {
+    const fetched = respond(204, null);
+    vi.stubGlobal('fetch', fetched);
+
+    await revokeSession('tok');
+
+    const [url, init] = fetched.mock.calls[0] as [
+      string,
+      RequestInit,
+    ];
+    expect(url).toMatch(/\/auth\/session$/);
+    expect(init.method).toBe('DELETE');
   });
 });

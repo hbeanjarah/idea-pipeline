@@ -1,6 +1,6 @@
 import { DEFAULT_API_URL } from '@/lib/config';
 import type { Failure } from '@/lib/protocol';
-import type { Idea, Status } from '@/storage/types';
+import type { Idea, Status, User } from '@/storage/types';
 
 // Overridable at build time by VITE_API_URL, which vite.config.ts resolves and
 // injects. Pinned to the local server until the API is hosted.
@@ -25,7 +25,7 @@ const messageOf = (body: unknown): string =>
     : 'Requête refusée.';
 
 async function call<T>(
-  token: string,
+  token: string | null,
   path: string,
   init?: { method?: string; body?: unknown },
 ): Promise<T> {
@@ -35,7 +35,11 @@ async function call<T>(
     response = await fetch(`${API_URL}${path}`, {
       method: init?.method ?? 'GET',
       headers: {
-        Authorization: `Bearer ${token}`,
+        // Omitted, not empty: POST /auth/google is the endpoint that creates
+        // the session, so it has no token to present.
+        ...(token === null
+          ? {}
+          : { Authorization: `Bearer ${token}` }),
         ...(init?.body === undefined
           ? {}
           : { 'Content-Type': 'application/json' }),
@@ -105,3 +109,18 @@ export const changeStatus = (
 
 export const deleteIdea = (token: string, ideaId: string) =>
   call<null>(token, `/ideas/${ideaId}`, { method: 'DELETE' });
+
+export const signInWithGoogle = (
+  code: string,
+  codeVerifier: string,
+) =>
+  call<{ token: string; user: User }>(null, '/auth/google', {
+    method: 'POST',
+    body: { code, codeVerifier },
+  });
+
+export const fetchIdentity = (token: string) =>
+  call<User>(token, '/auth/me');
+
+export const revokeSession = (token: string) =>
+  call<null>(token, '/auth/session', { method: 'DELETE' });
