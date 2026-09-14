@@ -4,6 +4,13 @@
 // The four pipeline stages.
 export type Status = 'captured' | 'maturing' | 'ready' | 'published';
 
+// Mirrors server/src/domain/types.ts and docs/openapi.yaml — the three move
+// together. The email comes from Google and can change; the id cannot.
+export interface User {
+  id: string;
+  email: string;
+}
+
 // A snapshot of the text at a point in time.
 // APPEND-ONLY: an existing variation is never edited nor removed;
 // evolving an idea means appending a new one.

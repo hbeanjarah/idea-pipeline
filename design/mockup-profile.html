@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Identité & profil</title>
+<style>
+  /* Tokens repris tels quels de src/styles/tokens.css. Rien de nouveau ici :
+   * l'avatar et le profil se construisent avec la palette existante. */
+  :root{
+    --bg:#e8ebf1; --panel:#f2f6fc; --panelbd:#dce4f0; --card:#fff; --cardbd:#e4ebf4;
+    --ink:#323859; --muted:#6f7891; --hint:#9aa3b5; --faint:#aab2c4;
+    --hl:#bdd9f2; --accent:#038c8c;
+    --capbd:#cdddf0; --ring:#e3edf9; --spine:#dce4f0; --tagbg:#e7eef8; --tagink:#5b6480;
+    --taupe:#a68776; --violet:#4a3f73;
+    --danger:#c0453b; --danger-bg:#f6ece9; --dangerbd:#eddcd7;
+    --shadow-popover:0 6px 20px rgba(50,56,89,.16);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;padding-block:34px;padding-inline:20px;line-height:1.5}
+  .page-h{max-width:1160px;margin:0 auto 24px}
+  .page-h h1{font-size:19px;font-weight:600;margin:0 0 5px;letter-spacing:-.01em;text-wrap:balance}
+  .page-h p{font-size:13px;color:var(--muted);margin:0;max-width:68ch}
+  .stage{max-width:1160px;margin:0 auto;display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start;justify-content:center}
+  .col{width:344px;max-width:100%}
+  .col-label{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:0 0 9px 2px;font-weight:600}
+  .col-label span{color:var(--faint);text-transform:none;letter-spacing:0;font-weight:400}
+  .col-note{font-size:11px;color:var(--muted);margin:8px 2px 0;line-height:1.5}
+  .panel{background:var(--panel);border:1px solid var(--panelbd);border-radius:14px;padding:13px;position:relative}
+
+  .ttl{font-size:14px;font-weight:600;margin:0}
+  .dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex:none}
+  .d-cap{background:var(--taupe)} .d-mat{background:var(--violet)} .d-pret{background:var(--accent)}
+  .ic{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+  .pipe{display:flex;align-items:center;gap:12px;font-size:11px;color:var(--muted);margin:0 0 11px}
+  .pipe .seg{display:flex;align-items:center;gap:5px}
+  .cap{background:var(--card);border:1px solid var(--capbd);border-radius:10px;padding:9px 11px;position:relative;font-size:14px;color:var(--hint)}
+  .cap-input{min-height:21px;font-size:14px;line-height:1.5;color:var(--hint);padding-right:26px}
+  .send{position:absolute;right:9px;bottom:8px;color:var(--faint);line-height:0}
+  .send svg{width:19px;height:19px;display:block}
+  .hint{font-size:11px;color:var(--hint);margin-top:6px}
+  .card{background:var(--card);border:1px solid var(--cardbd);border-radius:10px;padding:9px 11px}
+  .card + .card{margin-top:7px}
+  .card .tx{font-size:13px;line-height:1.4}
+  .meta{display:flex;align-items:center;gap:6px;font-size:11px;color:#8a93a8;margin-top:5px}
+
+  /* Barre de titre : le titre à gauche, l'identité à droite. Même gabarit que
+   * la barre du détail (retour / menu) — une seule grammaire de barre. */
+  .titlebar{display:flex;align-items:center;justify-content:space-between;gap:9px;margin:0 0 11px}
+
+  /* ---- L'avatar ---- */
+  .av{width:26px;height:26px;border-radius:50%;flex:none;display:flex;align-items:center;
+    justify-content:center;font-size:12px;font-weight:600;letter-spacing:.01em;cursor:pointer;
+    user-select:none;line-height:1}
+  .av-accent{background:var(--accent);color:#fff}
+  .av-neutral{background:var(--tagbg);color:var(--tagink);border:1px solid var(--capbd)}
+  .av-violet{background:var(--violet);color:#fff}
+  .av-taupe{background:var(--taupe);color:#fff}
+  .av-ink{background:var(--ink);color:#fff}
+  .av-lg{width:48px;height:48px;font-size:20px}
+  .av:focus-visible{outline:none;box-shadow:0 0 0 3px var(--ring)}
+  /* En attente de /auth/me : le cercle existe, la lettre n'est pas encore connue.
+   * Il ne bouge plus une fois remplie — pas de saut de mise en page. */
+  .av-wait{background:#e4eaf4;color:transparent;cursor:default;
+    animation:breathe 1.6s ease-in-out infinite}
+  @keyframes breathe{0%,100%{opacity:1}50%{opacity:.55}}
+  @media (prefers-reduced-motion:reduce){.av-wait{animation:none;opacity:.8}}
+
+  /* ---- Le menu d'identité (popover) ---- */
+  .pop{position:absolute;right:13px;top:44px;z-index:5;min-width:214px;background:var(--card);
+    border:1px solid var(--panelbd);border-radius:10px;box-shadow:var(--shadow-popover);padding:4px}
+  .pop-id{display:flex;align-items:center;gap:9px;padding:8px 8px 9px}
+  .pop-id .who{min-width:0}
+  .pop-id .mail{font-size:12px;color:var(--ink);font-weight:600;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pop-id .sub{font-size:11px;color:var(--hint)}
+  .pop-sep{height:1px;background:var(--cardbd);margin:2px 6px}
+  .pop-item{display:flex;align-items:center;gap:7px;width:100%;border:0;background:none;
+    border-radius:7px;padding:8px;font-family:inherit;font-size:13px;color:var(--ink);
+    text-align:left;white-space:nowrap;cursor:pointer}
+  .pop-item:hover{background:var(--ring)}
+  .pop-item.danger{color:var(--danger)}
+  .pop-item.danger:hover{background:var(--danger-bg)}
+
+  /* ---- L'écran profil ---- */
+  .prof{padding:8px 2px 2px;text-align:center}
+  .prof .av{margin:0 auto 11px;cursor:default}
+  .prof .mail{font-size:14px;font-weight:600;margin:0;overflow-wrap:anywhere}
+  .prof .sub{font-size:12px;color:var(--hint);margin:3px 0 0}
+  .rows{margin-top:17px;text-align:left;background:var(--card);border:1px solid var(--cardbd);
+    border-radius:10px;overflow:hidden}
+  .row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:10px 11px}
+  .row + .row{border-top:1px solid var(--cardbd)}
+  .row .k{font-size:12px;color:var(--muted);flex:none}
+  .row .v{font-size:12px;color:var(--ink);text-align:right;overflow-wrap:anywhere}
+  .row .v.mono{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    font-variant-numeric:tabular-nums;font-size:11px;color:var(--tagink)}
+  .btn-out{margin-top:15px;width:100%;background:var(--card);border:1px solid var(--dangerbd);
+    border-radius:10px;padding:9px 14px;font-family:inherit;font-size:13px;font-weight:600;
+    color:var(--danger);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px}
+  .btn-out:hover{background:var(--danger-bg)}
+
+  /* ---- Le bandeau permanent ---- */
+  .band{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--cardbd);
+    border-radius:10px;padding:7px 9px;margin:0 0 11px}
+  .band .mail{font-size:12px;color:var(--tagink);flex:1;min-width:0;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .band .out{font-size:11px;color:var(--muted);cursor:pointer;flex:none}
+  .band .out:hover{color:var(--danger)}
+
+  /* ---- Confirmation et échec ---- */
+  .confirm{display:flex;align-items:center;gap:8px;background:var(--danger-bg);border-radius:10px;
+    padding:8px 11px;margin:0 0 11px}
+  .confirm .tx{flex:1;font-size:12px;color:var(--ink)}
+  .confirm .no{border:0;background:none;font-family:inherit;font-size:12px;color:var(--muted);
+    cursor:pointer;padding:4px 8px}
+  .confirm .yes{border:0;border-radius:7px;background:var(--danger);font-family:inherit;font-size:12px;
+    color:#fff;cursor:pointer;padding:4px 11px}
+  .notice{background:#eaf0f9;border-radius:10px;padding:8px 11px;font-size:12px;color:var(--tagink);
+    display:flex;gap:8px;align-items:flex-start;margin:0 0 9px}
+  .notice .ic{color:var(--muted);margin-top:2px}
+  .alert{background:var(--danger-bg);border:1px solid var(--dangerbd);border-radius:10px;
+    padding:9px 11px;display:flex;gap:8px;align-items:flex-start;margin:0 0 9px}
+  .alert .ic{color:var(--danger);margin-top:2px}
+  .alert .body{flex:1;font-size:12px;line-height:1.45;color:var(--tagink)}
+  .alert .t{display:block;font-weight:600;color:var(--danger);margin-bottom:2px;font-size:12px}
+
+  /* ---- Planche des avatars ---- */
+  .swatches{display:flex;flex-direction:column;gap:0}
+  .sw{display:flex;align-items:center;gap:11px;padding:11px 2px}
+  .sw + .sw{border-top:1px solid var(--panelbd)}
+  .sw .lbl{font-size:12px;color:var(--ink);font-weight:600}
+  .sw .exp{font-size:11px;color:var(--hint);line-height:1.45}
+  .sw .trio{display:flex;gap:5px;flex:none}
+
+  .note{max-width:1160px;margin:32px auto 0;font-size:12px;color:var(--muted);line-height:1.6}
+  .note h2{font-size:13px;color:var(--ink);margin:0 0 7px}
+  .note b{color:var(--ink)}
+  .note ul{margin:8px 0 18px;padding-left:18px}
+  .note li{margin-bottom:6px}
+
+  @media (max-width:760px){ body{padding-inline:14px} .stage{gap:30px} }
+</style>
+</head>
+<body>
+  <div class="page-h">
+    <h1>Identité &amp; profil</h1>
+    <p>Où l'on voit <b>qui</b> est connecté, et par où l'on s'en va. Le bouton « Se connecter avec Google » est déjà validé dans <b>mockup-auth.html</b> et n'est pas repris ici. Trois emplacements sont proposés pour l'identité : il faut en choisir <b>un</b>. Textes provisoires.</p>
+  </div>
+
+  <div class="stage">
+
+    <!-- A. AVATAR DANS LA BARRE DE TITRE -->
+    <div class="col">
+      <p class="col-label">Emplacement A <span>· avatar dans la barre</span></p>
+      <div class="panel">
+        <div class="titlebar">
+          <p class="ttl">Mes idées</p>
+          <span class="av av-accent" title="camille.roux@gmail.com">C</span>
+        </div>
+        <div class="pipe">
+          <span class="seg"><span class="dot d-cap"></span>Capturé <span style="color:var(--ink);font-weight:600">3</span></span>
+          <span class="seg"><span class="dot d-mat"></span>Maturation <span style="color:var(--ink);font-weight:600">2</span></span>
+          <span class="seg"><span class="dot d-pret"></span>Prêt <span style="color:var(--ink);font-weight:600">1</span></span>
+        </div>
+        <div class="cap">
+          <div class="cap-input">Une idée…</div>
+          <span class="send"><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M7 5.4 L18.6 12 L7 18.6 Q9.4 12 7 5.4 Z"/></svg></span>
+        </div>
+        <p class="hint">Entrée pour capturer · Maj+Entrée pour un retour à la ligne</p>
+        <div class="card" style="margin-top:11px"><p class="tx">Les interruptions font partie du métier</p><div class="meta"><span class="dot d-mat"></span>Maturation · 2 versions</div></div>
+        <div class="card"><p class="tx">Beta testeur</p><div class="meta"><span class="dot d-cap"></span>Capturé</div></div>
+      </div>
+      <p class="col-note">Coût&nbsp;: <b>zéro pixel vertical</b>. La barre existe déjà, l'avatar occupe la place laissée libre à droite du titre.</p>
+    </div>
+
+    <!-- A'. LE MENU OUVERT -->
+    <div class="col">
+      <p class="col-label">Emplacement A <span>· le menu ouvert</span></p>
+      <div class="panel">
+        <div class="titlebar">
+          <p class="ttl">Mes idées</p>
+          <span class="av av-accent">C</span>
+        </div>
+        <div class="pop">
+          <div class="pop-id">
+            <span class="av av-accent" style="cursor:default">C</span>
+            <span class="who">
+              <span class="mail">camille.roux@gmail.com</span>
+              <span class="sub">Connecté sur cet appareil</span>
+            </span>
+          </div>
+          <div class="pop-sep"></div>
+          <button class="pop-item danger" type="button">
+            <svg class="ic" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+            Se déconnecter
+          </button>
+        </div>
+        <div class="pipe" style="opacity:.45">
+          <span class="seg"><span class="dot d-cap"></span>Capturé <span>3</span></span>
+          <span class="seg"><span class="dot d-mat"></span>Maturation <span>2</span></span>
+        </div>
+        <div class="cap" style="opacity:.45">
+          <div class="cap-input">Une idée…</div>
+        </div>
+        <div class="card" style="margin-top:11px;opacity:.45"><p class="tx">Les interruptions font partie du métier</p><div class="meta"><span class="dot d-mat"></span>Maturation · 2 versions</div></div>
+      </div>
+      <p class="col-note">Le même <b>Popover</b> que le statut et les menus «&nbsp;⋮&nbsp;». Aucun composant nouveau, aucune quatrième surface.</p>
+    </div>
+
+    <!-- B. ÉCRAN PROFIL -->
+    <div class="col">
+      <p class="col-label">Emplacement B <span>· écran profil (5ᵉ surface)</span></p>
+      <div class="panel">
+        <div class="titlebar">
+          <span style="color:var(--muted);display:flex"><svg class="ic" style="width:18px;height:18px" viewBox="0 0 24 24"><path d="M19 12H5"/><path d="M11 19l-7-7 7-7"/></svg></span>
+        </div>
+        <div class="prof">
+          <span class="av av-accent av-lg">C</span>
+          <p class="mail">camille.roux@gmail.com</p>
+          <p class="sub">Compte Google</p>
+          <div class="rows">
+            <div class="row"><span class="k">Membre depuis</span><span class="v mono">14 sept. 2026</span></div>
+            <div class="row"><span class="k">Cet appareil</span><span class="v">Chrome · Linux</span></div>
+            <div class="row"><span class="k">Idées</span><span class="v mono">6</span></div>
+          </div>
+          <button class="btn-out" type="button">
+            <svg class="ic" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+            Se déconnecter
+          </button>
+        </div>
+      </div>
+      <p class="col-note"><b>Attention&nbsp;:</b> deux des trois lignes n'existent pas encore. L'API ne renvoie aujourd'hui que <b>id</b> et <b>email</b> — voir la note en bas de page.</p>
+    </div>
+
+    <!-- C. BANDEAU PERMANENT -->
+    <div class="col">
+      <p class="col-label">Emplacement C <span>· bandeau permanent</span></p>
+      <div class="panel">
+        <p class="ttl" style="margin:0 0 11px">Mes idées</p>
+        <div class="band">
+          <span class="av av-neutral" style="width:22px;height:22px;font-size:11px;cursor:default">C</span>
+          <span class="mail">camille.roux@gmail.com</span>
+          <span class="out">Quitter</span>
+        </div>
+        <div class="cap">
+          <div class="cap-input">Une idée…</div>
+          <span class="send"><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M7 5.4 L18.6 12 L7 18.6 Q9.4 12 7 5.4 Z"/></svg></span>
+        </div>
+        <p class="hint">Entrée pour capturer · Maj+Entrée pour un retour à la ligne</p>
+        <div class="card" style="margin-top:11px"><p class="tx">Les interruptions font partie du métier</p><div class="meta"><span class="dot d-mat"></span>Maturation · 2 versions</div></div>
+      </div>
+      <p class="col-note">L'identité est toujours lisible, sans un clic. Mais elle <b>coûte 38&nbsp;px en permanence</b> dans un panneau étroit, pour une information qui ne change jamais.</p>
+    </div>
+
+    <!-- LES AVATARS -->
+    <div class="col">
+      <p class="col-label">L'avatar <span>· trois traitements</span></p>
+      <div class="panel">
+        <div class="swatches">
+          <div class="sw">
+            <span class="av av-accent" style="cursor:default">C</span>
+            <span>
+              <span class="lbl">Turquoise</span>
+              <span class="exp">La couleur d'action du produit. Toujours la même, quel que soit le compte.</span>
+            </span>
+          </div>
+          <div class="sw">
+            <span class="av av-neutral" style="cursor:default">C</span>
+            <span>
+              <span class="lbl">Neutre</span>
+              <span class="exp">Ne réclame aucune attention. Se fond dans la barre, au risque de s'y perdre.</span>
+            </span>
+          </div>
+          <div class="sw">
+            <span class="trio">
+              <span class="av av-violet" style="cursor:default">C</span>
+              <span class="av av-taupe" style="cursor:default">M</span>
+              <span class="av av-ink" style="cursor:default">J</span>
+            </span>
+            <span>
+              <span class="lbl">Dérivée du compte</span>
+              <span class="exp">À la Google. Mais ces trois couleurs sont déjà celles des <b>statuts</b>&nbsp;— et un seul compte est connecté à la fois.</span>
+            </span>
+          </div>
+        </div>
+      </div>
+      <p class="col-note">La lettre est l'initiale de l'e-mail, en majuscule. Pas de photo&nbsp;: Google la fournirait, mais le serveur ne lit aujourd'hui que <b>sub</b> et <b>email</b>.</p>
+    </div>
+
+    <!-- IDENTITÉ EN ATTENTE -->
+    <div class="col">
+      <p class="col-label">Identité en attente <span>· au réveil du worker</span></p>
+      <div class="panel">
+        <div class="titlebar">
+          <p class="ttl">Mes idées</p>
+          <span class="av av-wait">C</span>
+        </div>
+        <div class="cap">
+          <div class="cap-input">Une idée…</div>
+          <span class="send"><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M7 5.4 L18.6 12 L7 18.6 Q9.4 12 7 5.4 Z"/></svg></span>
+        </div>
+        <p class="hint">Entrée pour capturer · Maj+Entrée pour un retour à la ligne</p>
+        <div class="card" style="margin-top:11px"><p class="tx">Les interruptions font partie du métier</p><div class="meta"><span class="dot d-mat"></span>Maturation · 2 versions</div></div>
+      </div>
+      <p class="col-note">La session est valide, mais l'e-mail n'est pas encore revenu. Le cercle garde sa place et respire&nbsp;: la lettre apparaît sans décaler la barre. <b>La capture reste utilisable</b>&nbsp;— l'identité n'est pas un préalable.</p>
+    </div>
+
+    <!-- CONFIRMATION -->
+    <div class="col">
+      <p class="col-label">Déconnexion <span>· confirmation en deux temps</span></p>
+      <div class="panel">
+        <div class="titlebar">
+          <p class="ttl">Mes idées</p>
+          <span class="av av-accent">C</span>
+        </div>
+        <div class="confirm">
+          <span class="tx">Se déconnecter de cet appareil&nbsp;?</span>
+          <button class="no" type="button">Annuler</button>
+          <button class="yes" type="button">Quitter</button>
+        </div>
+        <div class="cap" style="opacity:.5">
+          <div class="cap-input">Une idée…</div>
+        </div>
+        <div class="card" style="margin-top:11px;opacity:.5"><p class="tx">Les interruptions font partie du métier</p><div class="meta"><span class="dot d-mat"></span>Maturation · 2 versions</div></div>
+      </div>
+      <p class="col-note">Même grammaire que la suppression d'une idée&nbsp;: une barre sous la tête, pas une modale. À décider&nbsp;— la déconnexion mérite-t-elle deux temps, alors qu'elle <b>ne détruit rien</b>&nbsp;?</p>
+    </div>
+
+    <!-- DÉCONNEXION SANS RÉSEAU -->
+    <div class="col">
+      <p class="col-label">Déconnexion <span>· serveur injoignable</span></p>
+      <div class="panel">
+        <div class="prof" style="padding-top:22px">
+          <span class="av av-neutral av-lg" style="cursor:default">C</span>
+          <p class="mail" style="font-size:13px">camille.roux@gmail.com</p>
+        </div>
+        <div class="alert" style="margin-top:17px">
+          <svg class="ic" viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+          <span class="body">
+            <span class="t">Déconnexion incomplète</span>
+            Cet appareil est déconnecté, mais le serveur n'a pas pu être prévenu. La session restera ouverte à distance jusqu'à son expiration.
+          </span>
+        </div>
+        <div class="notice">
+          <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          <span>Variante&nbsp;: rester connecté et proposer de réessayer, plutôt que de partir à moitié.</span>
+        </div>
+      </div>
+      <p class="col-note">Le cas est réel&nbsp;: <b>DELETE /auth/session</b> peut échouer. Deux réponses possibles, une seule à retenir — c'est la question 3 en bas de page.</p>
+    </div>
+
+  </div>
+
+  <div class="note">
+    <h2>Ce qu'il faut trancher</h2>
+    <ul>
+      <li><b>1. L'emplacement</b> — A (avatar + menu), B (écran profil) ou C (bandeau). <b>A</b> a ma préférence&nbsp;: il ne coûte aucune place, réutilise le <b>Popover</b> existant et n'ajoute pas de surface. B est une belle page, mais elle n'aurait aujourd'hui que <b>deux lignes vraies</b> à afficher.</li>
+      <li><b>2. L'avatar</b> — turquoise, neutre, ou dérivé du compte. Le dérivé est le plus «&nbsp;Google&nbsp;», mais un seul compte est connecté à la fois&nbsp;: la couleur ne distinguerait rien, et elle emprunterait les teintes des statuts.</li>
+      <li><b>3. La déconnexion hors ligne</b> — partir quand même en le disant, ou refuser et proposer de réessayer.</li>
+      <li><b>4. La confirmation</b> — un temps ou deux&nbsp;? Se déconnecter ne détruit aucune idée&nbsp;; se reconnecter coûte un clic.</li>
+    </ul>
+
+    <h2>Ce que l'API sait réellement d'un utilisateur</h2>
+    <p>Aujourd'hui, <b>id</b> et <b>email</b>. Rien d'autre ne sort du serveur. Les lignes «&nbsp;Membre depuis&nbsp;», «&nbsp;Cet appareil&nbsp;» et «&nbsp;Idées&nbsp;» de l'écran B sont <b>des propositions</b>, pas des données existantes&nbsp;:</p>
+    <ul>
+      <li><b>Membre depuis</b> — la colonne <b>users.created_at</b> existe en base, mais n'est pas exposée. Coût&nbsp;: une ligne dans le contrat, une dans le store.</li>
+      <li><b>Cet appareil</b> — <b>sessions.user_agent</b> est déjà enregistré à la connexion. Il faudrait un endpoint pour le relire.</li>
+      <li><b>Idées</b> — dérivable côté client, sans rien ajouter au serveur.</li>
+    </ul>
+    <p>Si l'emplacement retenu est A, aucune de ces trois lignes n'est nécessaire et le contrat ne bouge pas.</p>
+  </div>
+</body>
+</html>

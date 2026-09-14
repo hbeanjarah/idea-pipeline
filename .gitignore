@@ -22,5 +22,8 @@ pnpm-debug.log*
 .DS_Store
 *.swp
 
+# Clé privée de l'extension : fixe l'ID, ne se partage pas.
+key.pem
+
 # Misc
 *.local
