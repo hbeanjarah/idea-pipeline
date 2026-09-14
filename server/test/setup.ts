@@ -9,7 +9,9 @@ process.env.DATABASE_URL = inject('databaseUrl');
 // not empty a database. Emptying it belongs here, where no test file can
 // forget it.
 beforeEach(async () => {
-  await sql`TRUNCATE ideas, variations CASCADE`.execute(db());
+  await sql`TRUNCATE users, sessions, ideas, variations CASCADE`.execute(
+    db(),
+  );
 });
 
 afterAll(async () => {

@@ -27,3 +27,21 @@ export function databaseUrl(): string {
 
   return raw;
 }
+
+export function googleConfig(): {
+  clientId: string;
+  clientSecret: string;
+  redirectUri: string;
+} {
+  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const redirectUri = process.env.GOOGLE_REDIRECT_URI;
+
+  if (!clientId || !clientSecret || !redirectUri) {
+    throw new Error(
+      'GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET and GOOGLE_REDIRECT_URI are required',
+    );
+  }
+
+  return { clientId, clientSecret, redirectUri };
+}

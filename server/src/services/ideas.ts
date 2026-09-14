@@ -62,44 +62,54 @@ const requireIdea = (idea: Idea | null): Idea => {
   return idea;
 };
 
-export async function listIdeas(): Promise<Idea[]> {
-  return store.listIdeas();
+export async function listIdeas(userId: string): Promise<Idea[]> {
+  return store.listIdeas(userId);
 }
 
-export async function createIdea(body: unknown): Promise<Idea> {
-  return store.createIdea(parseTextBody(body));
+export async function createIdea(
+  userId: string,
+  body: unknown,
+): Promise<Idea> {
+  return store.createIdea(userId, parseTextBody(body));
 }
 
-export async function deleteIdea(ideaId: string): Promise<void> {
-  if (!(await store.deleteIdea(ideaId))) {
+export async function deleteIdea(
+  userId: string,
+  ideaId: string,
+): Promise<void> {
+  if (!(await store.deleteIdea(userId, ideaId))) {
     throw new ApiError(404, 'Idée introuvable.');
   }
 }
 
 export async function changeStatus(
+  userId: string,
   ideaId: string,
   body: unknown,
 ): Promise<Idea> {
   return requireIdea(
-    await store.changeStatus(ideaId, parseStatusBody(body)),
+    await store.changeStatus(userId, ideaId, parseStatusBody(body)),
   );
 }
 
 export async function addVariation(
+  userId: string,
   ideaId: string,
   body: unknown,
 ): Promise<Idea> {
   return requireIdea(
-    await store.addVariation(ideaId, parseTextBody(body)),
+    await store.addVariation(userId, ideaId, parseTextBody(body)),
   );
 }
 
 export async function editVariation(
+  userId: string,
   ideaId: string,
   variationId: string,
   body: unknown,
 ): Promise<Idea> {
   const result = await store.editVariation(
+    userId,
     ideaId,
     variationId,
     parseTextBody(body),

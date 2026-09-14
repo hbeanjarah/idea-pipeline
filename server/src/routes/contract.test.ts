@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 import { SPEC_PATH } from '#config/spec';
+import { authRouter } from '#routes/auth';
 import { ideasRouter } from '#routes/ideas';
 
 const HTTP_METHODS = new Set([
@@ -12,8 +13,11 @@ const HTTP_METHODS = new Set([
   'delete',
 ]);
 
-// Where ideasRouter is mounted in app.ts — its own paths don't carry it.
-const MOUNT = '/ideas';
+// Where each router is mounted in app.ts — their own paths don't carry it.
+const MOUNTED = [
+  { router: ideasRouter, mount: '/ideas' },
+  { router: authRouter, mount: '/auth' },
+];
 
 // No YAML parser is a declared dependency, and the paths section has a fixed
 // shape: a path template indented by two spaces, its methods by four. Parsing
@@ -51,24 +55,24 @@ interface RouteLayer {
 // The docs routes are deliberately absent: they serve the contract, they are
 // not part of it.
 function mountedOperations(): string[] {
-  const { stack } = ideasRouter as unknown as { stack: RouteLayer[] };
+  return MOUNTED.flatMap(({ router, mount }) => {
+    const { stack } = router as unknown as { stack: RouteLayer[] };
 
-  return stack
-    .flatMap(({ route }) => {
+    return stack.flatMap(({ route }) => {
       if (!route) return [];
 
       const suffix = route.path === '/' ? '' : route.path;
       // Express spells parameters /:id, OpenAPI spells them /{id}.
-      const path = `${MOUNT}${suffix}`.replace(/:(\w+)/g, '{$1}');
+      const path = `${mount}${suffix}`.replace(/:(\w+)/g, '{$1}');
 
       return Object.entries(route.methods)
         .filter(([, enabled]) => enabled)
         .map(([method]) => `${method.toUpperCase()} ${path}`);
-    })
-    .sort();
+    });
+  }).sort();
 }
 
-describe('the ideas routes and docs/openapi.yaml', () => {
+describe('the mounted routes and docs/openapi.yaml', () => {
   // Both sides are read through fragile means — a hand-rolled parser and an
   // Express internal. If either silently returned nothing, the comparison
   // below would pass while checking nothing at all.

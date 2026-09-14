@@ -1,20 +1,31 @@
 # idea-pipeline
 
-> Extension Chrome perso de capture et de maturation d'idées de posts LinkedIn,
-> et l'API locale qui la servira.
+> Extension Chrome de capture et de maturation d'idées de posts LinkedIn,
+> et l'API multi-utilisateur qui la sert.
 
 ## Contexte & objectif
 
-Outil **personnel, mono-utilisateur**. Ce n'est pas une appli de notes :
-c'est un **pipeline de contenu**. L'unité n'est pas une note figée mais une
-**idée vivante** qui évolue par variations successives, de la capture
-jusqu'à la publication.
+Ce n'est pas une appli de notes : c'est un **pipeline de contenu**. L'unité
+n'est pas une note figée mais une **idée vivante** qui évolue par variations
+successives, de la capture jusqu'à la publication.
+
+**Produit multi-utilisateur.** Chacun se connecte avec son compte Google et
+dispose d'un pipeline **étanche** : une idée appartient à une personne, et
+personne d'autre ne la voit. L'API est destinée à être hébergée, pour être
+joignable depuis plusieurs navigateurs à la fois — puis, plus tard, depuis une
+application mobile.
 
 Le dépôt tient deux moitiés : l'**extension** (`src/`), fonctionnelle et qui
-persiste dans `chrome.storage.local`, et une **API locale** (`server/`) qui
-sert le contrat de `docs/` et persiste dans PostgreSQL. **Les deux ne sont pas
-encore branchées** — le front n'appelle pas le serveur, et le sort des données
-déjà en local reste à décider.
+persiste dans `chrome.storage.local`, et l'**API** (`server/`), qui sert le
+contrat de `docs/` et persiste dans PostgreSQL. **Les deux ne sont pas encore
+branchées** — le front n'appelle pas le serveur.
+
+**Ce qui est décidé n'est pas ce qui est construit.** L'authentification, le
+cloisonnement par compte et l'hébergement sont **conçus**
+(`docs/auth-design.md`) et **pas encore implémentés**. À ce jour l'API tourne en
+local, sans comptes : elle sert toutes les idées à quiconque l'interroge. Ne
+suppose jamais qu'un `userId` existe quelque part tant que la brique
+correspondante n'est pas livrée.
 
 ## Méthode de travail
 
@@ -53,7 +64,7 @@ cette liste sans qu'on discute et l'autorise explicitement.
 - **Stockage** : `chrome.storage.local` derrière une couche repository → voir `.claude/rules/storage.md`
 - **Styles** : CSS pur, aucun framework UI (ni Tailwind, ni librairie de composants)
 
-**Back — l'API locale (`server/`)**
+**Back — l'API (`server/`)**
 
 - **Runtime** : Node en ESM (`"type": "module"`)
 - **Framework** : Express 5
@@ -66,6 +77,10 @@ cette liste sans qu'on discute et l'autorise explicitement.
   schéma vit dans `server/migrations/*.sql` — c'est lui la source de vérité, les
   types TS en sont dérivés par `kysely-codegen` → voir
   `.claude/rules/storage.md`
+- **Authentification** _(conçue, pas encore construite)_ : comptes Google
+  (OAuth 2.0 + PKCE), sessions **opaques en base** et révocables — pas de JWT
+  auto-porté. Aucune dépendance : `fetch` et `node:crypto` suffisent → voir
+  `docs/auth-design.md`
 - **Exécution** : `tsx` en dev, `tsc` pour le build
 - **Imports** : subpath imports Node (`#services/ideas`), sans extension →
   voir `.claude/rules/structure.md`
@@ -98,10 +113,14 @@ mais chaque ajout ou retrait se décide en amont (PO/PM), jamais par
 Claude Code de sa propre initiative.
 
 - **Pas d'images ni de médias** : une idée et ses variations sont du texte.
-- **Pas d'export** (fichier, partage, copie en masse).
-- **Pas de synchronisation ni de cloud** : le serveur tourne en local, sur un
-  seul appareil. Aucun hébergement distant, aucun compte, aucun multi-appareil.
-  Le backend local, lui, fait désormais partie du périmètre.
+- **Pas d'export** (fichier, partage, copie en masse) **en tant que
+  fonctionnalité**. Un script ponctuel de reprise de données n'en est pas un.
+- **Pas d'écriture hors ligne ni de synchronisation.** L'API est la seule source
+  de vérité : sans réseau, l'écriture échoue et l'interface propose de
+  réessayer. Un cache local en repli et une vraie synchronisation entre
+  appareils sont des sujets ouverts, volontairement reportés.
+- **Pas de partage entre comptes.** Chaque pipeline est étanche : ni lecture, ni
+  édition croisée, ni rôles, ni notion d'équipe.
 - **Pas d'IA** : aucune génération, reformulation ou suggestion automatique.
   La maturation d'une idée est 100 % manuelle.
 - **Changement de statut : dans la vue détail uniquement.** Pas de

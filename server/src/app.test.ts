@@ -4,12 +4,14 @@ import type { Server } from 'node:http';
 
 import { app } from '#app';
 import type { Idea } from '#domain/types';
+import { createUserWithSession } from '#test/factories';
 
 // The layer tests below this one never touch app.ts, routes/ or controllers/:
 // a route mounted on the wrong path, or wired to the wrong controller, passes
 // them all. These tests exercise the wiring over real HTTP instead.
 let server: Server;
 let base: string;
+let token: string;
 
 beforeEach(async () => {
   server = app.listen(0);
@@ -17,6 +19,7 @@ beforeEach(async () => {
     server.once('listening', resolve),
   );
   base = `http://localhost:${(server.address() as AddressInfo).port}`;
+  ({ token } = await createUserWithSession());
 });
 
 afterEach(
@@ -24,7 +27,10 @@ afterEach(
 );
 
 const api = (path: string, init?: RequestInit) =>
-  fetch(`${base}${path}`, init);
+  fetch(`${base}${path}`, {
+    ...init,
+    headers: { Authorization: `Bearer ${token}`, ...init?.headers },
+  });
 
 const send = (method: string, path: string, body: unknown) =>
   api(path, {
