@@ -251,6 +251,13 @@ de plateforme.
 
 ## Notes / Blocage
 
+- **Le texte en attente ne survit pas à la fermeture du panneau.** `pending`
+  vit dans l'état React ; refermer le panneau perd à la fois le texte saisi et
+  le moyen de le rejouer. Ce n'est pas absurde — refermer un panneau latéral est
+  un abandon assez explicite — mais ce n'était écrit ni dans la spec ni dans la
+  maquette. Le porter dans le service worker le rendrait durable, au prix d'un
+  état de plus à gérer.
+
 - **`src/storage/types.ts` est écrit à la main** et duplique le modèle du
   contrat. Tant que le front ne parlait à personne, la dérive était sans
   conséquence ; elle devient un risque d'exécution. Générer ces types depuis
