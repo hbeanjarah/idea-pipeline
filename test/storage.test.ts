@@ -6,10 +6,15 @@ import {
   afterEach,
   vi,
 } from 'vitest';
-import { ideaRepository } from '../src/storage/storage';
+import { ChromeStorageIdeaRepository } from '../src/storage/storage';
+
+// The class under test, not the exported singleton: that one now speaks to the
+// API through the worker. This implementation survives for the migration
+// script, which still has to read what the old storage holds.
+const ideaRepository = new ChromeStorageIdeaRepository();
 
 // A fresh chrome.storage stub is installed before every test (test/setup.ts),
-// so the singleton repository starts from an empty store each time.
+// so the repository starts from an empty store each time.
 
 describe('ChromeStorageIdeaRepository', () => {
   describe('create', () => {

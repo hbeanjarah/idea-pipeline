@@ -2,15 +2,23 @@ import { useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Route } from '../routes/routes';
 import { IdeasProvider } from '../hooks/IdeasProvider';
+import { useSession } from '../hooks/useSession';
 import HomeScreen from '../screens/HomeScreen';
 import ListScreen from '../screens/ListScreen';
 import DetailScreen from '../screens/DetailScreen';
+import SignInScreen from '../screens/SignInScreen';
 
 // The only place that maps a Route to a screen. Screens never read the route
 // state directly — they receive navigate (and their params) as props.
 // IdeasProvider is mounted once here, wrapping every screen.
 export default function App() {
   const [route, setRoute] = useState<Route>({ screen: 'home' });
+  const { connected, checking } = useSession();
+
+  // Nothing while the worker is being asked: showing the sign-in screen first
+  // would flash it on every panel opening.
+  if (checking) return null;
+  if (!connected) return <SignInScreen />;
 
   let screen: ReactNode;
   switch (route.screen) {
