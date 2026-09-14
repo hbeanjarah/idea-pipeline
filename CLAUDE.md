@@ -15,17 +15,18 @@ personne d'autre ne la voit. L'API est destinée à être hébergée, pour être
 joignable depuis plusieurs navigateurs à la fois — puis, plus tard, depuis une
 application mobile.
 
-Le dépôt tient deux moitiés : l'**extension** (`src/`), fonctionnelle et qui
-persiste dans `chrome.storage.local`, et l'**API** (`server/`), qui sert le
-contrat de `docs/` et persiste dans PostgreSQL. **Les deux ne sont pas encore
-branchées** — le front n'appelle pas le serveur.
+Le dépôt tient deux moitiés : l'**extension** (`src/`) et l'**API**
+(`server/`), qui sert le contrat de `docs/` et persiste dans PostgreSQL.
+**Elles sont branchées** : le panneau latéral ne lit plus
+`chrome.storage.local`, il passe par son service worker — seul détenteur du
+jeton de session, et seul à parler au réseau.
 
-**Ce qui est décidé n'est pas ce qui est construit.** L'authentification, le
-cloisonnement par compte et l'hébergement sont **conçus**
-(`docs/auth-design.md`) et **pas encore implémentés**. À ce jour l'API tourne en
-local, sans comptes : elle sert toutes les idées à quiconque l'interroge. Ne
-suppose jamais qu'un `userId` existe quelque part tant que la brique
-correspondante n'est pas livrée.
+**Ce qui est décidé n'est pas ce qui est construit.** Les comptes, les sessions
+révocables et le cloisonnement par utilisateur **sont en place** : une idée
+appartient à quelqu'un, et une idée d'autrui répond `404`. En revanche la
+**connexion Google** et l'**hébergement** sont conçus (`docs/auth-design.md`)
+et pas encore livrés : aujourd'hui un jeton se fabrique à la main et se colle
+dans l'extension, et l'API tourne en local.
 
 ## Méthode de travail
 
@@ -61,7 +62,10 @@ cette liste sans qu'on discute et l'autorise explicitement.
 - **UI** : React
 - **Type d'app** : extension Chrome, Manifest V3 (service worker)
 - **Surface** : Chrome Side Panel API
-- **Stockage** : `chrome.storage.local` derrière une couche repository → voir `.claude/rules/storage.md`
+- **Stockage** : l'API, atteinte **via le service worker** — le panneau ne fait
+  aucun appel réseau et ne voit jamais le jeton. `chrome.storage.local` ne sert
+  plus qu'à la reprise des idées d'avant la bascule → voir
+  `.claude/rules/storage.md`
 - **Styles** : CSS pur, aucun framework UI (ni Tailwind, ni librairie de composants)
 
 **Back — l'API (`server/`)**
