@@ -9,10 +9,14 @@ paths:
 
 ## Manifest V3
 
-- **Service worker** comme background (`src/background/index.ts`) — jamais de
-  background page persistante. Le worker est **éphémère** : Chrome peut le tuer
-  à tout moment. Aucun état durable en mémoire dans le worker ; tout passe par
-  `chrome.storage.local` (voir `storage.md`).
+- **Service worker** comme background (`src/background/`) — jamais de background
+  page persistante. Le worker est **éphémère** : Chrome peut le tuer à tout
+  moment. **Aucun état en mémoire** : le jeton de session se relit à chaque
+  réveil dans `chrome.storage.session`, une variable de module ne survivrait pas.
+  Exception connue : `launchWebAuthFlow` fait partie des rares API exemptées du
+  minuteur, et peut donc porter un flux qui attend l'utilisateur.
+- Le worker est **le seul à parler au réseau** et **le seul à détenir le jeton**.
+  Le panneau lui envoie des messages (`src/lib/protocol.ts`).
 - **Aucun code distant** : tout le JS est bundlé par Vite. Pas de script
   externe, pas d'`eval`, pas de CDN (CSP MV3 stricte).
 - Manifest typé en TypeScript (`src/manifest.ts`), généré par
@@ -22,14 +26,23 @@ paths:
 
 Le MVP ne demande que le strict nécessaire :
 
-- `storage` — persistance locale.
+- `storage` — le jeton de session, et les idées d'avant la bascule.
 - `sidePanel` — la surface de l'app.
+- `identity` — la connexion Google, par `launchWebAuthFlow`.
 - `commands` — le raccourci clavier d'ouverture.
 
-**Pas** de `host_permissions`, **pas** de content script, **pas** d'accès au DOM
-des pages. L'extension est un panneau **autonome** : elle ne lit ni n'écrit dans
-les pages visitées (LinkedIn compris). Toute interaction avec une page serait un
-ajout hors-MVP, via ticket.
+Un **`host_permissions`** est déclaré, sur la seule adresse de l'API. C'est lui
+qui exempte les pages de l'extension de CORS : aucun en-tête n'est produit côté
+serveur, c'est le navigateur qui accorde l'accès. Il est **construit depuis
+l'adresse résolue** (`src/manifest.ts`), pour qu'il ne puisse pas diverger de
+celle que le worker appelle.
+
+Le manifest porte aussi une **`key`**, qui fixe l'ID de l'extension — l'URL de
+redirection Google en dépend. Sa moitié privée (`key.pem`) n'est pas versionnée.
+
+**Pas** de content script, **pas** d'accès au DOM des pages. L'extension est un
+panneau **autonome** : elle ne lit ni n'écrit dans les pages visitées (LinkedIn
+compris). Toute interaction avec une page serait un ajout hors-MVP, via ticket.
 
 ## Ouverture du panneau — verrou
 

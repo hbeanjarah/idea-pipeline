@@ -1,0 +1,61 @@
+/* Account menu: who is connected, and the way out.
+ * Visual reference: design/mockup-profile.html, second column. */
+
+.menu {
+  display: flex;
+  flex-direction: column;
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: var(--space-2) var(--space-2) 9px;
+}
+
+/* min-width on the flex child is what lets the e-mail ellipsis work at all:
+ * without it the child refuses to shrink below its content. */
+.who {
+  min-width: 0;
+}
+
+.email {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.device {
+  font-size: 11px;
+  color: var(--hint);
+}
+
+.separator {
+  height: 1px;
+  margin: 2px 6px;
+  background: var(--cardbd);
+}
+
+.sign-out {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  padding: var(--space-2);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--danger);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.sign-out:hover {
+  background: var(--danger-bg);
+}

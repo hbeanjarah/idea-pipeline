@@ -1,23 +1,29 @@
 # idea-pipeline
 
-Extension Chrome perso de capture et de maturation d'idées de posts LinkedIn,
-et l'API locale qui la servira.
+Extension Chrome de capture et de maturation d'idées de posts LinkedIn, et
+l'API multi-utilisateur qui la sert.
 
-Le dépôt tient **deux moitiés indépendantes** :
+Le dépôt tient **deux moitiés** :
 
-|                | Où        | Ce que c'est                                                          |
-| -------------- | --------- | --------------------------------------------------------------------- |
-| **Extension**  | `src/`    | Manifest V3, React, Side Panel. Persiste dans `chrome.storage.local`. |
-| **API locale** | `server/` | Express 5 + PostgreSQL, sert le contrat de `docs/`.                   |
+|                | Où        | Ce que c'est                                                             |
+| -------------- | --------- | ------------------------------------------------------------------------ |
+| **Extension**  | `src/`    | Manifest V3, React, Side Panel. Lit et écrit par son **service worker**. |
+| **API locale** | `server/` | Express 5 + PostgreSQL, sert le contrat de `docs/`.                      |
 
-**Elles ne sont pas encore branchées** : l'extension n'appelle pas l'API. On peut
-lancer l'une sans l'autre.
+**Elles sont branchées** : le panneau ne touche pas au réseau et ne voit jamais
+le jeton de session — le service worker en est le seul détenteur. On se connecte
+avec un **compte Google** ; chaque pipeline est étanche.
+
+L'extension a donc besoin de l'API pour fonctionner. Elle n'a **pas** de mode
+hors ligne : sans serveur, l'interface propose de réessayer.
 
 ## Prérequis
 
 - **Node** 24 ou plus
 - **pnpm** 10 ou plus
 - **Docker** — pour la base de données et pour la suite de tests du serveur
+- Un **client OAuth Google** de type _Web application_ — voir « Connexion
+  Google » plus bas
 
 ## Installation
 
@@ -34,7 +40,7 @@ Trois commandes, dans cet ordre. Il compte : régénérer les types contre une b
 non migrée ne lève aucune erreur, mais produit une interface vide.
 
 ```bash
-cp server/.env.example server/.env          # une seule fois
+cp server/.env.example server/.env          # une seule fois, puis le remplir
 docker compose up -d --wait                 # démarre PostgreSQL
 pnpm --dir server db:migrate                # applique le schéma
 pnpm --dir server db:types                  # génère les types depuis la base
@@ -63,7 +69,8 @@ pnpm --dir server db:migrate && pnpm --dir server db:types
 ## Lancer l'extension
 
 ```bash
-pnpm dev       # ou : pnpm build
+cp .env.example .env    # une seule fois, puis y mettre VITE_GOOGLE_CLIENT_ID
+pnpm dev                # ou : pnpm build
 ```
 
 Puis dans Chrome :
@@ -74,6 +81,49 @@ Puis dans Chrome :
 
 Le panneau s'ouvre par un clic sur l'icône ou par `Ctrl+Shift+Y`
 (`Cmd+Shift+Y` sur macOS).
+
+`VITE_GOOGLE_CLIENT_ID` est substitué **à la compilation** : après l'avoir
+changé, il faut relancer `pnpm build` et recharger l'extension. Le serveur, lui,
+lit son `.env` **au démarrage** — le redémarrer suffit, `tsx watch` ne recharge
+pas l'environnement.
+
+## Connexion Google
+
+L'extension ouvre la fenêtre de consentement avec `launchWebAuthFlow` + PKCE, et
+le **serveur** échange le code : le `client_secret` ne quitte jamais `server/`.
+Conception détaillée dans `docs/google-signin-design.md`.
+
+### L'identité de l'extension
+
+`src/manifest.ts` contient une **`key`**, la clé publique d'une paire RSA dont la
+privée vit dans `key.pem`, à la racine, **non versionné**. Elle fixe l'ID de
+l'extension, sans quoi Chrome le dérive du chemin du dossier et l'URL de
+redirection déclarée chez Google cesse de correspondre.
+
+```bash
+# L'ID que la key produit, pour le déclarer chez Google :
+openssl rsa -in key.pem -pubout -outform DER 2>/dev/null \
+  | sha256sum | head -c 32 | tr '0-9a-f' 'a-p'; echo
+```
+
+**Ne perds pas `key.pem`** : sans lui, impossible de reproduire cet ID ailleurs.
+
+### Côté Google Cloud
+
+Dans **Google Auth Platform** (`console.cloud.google.com/auth`) :
+
+1. **Branding** — nom de l'application, e-mail d'assistance, cible **Externe**
+2. **Accès aux données** — les champs `openid` et `.../auth/userinfo.email`
+3. **Audience → Utilisateurs tests** — **ajouter son adresse** : une application
+   externe en statut _Testing_ n'autorise qu'eux, et le refus arrive côté Google,
+   sans rien laisser dans nos journaux
+4. **Clients → Créer un client** — type **Application Web**, aucune origine
+   JavaScript, et une URI de redirection **avec sa barre oblique finale** :
+   `https://<ID>.chromiumapp.org/`
+
+Puis reporter le **même** `client_id` dans `server/.env` et `.env`, et le secret
+dans `server/.env` **seulement** — un préfixe `VITE_` l'embarquerait dans le
+bundle.
 
 ## Commandes
 
@@ -92,10 +142,14 @@ du Compose : lancer les tests ne touche jamais à la base de développement.
 
 ## Documentation
 
-| Fichier                      | Contenu                                                       |
-| ---------------------------- | ------------------------------------------------------------- |
-| `docs/api-design.md`         | le contrat REST, et la table exhaustive des messages d'erreur |
-| `docs/openapi.yaml`          | la spécification OpenAPI — **source de vérité** du modèle     |
-| `docs/persistence-design.md` | la conception de la persistance                               |
-| `docs/persistence-plan.md`   | son plan d'implémentation                                     |
-| `CLAUDE.md`                  | le cadre de travail, la pile, le hors-scope                   |
+| Fichier                        | Contenu                                                       |
+| ------------------------------ | ------------------------------------------------------------- |
+| `docs/api-design.md`           | le contrat REST, et la table exhaustive des messages d'erreur |
+| `docs/openapi.yaml`            | la spécification OpenAPI — **source de vérité** du modèle     |
+| `docs/persistence-design.md`   | la conception de la persistance                               |
+| `docs/auth-design.md`          | comptes, sessions révocables, cloisonnement                   |
+| `docs/front-api-design.md`     | la liaison panneau ↔ service worker ↔ API                     |
+| `docs/google-signin-design.md` | la connexion Google, côté extension                           |
+| `CLAUDE.md`                    | le cadre de travail, la pile, le hors-scope                   |
+
+Chaque conception est suivie de son plan d'implémentation (`*-plan.md`).

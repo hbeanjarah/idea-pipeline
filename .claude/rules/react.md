@@ -34,6 +34,10 @@ Objectif : des composants **réutilisables et découplés**, sans sur-ingénieri
 - Préférer la **composition** (enfants / sous-composants) aux props de
   configuration qui s'accumulent.
 - Un composant par fichier (cf. structure.md, `no-multi-comp`).
+- Exemple du « 2ᵉ cas réel » : `ActionMenu` n'est né que le jour où un **second**
+  menu « ⋮ » identique est apparu. Il ne factorise pas que le balisage — il
+  absorbe le `close()` avant l'action, que les deux appelants devaient penser à
+  faire eux-mêmes.
 
 ## État
 
@@ -41,6 +45,20 @@ Objectif : des composants **réutilisables et découplés**, sans sur-ingénieri
 - L'état partagé remonte à l'écran parent — pas de store global en MVP.
 - `useEffect` uniquement pour la synchro avec l'extérieur (charger les idées au
   montage d'un écran), jamais pour de la logique dérivable au rendu.
+
+## Entorses assumées
+
+Une règle qu'on enfreint sciemment se consigne, sinon elle se perd et l'entorse
+devient la norme.
+
+- **`Composer` possède son texte _et_ son échec.** Un composant présentationnel
+  ne devrait porter ni l'un ni l'autre. Mais c'est lui qui détient le texte non
+  encore enregistré : si l'échec remontait à l'écran, un « Réessayer » réussi ne
+  pourrait pas vider le champ, et l'utilisateur verrait son texte deux fois.
+  L'état reste donc là où se trouve la chose à protéger.
+- **`HomeScreen` lit deux contextes** (`useIdeas` et `useSession`). C'est un
+  écran, donc il en a le droit — mais il est le seul, et l'identité ne s'affiche
+  que là.
 
 ## À éviter
 

@@ -1,8 +1,9 @@
 import type { Failure } from './protocol';
 
-// Reading and writing fail for the same reasons but do not worry the user about
-// the same thing: one asks "are my ideas lost?", the other "is my text lost?".
-export type Attempted = 'read' | 'write';
+// Reading, writing and signing in fail for the same reasons but do not worry
+// the user about the same thing: one asks "are my ideas lost?", the next "is my
+// text lost?", and the last none of that — there is nothing to lose yet.
+export type Attempted = 'read' | 'write' | 'signIn';
 
 // A cancelled sign-in displays nothing, so it has no wording. Excluding it
 // here makes that a compile error rather than an empty alert.
@@ -29,6 +30,25 @@ const TEXT: Record<
     gone: {
       title: 'Idée introuvable',
       body: 'Elle a été supprimée depuis un autre appareil.',
+    },
+  },
+  signIn: {
+    offline: {
+      title: 'Connexion impossible',
+      body: "Le serveur n'a pas répondu. Réessaie dans un instant.",
+    },
+    server: {
+      title: 'Connexion impossible',
+      body: 'Le serveur a rencontré un problème. Réessaie dans un instant.',
+    },
+    rejected: { title: 'Connexion refusée', body: '' },
+    unauthenticated: {
+      title: 'Connexion impossible',
+      body: 'Réessaie dans un instant.',
+    },
+    gone: {
+      title: 'Connexion impossible',
+      body: 'Réessaie dans un instant.',
     },
   },
   read: {
