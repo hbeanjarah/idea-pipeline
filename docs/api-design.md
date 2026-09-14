@@ -6,13 +6,21 @@
 
 ## Serveur & authentification
 
-**Base URL** : `http://localhost:3000`. L'API n'est hébergée nulle part ailleurs — elle tourne en local, sur un seul appareil. Tous les chemins ci-dessous sont relatifs à cette base.
+**Base URL** : `http://localhost:3000` tant que rien n'est hébergé. Tous les chemins ci-dessous sont relatifs à cette base.
 
-**Aucune authentification.** Outil mono-utilisateur : ni compte, ni jeton, ni en-tête à fournir. `docs/openapi.yaml` le déclare par un `security: []` à la racine plutôt que de laisser le silence l'impliquer — l'absence de champ ne distingue pas « pas d'authentification » de « oubli de le documenter ».
+**Session obligatoire.** Chaque requête porte un jeton de session opaque :
+
+```
+Authorization: Bearer <jeton>
+```
+
+Le jeton s'obtient par `POST /auth/google`, seul endpoint accessible sans session. Il est **révocable** : supprimer la session le rend invalide immédiatement, ce qu'un jeton auto-porté ne permet pas. Un compte peut avoir plusieurs sessions vivantes — une par appareil.
+
+**Une idée appartient à un compte, et à un seul.** Une idée d'autrui répond **`404`, jamais `403`** : un `403` confirmerait son existence et rendrait les identifiants énumérables. Le message est le même que pour une idée inexistante, parce que c'est exactement ce qu'elle est pour l'appelant.
 
 ## Format des erreurs
 
-Toutes les réponses d'erreur (`400`, `404` et `500`) renvoient un corps JSON de la forme suivante :
+Toutes les réponses d'erreur (`400`, `401`, `404`, `500` et `502`) renvoient un corps JSON de la forme suivante :
 
 ```json
 {
@@ -24,17 +32,20 @@ Toutes les réponses d'erreur (`400`, `404` et `500`) renvoient un corps JSON de
 
 La liste est exhaustive : l'API n'en renvoie pas d'autres.
 
-| Code  | Message                              | Quand                                                                                                                                             |
-| ----- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `400` | `Le champ "text" est obligatoire.`   | `text` absent, vide ou ne contenant que des espaces — y compris quand le corps n'a pas été lu du tout (`Content-Type: application/json` manquant) |
-| `400` | `Le champ "status" est obligatoire.` | `status` absent du corps, corps vide inclus                                                                                                       |
-| `400` | `Statut invalide.`                   | `status` présent mais hors des valeurs autorisées                                                                                                 |
-| `400` | `Champs non autorisés.`              | au moins un champ hors du schéma est présent                                                                                                      |
-| `400` | `Corps de requête JSON invalide.`    | JSON malformé                                                                                                                                     |
-| `404` | `Idée introuvable.`                  | l'`id` ne correspond à aucune idée                                                                                                                |
-| `404` | `Variation introuvable.`             | l'idée existe, mais pas la variation ciblée                                                                                                       |
-| `404` | `Ressource introuvable.`             | l'URL ne correspond à aucun endpoint                                                                                                              |
-| `500` | `Erreur inattendue côté serveur.`    | toute erreur non prévue                                                                                                                           |
+| Code  | Message                                    | Quand                                                                                                                                             |
+| ----- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `400` | `Le champ "text" est obligatoire.`         | `text` absent, vide ou ne contenant que des espaces — y compris quand le corps n'a pas été lu du tout (`Content-Type: application/json` manquant) |
+| `400` | `Le champ "status" est obligatoire.`       | `status` absent du corps, corps vide inclus                                                                                                       |
+| `400` | `Statut invalide.`                         | `status` présent mais hors des valeurs autorisées                                                                                                 |
+| `400` | `Champs non autorisés.`                    | au moins un champ hors du schéma est présent                                                                                                      |
+| `400` | `Corps de requête JSON invalide.`          | JSON malformé                                                                                                                                     |
+| `404` | `Idée introuvable.`                        | l'`id` ne correspond à aucune idée                                                                                                                |
+| `404` | `Variation introuvable.`                   | l'idée existe, mais pas la variation ciblée                                                                                                       |
+| `404` | `Ressource introuvable.`                   | l'URL ne correspond à aucun endpoint                                                                                                              |
+| `401` | `Authentification requise.`                | jeton absent, invalide, expiré ou révoqué — **un seul message**, pour ne rien divulguer                                                           |
+| `400` | `Code d'autorisation invalide.`            | corps de `POST /auth/google` invalide, ou code refusé par Google                                                                                  |
+| `502` | `Service d'authentification indisponible.` | Google injoignable — une panne, pas une faute du client                                                                                           |
+| `500` | `Erreur inattendue côté serveur.`          | toute erreur non prévue                                                                                                                           |
 
 Le texte est repris **mot pour mot** côté serveur : le contrat fait foi.
 

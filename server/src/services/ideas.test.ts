@@ -1,6 +1,14 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
 import * as service from '#services/ideas';
+import { createUserWithSession } from '#test/factories';
+
+// Every operation is scoped to an account, so the tests need one to exist.
+let userId: string;
+
+beforeEach(async () => {
+  ({ userId } = await createUserWithSession());
+});
 
 const REQUIRED_TEXT = {
   status: 400,
@@ -9,38 +17,41 @@ const REQUIRED_TEXT = {
 
 describe('createIdea validation', () => {
   it('rejects an absent body', async () => {
-    await expect(service.createIdea(undefined)).rejects.toMatchObject(
-      REQUIRED_TEXT,
-    );
+    await expect(
+      service.createIdea(userId, undefined),
+    ).rejects.toMatchObject(REQUIRED_TEXT);
   });
 
   it('rejects a non-object body', async () => {
     await expect(
-      service.createIdea('une idée'),
+      service.createIdea(userId, 'une idée'),
     ).rejects.toMatchObject(REQUIRED_TEXT);
   });
 
   it('rejects a missing text', async () => {
-    await expect(service.createIdea({})).rejects.toMatchObject(
-      REQUIRED_TEXT,
-    );
+    await expect(
+      service.createIdea(userId, {}),
+    ).rejects.toMatchObject(REQUIRED_TEXT);
   });
 
   it('rejects an empty text', async () => {
     await expect(
-      service.createIdea({ text: '' }),
+      service.createIdea(userId, { text: '' }),
     ).rejects.toMatchObject(REQUIRED_TEXT);
   });
 
   it('rejects a whitespace-only text', async () => {
     await expect(
-      service.createIdea({ text: '   ' }),
+      service.createIdea(userId, { text: '   ' }),
     ).rejects.toMatchObject(REQUIRED_TEXT);
   });
 
   it('rejects an unauthorized extra field', async () => {
     await expect(
-      service.createIdea({ text: 'une idée', status: 'published' }),
+      service.createIdea(userId, {
+        text: 'une idée',
+        status: 'published',
+      }),
     ).rejects.toMatchObject({
       status: 400,
       message: 'Champs non autorisés.',
@@ -50,7 +61,9 @@ describe('createIdea validation', () => {
 
 describe('createIdea', () => {
   it('creates a captured idea carrying its first variation', async () => {
-    const idea = await service.createIdea({ text: 'une idée' });
+    const idea = await service.createIdea(userId, {
+      text: 'une idée',
+    });
 
     expect(idea.status).toBe('captured');
     expect(idea.variations).toHaveLength(1);
@@ -58,7 +71,9 @@ describe('createIdea', () => {
   });
 
   it('stores the text trimmed', async () => {
-    const idea = await service.createIdea({ text: '  une idée  ' });
+    const idea = await service.createIdea(userId, {
+      text: '  une idée  ',
+    });
 
     expect(idea.variations[0]?.text).toBe('une idée');
   });
@@ -66,37 +81,41 @@ describe('createIdea', () => {
 
 describe('listIdeas', () => {
   it('starts empty', async () => {
-    expect(await service.listIdeas()).toEqual([]);
+    expect(await service.listIdeas(userId)).toEqual([]);
   });
 
   it('returns created ideas', async () => {
-    await service.createIdea({ text: 'une idée' });
+    await service.createIdea(userId, { text: 'une idée' });
 
-    expect(await service.listIdeas()).toHaveLength(1);
+    expect(await service.listIdeas(userId)).toHaveLength(1);
   });
 });
 
 describe('deleteIdea', () => {
   it('rejects an unknown idea', async () => {
-    await expect(service.deleteIdea('nope')).rejects.toMatchObject({
+    await expect(
+      service.deleteIdea(userId, 'nope'),
+    ).rejects.toMatchObject({
       status: 404,
       message: 'Idée introuvable.',
     });
   });
 
   it('removes the idea', async () => {
-    const idea = await service.createIdea({ text: 'une idée' });
+    const idea = await service.createIdea(userId, {
+      text: 'une idée',
+    });
 
-    await service.deleteIdea(idea.id);
+    await service.deleteIdea(userId, idea.id);
 
-    expect(await service.listIdeas()).toEqual([]);
+    expect(await service.listIdeas(userId)).toEqual([]);
   });
 });
 
 describe('changeStatus', () => {
   it('rejects an unknown idea', async () => {
     await expect(
-      service.changeStatus('nope', { status: 'ready' }),
+      service.changeStatus(userId, 'nope', { status: 'ready' }),
     ).rejects.toMatchObject({
       status: 404,
       message: 'Idée introuvable.',
@@ -106,10 +125,12 @@ describe('changeStatus', () => {
   // Zod reports an absent `status` and a bad value with the same issue code,
   // so these two must stay covered separately.
   it('rejects an absent status', async () => {
-    const idea = await service.createIdea({ text: 'une idée' });
+    const idea = await service.createIdea(userId, {
+      text: 'une idée',
+    });
 
     await expect(
-      service.changeStatus(idea.id, {}),
+      service.changeStatus(userId, idea.id, {}),
     ).rejects.toMatchObject({
       status: 400,
       message: 'Le champ "status" est obligatoire.',
@@ -117,10 +138,12 @@ describe('changeStatus', () => {
   });
 
   it('rejects a status outside the enum', async () => {
-    const idea = await service.createIdea({ text: 'une idée' });
+    const idea = await service.createIdea(userId, {
+      text: 'une idée',
+    });
 
     await expect(
-      service.changeStatus(idea.id, { status: 'archived' }),
+      service.changeStatus(userId, idea.id, { status: 'archived' }),
     ).rejects.toMatchObject({
       status: 400,
       message: 'Statut invalide.',
@@ -128,10 +151,15 @@ describe('changeStatus', () => {
   });
 
   it('rejects an unauthorized extra field', async () => {
-    const idea = await service.createIdea({ text: 'une idée' });
+    const idea = await service.createIdea(userId, {
+      text: 'une idée',
+    });
 
     await expect(
-      service.changeStatus(idea.id, { status: 'ready', text: 'x' }),
+      service.changeStatus(userId, idea.id, {
+        status: 'ready',
+        text: 'x',
+      }),
     ).rejects.toMatchObject({
       status: 400,
       message: 'Champs non autorisés.',
@@ -139,9 +167,11 @@ describe('changeStatus', () => {
   });
 
   it('moves the idea and refreshes updatedAt', async () => {
-    const created = await service.createIdea({ text: 'une idée' });
+    const created = await service.createIdea(userId, {
+      text: 'une idée',
+    });
 
-    const moved = await service.changeStatus(created.id, {
+    const moved = await service.changeStatus(userId, created.id, {
       status: 'ready',
     });
 
@@ -153,7 +183,7 @@ describe('changeStatus', () => {
 describe('addVariation', () => {
   it('rejects an unknown idea', async () => {
     await expect(
-      service.addVariation('nope', { text: 'suite' }),
+      service.addVariation(userId, 'nope', { text: 'suite' }),
     ).rejects.toMatchObject({
       status: 404,
       message: 'Idée introuvable.',
@@ -161,10 +191,12 @@ describe('addVariation', () => {
   });
 
   it('rejects a blank text', async () => {
-    const idea = await service.createIdea({ text: 'une idée' });
+    const idea = await service.createIdea(userId, {
+      text: 'une idée',
+    });
 
     await expect(
-      service.addVariation(idea.id, { text: '   ' }),
+      service.addVariation(userId, idea.id, { text: '   ' }),
     ).rejects.toMatchObject({
       status: 400,
       message: 'Le champ "text" est obligatoire.',
@@ -172,9 +204,11 @@ describe('addVariation', () => {
   });
 
   it('appends without touching the previous variations', async () => {
-    const created = await service.createIdea({ text: 'une idée' });
+    const created = await service.createIdea(userId, {
+      text: 'une idée',
+    });
 
-    const grown = await service.addVariation(created.id, {
+    const grown = await service.addVariation(userId, created.id, {
       text: 'suite',
     });
 
@@ -186,18 +220,22 @@ describe('addVariation', () => {
 
 describe('editVariation', () => {
   it('tells an unknown idea apart from an unknown variation', async () => {
-    const idea = await service.createIdea({ text: 'une idée' });
+    const idea = await service.createIdea(userId, {
+      text: 'une idée',
+    });
     const variationId = idea.variations[0]!.id;
 
     await expect(
-      service.editVariation('nope', variationId, { text: 'x' }),
+      service.editVariation(userId, 'nope', variationId, {
+        text: 'x',
+      }),
     ).rejects.toMatchObject({
       status: 404,
       message: 'Idée introuvable.',
     });
 
     await expect(
-      service.editVariation(idea.id, 'nope', { text: 'x' }),
+      service.editVariation(userId, idea.id, 'nope', { text: 'x' }),
     ).rejects.toMatchObject({
       status: 404,
       message: 'Variation introuvable.',
@@ -206,7 +244,7 @@ describe('editVariation', () => {
 
   it('rejects a blank text before looking the idea up', async () => {
     await expect(
-      service.editVariation('nope', 'nope', { text: '   ' }),
+      service.editVariation(userId, 'nope', 'nope', { text: '   ' }),
     ).rejects.toMatchObject({
       status: 400,
       message: 'Le champ "text" est obligatoire.',
@@ -214,9 +252,12 @@ describe('editVariation', () => {
   });
 
   it('rewrites the text in place', async () => {
-    const created = await service.createIdea({ text: 'une idée' });
+    const created = await service.createIdea(userId, {
+      text: 'une idée',
+    });
 
     const edited = await service.editVariation(
+      userId,
       created.id,
       created.variations[0]!.id,
       { text: 'corrigée' },
