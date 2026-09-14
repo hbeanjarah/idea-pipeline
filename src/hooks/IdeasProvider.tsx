@@ -10,7 +10,7 @@ import {
 } from 'react';
 import type { ReactNode } from 'react';
 import { ideaRepository } from '@/storage/storage';
-import { RepositoryError } from '@/storage/remote';
+import { failureOf } from '@/lib/failure';
 import type { Failure } from '@/lib/protocol';
 import type { Idea, Status } from '@/storage/types';
 import { IdeasContext } from './useIdeas';
@@ -18,11 +18,6 @@ import { IdeasContext } from './useIdeas';
 interface Props {
   children: ReactNode;
 }
-
-const failureOf = (error: unknown): Failure =>
-  error instanceof RepositoryError
-    ? error.failure
-    : { reason: 'server' };
 
 export function IdeasProvider({ children }: Props) {
   const [ideas, setIdeas] = useState<Idea[]>([]);
@@ -111,69 +106,69 @@ export function IdeasProvider({ children }: Props) {
     };
   }, [reload]);
 
-  const create = useCallback(
-    async (text: string) => {
-      const idea = await attempt(() => ideaRepository.create(text));
+  // Driven by Composer, which owns the text and therefore owns the failure:
+  // recording it here too would show two alerts for one outage. It throws, and
+  // the caller decides.
+  const create = useCallback(async (text: string) => {
+    const idea = await ideaRepository.create(text);
 
-      setIdeas((current) => [...current, idea]);
+    setIdeas((current) => [...current, idea]);
 
-      return idea;
-    },
-    [attempt],
-  );
+    return idea;
+  }, []);
 
   const replace = (idea: Idea) =>
     setIdeas((current) =>
       current.map((item) => (item.id === idea.id ? idea : item)),
     );
 
+  // Driven by Composer too — same reasoning as create.
   const addVariation = useCallback(
     async (ideaId: string, text: string) => {
-      const idea = await attempt(() =>
-        ideaRepository.addVariation(ideaId, text),
-      );
+      const idea = await ideaRepository.addVariation(ideaId, text);
 
       replace(idea);
 
       return idea;
     },
-    [attempt],
+    [],
   );
 
   const editVariation = useCallback(
-    async (ideaId: string, variationId: string, text: string) => {
-      const idea = await attempt(() =>
-        ideaRepository.editVariation(ideaId, variationId, text),
-      );
-
-      replace(idea);
-
-      return idea;
-    },
+    (ideaId: string, variationId: string, text: string) =>
+      attempt(async () => {
+        const idea = await ideaRepository.editVariation(
+          ideaId,
+          variationId,
+          text,
+        );
+        replace(idea);
+        return idea;
+      }),
     [attempt],
   );
 
   const changeStatus = useCallback(
-    async (ideaId: string, status: Status) => {
-      const idea = await attempt(() =>
-        ideaRepository.changeStatus(ideaId, status),
-      );
-
-      replace(idea);
-
-      return idea;
-    },
+    (ideaId: string, status: Status) =>
+      attempt(async () => {
+        const idea = await ideaRepository.changeStatus(
+          ideaId,
+          status,
+        );
+        replace(idea);
+        return idea;
+      }),
     [attempt],
   );
 
   const deleteIdea = useCallback(
-    async (ideaId: string) => {
-      await attempt(() => ideaRepository.delete(ideaId));
-
-      setIdeas((current) =>
-        current.filter((item) => item.id !== ideaId),
-      );
-    },
+    (ideaId: string) =>
+      attempt(async () => {
+        await ideaRepository.delete(ideaId);
+        setIdeas((current) =>
+          current.filter((item) => item.id !== ideaId),
+        );
+      }),
     [attempt],
   );
 

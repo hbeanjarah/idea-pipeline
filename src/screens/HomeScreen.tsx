@@ -63,10 +63,10 @@ export default function HomeScreen({ navigate }: Props) {
 
       {shown && (
         <Alert
-          title={failureText(shown).title}
+          title={failureText(shown, 'read').title}
           onRetry={retry ?? undefined}
         >
-          {failureText(shown).body}
+          {failureText(shown, 'read').body}
         </Alert>
       )}
 
