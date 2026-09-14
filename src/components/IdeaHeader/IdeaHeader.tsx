@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import Popover from '@/components/Popover/Popover';
+import ActionMenu from '@/components/ActionMenu/ActionMenu';
 import styles from './IdeaHeader.module.css';
 
 interface Props {
@@ -37,41 +37,18 @@ export default function IdeaHeader({ onBack, onDelete }: Props) {
           </svg>
         </button>
 
-        {/* Idea actions hub (⋮) — today a single entry (delete). Right-anchored
-            popover so the menu stays inside the panel. */}
         {onDelete && (
-          <Popover
-            align="end"
-            trigger={
-              <svg
-                className={styles.menuIcon}
-                viewBox="0 0 24 24"
-                width="18"
-                height="18"
-                fill="currentColor"
-                aria-label="Actions de l'idée"
-              >
-                <circle cx="5" cy="12" r="1.6" />
-                <circle cx="12" cy="12" r="1.6" />
-                <circle cx="19" cy="12" r="1.6" />
-              </svg>
-            }
-          >
-            {(close) => (
-              <div className={styles.actionMenu}>
-                <button
-                  type="button"
-                  className={styles.deleteOption}
-                  onClick={() => {
-                    close();
-                    setConfirming(true);
-                  }}
-                >
-                  Supprimer l&rsquo;idée
-                </button>
-              </div>
-            )}
-          </Popover>
+          <ActionMenu
+            label="Actions de l'idée"
+            className={styles.menuIcon}
+            actions={[
+              {
+                label: 'Supprimer l’idée',
+                tone: 'danger',
+                onSelect: () => setConfirming(true),
+              },
+            ]}
+          />
         )}
       </div>
 
