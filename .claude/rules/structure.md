@@ -27,7 +27,12 @@ idea-pipeline/
 ├── src/
 │   ├── manifest.ts         # manifest MV3, typé, importé par Vite
 │   ├── background/
-│   │   └── index.ts        # service worker
+│   │   ├── index.ts        # service worker : reçoit les messages du panneau
+│   │   ├── messages.ts     # un cas par requête du protocole
+│   │   ├── api.ts          # le SEUL client HTTP du dépôt côté front
+│   │   ├── session.ts      # le jeton, dans chrome.storage.session
+│   │   ├── google.ts       # launchWebAuthFlow + échange du code
+│   │   └── pkce.ts         # verifier, challenge, base64url
 │   ├── sidepanel/          # surface principale (Side Panel)
 │   │   ├── index.html      # point d'entrée HTML du panneau
 │   │   ├── main.tsx        # bootstrap React
@@ -36,14 +41,18 @@ idea-pipeline/
 │   │   ├── HomeScreen.tsx      # accueil borné
 │   │   ├── ListScreen.tsx      # liste complète scrollable
 │   │   └── DetailScreen.tsx    # détail d'une idée
-│   ├── components/         # briques réutilisables (IdeaCard, Composer, StatusBadge…)
+│   ├── components/         # briques réutilisables (IdeaCard, Composer,
+│   │                       #   Avatar, AccountMenu, ActionMenu, Popover…)
+│   ├── hooks/              # IdeasProvider, SessionProvider et leurs hooks
+│   ├── lib/                # protocol.ts (contrat panneau ↔ worker), config, failures
 │   ├── storage/
-│   │   ├── types.ts        # modèle de domaine : Idea, Variation, Status
-│   │   └── storage.ts      # IdeaRepository + implémentation chrome.storage.local
+│   │   ├── types.ts        # modèle de domaine : Idea, Variation, Status, User
+│   │   ├── remote.ts       # IdeaRepository passant par le service worker
+│   │   └── storage.ts      # ancienne implémentation chrome.storage.local
 │   └── styles/
 │       ├── tokens.css      # design tokens (palette, typo mono, espacements)
 │       └── global.css      # reset + base
-├── server/                 # API locale (Express 5 + PostgreSQL) — pas encore branchée au front
+├── server/                 # API locale (Express 5 + PostgreSQL), servie au front
 │   ├── package.json        # ses propres deps + le bloc "imports" (alias #*)
 │   ├── tsconfig.json       # éditeur + typecheck (voit src/ et test/)
 │   ├── tsconfig.build.json # build seul — exclut les *.test.ts et test/ de dist/
@@ -82,10 +91,14 @@ idea-pipeline/
 
 ## Où va quoi
 
-- **Types du domaine** (`Idea`, `Variation`, `Status`) → `src/storage/types.ts`.
-  Tout le monde les importe de là (détail dans `storage.md`).
-- **Accès aux données** → uniquement `src/storage/storage.ts`. Aucun appel
-  `chrome.storage` ailleurs.
+- **Types du domaine** (`Idea`, `Variation`, `Status`, `User`) →
+  `src/storage/types.ts`. Tout le monde les importe de là (détail dans
+  `storage.md`).
+- **Accès aux données** → uniquement à travers un `IdeaRepository`. Le panneau ne
+  fait **aucun appel réseau** : il envoie un message au service worker, seul
+  détenteur du jeton et seul à parler à l'API.
+- **Le contrat panneau ↔ worker** vit dans `src/lib/protocol.ts`. Un message
+  nouveau s'y déclare d'abord — la table `ReplyData` dit ce que chacun répond.
 - **Surfaces** (accueil / liste / détail) → `src/screens/`, une par fichier.
   Navigation entre elles : voir la section ci-dessous.
 - **Composants réutilisables** → `src/components/`, un composant par fichier
@@ -93,7 +106,11 @@ idea-pipeline/
 - **Styles** → `src/styles/` : `tokens.css` (variables), `global.css` (reset +
   base). Le CSS spécifique à un composant est colocalisé avec lui (détail dans
   `css.md`).
-- **Service worker** → `src/background/index.ts`.
+- **Service worker** → `src/background/`. Une seule porte d'entrée
+  (`messages.ts`), un seul client HTTP (`api.ts`).
+- **Deux conventions d'alias**, à ne pas confondre : `@/` pointe la racine de
+  `src/` **côté front** ; `#` est le subpath import de Node, réservé au
+  **serveur**. Aucun des deux ne traverse la frontière.
 
 ## Où va quoi — backend (`server/src/`)
 

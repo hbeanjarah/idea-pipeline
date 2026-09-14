@@ -21,12 +21,11 @@ Le dépôt tient deux moitiés : l'**extension** (`src/`) et l'**API**
 `chrome.storage.local`, il passe par son service worker — seul détenteur du
 jeton de session, et seul à parler au réseau.
 
-**Ce qui est décidé n'est pas ce qui est construit.** Les comptes, les sessions
-révocables et le cloisonnement par utilisateur **sont en place** : une idée
-appartient à quelqu'un, et une idée d'autrui répond `404`. En revanche la
-**connexion Google** et l'**hébergement** sont conçus (`docs/auth-design.md`)
-et pas encore livrés : aujourd'hui un jeton se fabrique à la main et se colle
-dans l'extension, et l'API tourne en local.
+Les comptes, les sessions révocables, le cloisonnement et la **connexion
+Google** sont en place : on se connecte avec son compte, et une idée d'autrui
+répond `404`. **Ce qui est décidé n'est pas encore construit** se réduit
+désormais à l'**hébergement** : l'API tourne en local, et l'extension pointe
+`localhost`.
 
 ## Méthode de travail
 
@@ -81,10 +80,11 @@ cette liste sans qu'on discute et l'autorise explicitement.
   schéma vit dans `server/migrations/*.sql` — c'est lui la source de vérité, les
   types TS en sont dérivés par `kysely-codegen` → voir
   `.claude/rules/storage.md`
-- **Authentification** _(conçue, pas encore construite)_ : comptes Google
-  (OAuth 2.0 + PKCE), sessions **opaques en base** et révocables — pas de JWT
-  auto-porté. Aucune dépendance : `fetch` et `node:crypto` suffisent → voir
-  `docs/auth-design.md`
+- **Authentification** : comptes Google (OAuth 2.0 + PKCE), sessions **opaques
+  en base** et révocables — pas de JWT auto-porté. L'extension ouvre la fenêtre
+  de consentement, le serveur échange le code : le `client_secret` ne quitte
+  jamais `server/`. Aucune dépendance : `fetch` et `node:crypto` suffisent →
+  voir `docs/auth-design.md` et `docs/google-signin-design.md`
 - **Exécution** : `tsx` en dev, `tsc` pour le build
 - **Imports** : subpath imports Node (`#services/ideas`), sans extension →
   voir `.claude/rules/structure.md`

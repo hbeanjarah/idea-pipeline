@@ -1,6 +1,8 @@
 import type { Navigate } from '@/routes/routes';
 import type { Status } from '@/storage/types';
 import { useIdeas } from '@/hooks/useIdeas';
+import { useSession } from '@/hooks/useSession';
+import AccountMenu from '@/components/AccountMenu/AccountMenu';
 import Alert from '@/components/Alert/Alert';
 import Composer from '@/components/Composer/Composer';
 import IdeaCard from '@/components/IdeaCard/IdeaCard';
@@ -23,6 +25,7 @@ const PIPELINE_SEGMENTS: { status: Status; label: string }[] = [
 // Data access via the hook only — never the repository directly.
 export default function HomeScreen({ navigate }: Props) {
   const { ideas, loading, failure, retry, create } = useIdeas();
+  const { user, signOut } = useSession();
 
   // A 404 is not shown here: the list has already been reloaded, there is
   // nothing for the user to act on.
@@ -37,7 +40,13 @@ export default function HomeScreen({ navigate }: Props) {
 
   return (
     <main className={styles.home}>
-      <p className={styles.title}>Mes idées</p>
+      <div className={styles.titlebar}>
+        <p className={styles.title}>Mes idées</p>
+        <AccountMenu
+          email={user?.email ?? null}
+          onSignOut={() => void signOut()}
+        />
+      </div>
 
       {!loading && hasIdeas && (
         <div className={styles.pipe}>

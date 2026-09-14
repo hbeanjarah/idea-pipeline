@@ -1,0 +1,43 @@
+/* Identity mark: the initial of the e-mail. Turquoise and always turquoise —
+ * one account is connected at a time, so a derived color would tell nothing
+ * apart, and the palette's other hues already mean a status. */
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--card);
+  user-select: none;
+}
+
+/* Waiting for /auth/me: same box, no letter, so nothing shifts when it lands. */
+.waiting {
+  background: #e4eaf4;
+  color: transparent;
+  animation: breathe 1.6s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .waiting {
+    animation: none;
+    opacity: 0.8;
+  }
+}

@@ -65,10 +65,19 @@ interface IdeaRepository {
   list(): Promise<Idea[]>;
   create(text: string): Promise<Idea>; // crée l'idée + sa 1re variation
   addVariation(ideaId: string, text: string): Promise<Idea>;
+  editVariation(
+    ideaId: string,
+    variationId: string,
+    text: string,
+  ): Promise<Idea>;
   changeStatus(ideaId: string, status: Status): Promise<Idea>;
   delete(ideaId: string): Promise<void>; // suppression définitive
 }
 ```
+
+L'implémentation vivante est `src/storage/remote.ts` : elle **ne touche à rien**
+elle-même, elle envoie un message au service worker. Le panneau ne fait aucun
+appel réseau et ne voit jamais le jeton de session.
 
 ## Invariants
 
@@ -82,10 +91,13 @@ interface IdeaRepository {
   à jour — l'appelant ne relit pas via `list()`.
 - `updatedAt` est rafraîchi à chaque mutation ; `createdAt` ne bouge jamais.
 - Dates en chaînes **ISO 8601** (lisibles, triables, heure incluse).
-- Deux implémentations coexistent : le **front** sur `chrome.storage.local`
-  derrière `IdeaRepository`, le **serveur** sur PostgreSQL derrière
-  `server/src/store/ideas.ts`. Les deux respectent les mêmes invariants ; elles
-  ne se parlent pas encore.
+- **Une seule source de vérité : PostgreSQL**, derrière
+  `server/src/store/ideas.ts`. Le front l'atteint par son service worker.
+  `src/storage/storage.ts`, l'ancienne implémentation `chrome.storage.local`,
+  ne sert plus qu'à la reprise des idées d'avant la bascule.
+- **Une idée appartient à un compte.** Les six opérations du store prennent un
+  `userId` en premier argument, qui devient un `WHERE user_id = $1` ; une idée
+  d'autrui répond `404`, jamais `403` — on ne divulgue pas son existence.
 - Côté serveur, « `variations` n'est jamais vide » est tenu par la **transaction**
   de `createIdea`, pas par une contrainte SQL — le relationnel ne sait pas
   l'exprimer. Un `INSERT` manuel peut donc le violer.
