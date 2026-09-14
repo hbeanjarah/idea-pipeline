@@ -3,7 +3,7 @@
 // Context here is an explicit, PO-approved revision of structure.md's "no Context".
 
 import { createContext, useContext } from 'react';
-import type { Failure } from '@/lib/protocol';
+import type { Displayable } from '@/lib/failureText';
 import type { Idea, Status } from '@/storage/types';
 
 export interface IdeasContextValue {
@@ -20,7 +20,7 @@ export interface IdeasContextValue {
   deleteIdea: (ideaId: string) => Promise<void>;
   // What went wrong last, and how to try it again. Exposed here so no screen
   // invents its own error handling — they would drift.
-  failure: Failure | null;
+  failure: Displayable | null;
   retry: (() => void) | null;
 }
 

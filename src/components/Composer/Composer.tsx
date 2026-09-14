@@ -3,7 +3,7 @@ import type { ChangeEvent, KeyboardEvent } from 'react';
 import Alert from '@/components/Alert/Alert';
 import { failureOf } from '@/lib/failure';
 import { failureText } from '@/lib/failureText';
-import type { Failure } from '@/lib/protocol';
+import type { Displayable } from '@/lib/failureText';
 import styles from './Composer.module.css';
 
 // Provisional placeholder; lot 4 will introduce a prop when reformulation needs it.
@@ -24,7 +24,7 @@ export default function Composer({
 }: Props) {
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
-  const [failure, setFailure] = useState<Failure | null>(null);
+  const [failure, setFailure] = useState<Displayable | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Focus on mount when requested — programmatic, via the existing textarea ref
