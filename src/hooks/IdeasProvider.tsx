@@ -11,7 +11,7 @@ import {
 import type { ReactNode } from 'react';
 import { ideaRepository } from '@/storage/storage';
 import { failureOf } from '@/lib/failure';
-import type { Failure } from '@/lib/protocol';
+import type { Displayable } from '@/lib/failureText';
 import type { Idea, Status } from '@/storage/types';
 import { IdeasContext } from './useIdeas';
 
@@ -22,7 +22,7 @@ interface Props {
 export function IdeasProvider({ children }: Props) {
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [loading, setLoading] = useState(true);
-  const [failure, setFailure] = useState<Failure | null>(null);
+  const [failure, setFailure] = useState<Displayable | null>(null);
   // The operation that just failed, kept raw so it can be run again as is.
   const [pending, setPending] = useState<
     (() => Promise<unknown>) | null

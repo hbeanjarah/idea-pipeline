@@ -7,25 +7,18 @@ interface Props {
   children: ReactNode;
 }
 
-type SessionRequest = Extract<
-  Request,
-  { kind: 'session/status' | 'session/set' }
->;
+type SessionKind = Extract<Request['kind'], `session/${string}`>;
 
 // sendMessage rejects outright when nothing answers ("Receiving end does not
 // exist"), so the rejection is swallowed here: an unreachable worker must leave
 // the panel signed out, never stuck on a blank screen waiting forever.
-const askConnected = async (
-  request: SessionRequest,
-): Promise<boolean> => {
+const ask = async <K extends SessionKind>(
+  request: Extract<Request, { kind: K }>,
+): Promise<Reply<K> | null> => {
   try {
-    const reply = (await chrome.runtime.sendMessage(request)) as
-      | Reply<'session/status'>
-      | undefined;
-
-    return reply?.ok === true && reply.data.connected;
+    return (await chrome.runtime.sendMessage(request)) as Reply<K>;
   } catch {
-    return false;
+    return null;
   }
 };
 
@@ -39,9 +32,9 @@ export function SessionProvider({ children }: Props) {
     // An effect callback cannot be async: React reads whatever it returns as
     // the cleanup function. The call is therefore started and not awaited —
     // the active flag above is what discards an answer that comes back late.
-    void askConnected({ kind: 'session/status' }).then((result) => {
+    void ask({ kind: 'session/status' }).then((reply) => {
       if (!active) return;
-      setConnected(result);
+      setConnected(reply?.ok === true && reply.data.connected);
       setChecking(false);
     });
     return () => {
@@ -49,16 +42,13 @@ export function SessionProvider({ children }: Props) {
     };
   }, []);
 
-  const signIn = useCallback(async (token: string) => {
-    setConnected(await askConnected({ kind: 'session/set', token }));
+  const signIn = useCallback(async () => {
+    const reply = await ask({ kind: 'session/signIn' });
+    if (reply?.ok) setConnected(true);
   }, []);
 
   const signOut = useCallback(async () => {
-    try {
-      await chrome.runtime.sendMessage({ kind: 'session/clear' });
-    } catch {
-      // The worker is unreachable; the panel still has to leave the session.
-    }
+    await ask({ kind: 'session/signOut' });
     setConnected(false);
   }, []);
 
