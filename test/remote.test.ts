@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   MessagingIdeaRepository,
   RepositoryError,
-} from '../src/storage/remote';
+} from '@/storage/remote';
 
 const runtime = () =>
   globalThis.chrome.runtime as unknown as {

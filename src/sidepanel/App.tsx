@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import type { ReactNode } from 'react';
-import type { Route } from '../routes/routes';
-import { IdeasProvider } from '../hooks/IdeasProvider';
-import { useSession } from '../hooks/useSession';
-import HomeScreen from '../screens/HomeScreen';
-import ListScreen from '../screens/ListScreen';
-import DetailScreen from '../screens/DetailScreen';
-import SignInScreen from '../screens/SignInScreen';
+import type { Route } from '@/routes/routes';
+import { IdeasProvider } from '@/hooks/IdeasProvider';
+import { useSession } from '@/hooks/useSession';
+import HomeScreen from '@/screens/HomeScreen';
+import ListScreen from '@/screens/ListScreen';
+import DetailScreen from '@/screens/DetailScreen';
+import SignInScreen from '@/screens/SignInScreen';
 
 // The only place that maps a Route to a screen. Screens never read the route
 // state directly — they receive navigate (and their params) as props.

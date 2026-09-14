@@ -1,6 +1,6 @@
-import { DEFAULT_API_URL } from '../lib/config';
-import type { Failure } from '../lib/protocol';
-import type { Idea, Status } from '../storage/types';
+import { DEFAULT_API_URL } from '@/lib/config';
+import type { Failure } from '@/lib/protocol';
+import type { Idea, Status } from '@/storage/types';
 
 // Overridable at build time by VITE_API_URL, which vite.config.ts resolves and
 // injects. Pinned to the local server until the API is hosted.

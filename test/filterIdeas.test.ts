@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { filterIdeas } from '../src/lib/filterIdeas';
-import type { Idea, Status, Variation } from '../src/storage/types';
+import { filterIdeas } from '@/lib/filterIdeas';
+import type { Idea, Status, Variation } from '@/storage/types';
 
 // Minimal Idea fixture — only the fields filterIdeas reads matter here.
 function makeIdea(

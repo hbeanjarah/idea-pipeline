@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { SessionContext } from './useSession';
-import type { Reply, Request } from '../lib/protocol';
+import type { Reply, Request } from '@/lib/protocol';
 
 interface Props {
   children: ReactNode;

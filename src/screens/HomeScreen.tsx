@@ -1,8 +1,10 @@
-import type { Navigate } from '../routes/routes';
-import type { Status } from '../storage/types';
-import { useIdeas } from '../hooks/useIdeas';
-import Composer from '../components/Composer/Composer';
-import IdeaCard from '../components/IdeaCard/IdeaCard';
+import type { Navigate } from '@/routes/routes';
+import type { Status } from '@/storage/types';
+import { useIdeas } from '@/hooks/useIdeas';
+import Alert from '@/components/Alert/Alert';
+import Composer from '@/components/Composer/Composer';
+import IdeaCard from '@/components/IdeaCard/IdeaCard';
+import { failureText } from '@/lib/failureText';
 import styles from './HomeScreen.module.css';
 
 interface Props {
@@ -20,7 +22,11 @@ const PIPELINE_SEGMENTS: { status: Status; label: string }[] = [
 
 // Data access via the hook only — never the repository directly.
 export default function HomeScreen({ navigate }: Props) {
-  const { ideas, loading, create } = useIdeas();
+  const { ideas, loading, failure, retry, create } = useIdeas();
+
+  // A 404 is not shown here: the list has already been reloaded, there is
+  // nothing for the user to act on.
+  const shown = failure && failure.reason !== 'gone' ? failure : null;
 
   // Most recently active first; bounded preview, never scrolls.
   const recent = [...ideas]
@@ -55,52 +61,65 @@ export default function HomeScreen({ navigate }: Props) {
         ⏎ enregistrer · ⇧⏎ retour à la ligne
       </p>
 
-      {!loading &&
-        (hasIdeas ? (
-          <>
-            <p className={styles.eyebrow}>Récentes</p>
-            <div className={styles.cards}>
-              {recent.map((idea) => (
-                <IdeaCard
-                  key={idea.id}
-                  idea={idea}
-                  onClick={() =>
-                    navigate({ screen: 'detail', ideaId: idea.id })
-                  }
-                />
-              ))}
-            </div>
-            <button
-              type="button"
-              className={styles.more}
-              onClick={() => navigate({ screen: 'list' })}
-            >
-              <span>Toutes mes idées</span>
-              <span className={styles.moreCount}>{ideas.length}</span>
-            </button>
-          </>
-        ) : (
-          <div className={styles.empty}>
-            <div className={styles.emptyCue}>
-              <svg
-                viewBox="0 0 24 24"
-                width="16"
-                height="16"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M12 19V5" />
-                <path d="M6 11l6-6 6 6" />
-              </svg>
-            </div>
-            <p className={styles.emptyTitle}>
-              Ta première idée commence ici.
-            </p>
+      {shown && (
+        <Alert
+          title={failureText(shown).title}
+          onRetry={retry ?? undefined}
+        >
+          {failureText(shown).body}
+        </Alert>
+      )}
+
+      {!loading && hasIdeas && (
+        <>
+          <p className={styles.eyebrow}>Récentes</p>
+          <div className={styles.cards}>
+            {recent.map((idea) => (
+              <IdeaCard
+                key={idea.id}
+                idea={idea}
+                onClick={() =>
+                  navigate({ screen: 'detail', ideaId: idea.id })
+                }
+              />
+            ))}
           </div>
-        ))}
+          <button
+            type="button"
+            className={styles.more}
+            onClick={() => navigate({ screen: 'list' })}
+          >
+            <span>Toutes mes idées</span>
+            <span className={styles.moreCount}>{ideas.length}</span>
+          </button>
+        </>
+      )}
+
+      {/* Only when nothing failed: while an alert is showing the list is
+          unknown rather than empty, and inviting a first idea would claim the
+          account has none. */}
+      {!loading && !hasIdeas && !shown && (
+        <div className={styles.empty}>
+          <div className={styles.emptyCue}>
+            <svg
+              viewBox="0 0 24 24"
+              width="16"
+              height="16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M12 19V5" />
+              <path d="M6 11l6-6 6 6" />
+            </svg>
+          </div>
+          <p className={styles.emptyTitle}>
+            Ta première idée commence ici.
+          </p>
+        </div>
+      )}
     </main>
   );
 }

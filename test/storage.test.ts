@@ -6,7 +6,7 @@ import {
   afterEach,
   vi,
 } from 'vitest';
-import { ChromeStorageIdeaRepository } from '../src/storage/storage';
+import { ChromeStorageIdeaRepository } from '@/storage/storage';
 
 // The class under test, not the exported singleton: that one now speaks to the
 // API through the worker. This implementation survives for the migration

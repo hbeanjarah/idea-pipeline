@@ -1,0 +1,97 @@
+/* Idea header: back, actions menu, and the two-step delete bar.
+ * Visual reference: design/mockup.html #surface-detail. */
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 var(--space-3);
+  color: var(--muted);
+}
+
+.back {
+  display: flex;
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.back:hover {
+  color: var(--ink);
+}
+
+.menu-icon {
+  color: var(--muted);
+}
+
+.menu-icon:hover {
+  color: var(--ink);
+}
+
+.action-menu {
+  display: flex;
+  flex-direction: column;
+}
+
+.delete-option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  padding: var(--space-2) var(--space-2);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--danger);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.delete-option:hover {
+  background: var(--danger-bg);
+}
+
+.confirm-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--danger-bg);
+}
+
+.confirm-text {
+  flex: 1;
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.confirm-cancel {
+  border: none;
+  background: none;
+  padding: var(--space-1) var(--space-2);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.confirm-cancel:hover {
+  color: var(--ink);
+}
+
+.confirm-delete {
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--danger);
+  padding: var(--space-1) var(--space-3);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--card);
+  cursor: pointer;
+}

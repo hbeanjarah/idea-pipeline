@@ -4,7 +4,8 @@ import styles from './VariationEditor.module.css';
 
 interface Props {
   initialText: string;
-  onSave: (text: string) => void;
+  // Returns a promise so the editor stays open when the write fails.
+  onSave: (text: string) => Promise<unknown>;
   onCancel: () => void;
 }
 
@@ -17,6 +18,7 @@ export default function VariationEditor({
   onCancel,
 }: Props) {
   const [text, setText] = useState(initialText);
+  const [busy, setBusy] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Focus on mount with the caret at the end — we are editing existing text,
@@ -37,10 +39,18 @@ export default function VariationEditor({
     input.style.height = `${input.scrollHeight}px`;
   }, [text]);
 
-  const save = () => {
+  const save = async () => {
     const trimmed = text.trim();
-    if (!trimmed) return;
-    onSave(trimmed);
+    if (!trimmed || busy) return;
+
+    setBusy(true);
+    try {
+      await onSave(trimmed);
+    } catch {
+      // The screen shows the failure; the edit stays on screen, untouched.
+    } finally {
+      setBusy(false);
+    }
   };
 
   const handleChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
@@ -53,7 +63,7 @@ export default function VariationEditor({
     // Enter validates; Shift+Enter falls through to a newline; Escape cancels.
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
-      save();
+      void save();
     } else if (event.key === 'Escape') {
       event.preventDefault();
       onCancel();
@@ -94,7 +104,7 @@ export default function VariationEditor({
         <button
           type="button"
           className={styles.save}
-          onClick={save}
+          onClick={() => void save()}
           aria-label="Valider"
         >
           <svg

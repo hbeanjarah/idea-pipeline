@@ -1,0 +1,78 @@
+/* Variation thread: the versions, their inline editor and per-version menu.
+ * Visual reference: design/mockup.html #surface-detail. */
+
+.action-menu {
+  display: flex;
+  flex-direction: column;
+}
+
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border-left: 2px solid var(--spine);
+  padding-left: 11px;
+}
+
+.ver {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ver-head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.ver-menu {
+  flex: none;
+  margin-left: auto;
+  color: var(--faint);
+}
+
+.ver-menu:hover {
+  color: var(--ink);
+}
+
+.edit-option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  padding: var(--space-2) var(--space-2);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--ink);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.edit-option:hover {
+  background: var(--ring);
+}
+
+.text {
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--tagink);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.current .text {
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.date {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+  color: var(--hint);
+}
