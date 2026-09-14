@@ -1,4 +1,4 @@
-import type { Idea } from '../../storage/types';
+import type { Idea } from '@/storage/types';
 import styles from './IdeaCard.module.css';
 
 interface Props {

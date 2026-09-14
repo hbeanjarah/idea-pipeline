@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import type { Navigate } from '../routes/routes';
-import { useIdeas } from '../hooks/useIdeas';
-import { filterIdeas } from '../lib/filterIdeas';
-import type { FilterStatus } from '../lib/filterIdeas';
-import IdeaCard from '../components/IdeaCard/IdeaCard';
-import StatusFilter from '../components/StatusFilter/StatusFilter';
-import SearchInput from '../components/SearchInput/SearchInput';
+import type { Navigate } from '@/routes/routes';
+import { useIdeas } from '@/hooks/useIdeas';
+import { filterIdeas } from '@/lib/filterIdeas';
+import type { FilterStatus } from '@/lib/filterIdeas';
+import Alert from '@/components/Alert/Alert';
+import IdeaCard from '@/components/IdeaCard/IdeaCard';
+import StatusFilter from '@/components/StatusFilter/StatusFilter';
+import SearchInput from '@/components/SearchInput/SearchInput';
+import { failureText } from '@/lib/failureText';
 import styles from './ListScreen.module.css';
 
 interface Props {
@@ -15,7 +17,10 @@ interface Props {
 // Data access via the hook only — never the repository directly. Read-only here;
 // the active filter is local UI state, applied in memory via the pure filterIdeas.
 export default function ListScreen({ navigate }: Props) {
-  const { ideas, loading } = useIdeas();
+  const { ideas, loading, failure, retry } = useIdeas();
+
+  // A 404 is not shown here: the list has already been reloaded.
+  const shown = failure && failure.reason !== 'gone' ? failure : null;
   const [status, setStatus] = useState<FilterStatus>('all');
   const [query, setQuery] = useState('');
 
@@ -64,6 +69,15 @@ export default function ListScreen({ navigate }: Props) {
         </button>
         <p className={styles.title}>Mes idées</p>
       </div>
+
+      {shown && (
+        <Alert
+          title={failureText(shown).title}
+          onRetry={retry ?? undefined}
+        >
+          {failureText(shown).body}
+        </Alert>
+      )}
 
       {!loading && hasIdeas && (
         <>

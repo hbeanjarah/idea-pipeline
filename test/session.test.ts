@@ -4,7 +4,7 @@ import {
   clearToken,
   readToken,
   writeToken,
-} from '../src/background/session';
+} from '@/background/session';
 
 describe('the session token', () => {
   it('starts absent', async () => {

@@ -8,7 +8,7 @@ import {
   deleteIdea,
   editVariation,
   listIdeas,
-} from '../src/background/api';
+} from '@/background/api';
 
 const respond = (status: number, body: unknown) =>
   vi.fn().mockResolvedValue({
