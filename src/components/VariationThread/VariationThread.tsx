@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import Popover from '@/components/Popover/Popover';
+import ActionMenu from '@/components/ActionMenu/ActionMenu';
 import VariationEditor from '@/components/VariationEditor/VariationEditor';
 import type { Variation } from '@/storage/types';
 import styles from './VariationThread.module.css';
@@ -54,40 +54,16 @@ export default function VariationThread({
             <>
               <div className={styles.verHead}>
                 <p className={styles.text}>{variation.text}</p>
-                {/* ⋮ variation-actions: always visible but faint, darkens on
-                    hover. Today a single entry (edit). */}
-                <Popover
-                  align="end"
-                  trigger={
-                    <svg
-                      className={styles.verMenu}
-                      viewBox="0 0 24 24"
-                      width="16"
-                      height="16"
-                      fill="currentColor"
-                      aria-label="Actions de la variation"
-                    >
-                      <circle cx="5" cy="12" r="1.6" />
-                      <circle cx="12" cy="12" r="1.6" />
-                      <circle cx="19" cy="12" r="1.6" />
-                    </svg>
-                  }
-                >
-                  {(close) => (
-                    <div className={styles.actionMenu}>
-                      <button
-                        type="button"
-                        className={styles.editOption}
-                        onClick={() => {
-                          close();
-                          setEditingId(variation.id);
-                        }}
-                      >
-                        Modifier
-                      </button>
-                    </div>
-                  )}
-                </Popover>
+                <ActionMenu
+                  label="Actions de la variation"
+                  className={styles.verMenu}
+                  actions={[
+                    {
+                      label: 'Modifier',
+                      onSelect: () => setEditingId(variation.id),
+                    },
+                  ]}
+                />
               </div>
               <span className={styles.date}>
                 {formatTimestamp(variation.createdAt)}

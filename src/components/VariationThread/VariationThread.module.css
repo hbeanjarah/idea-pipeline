@@ -1,11 +1,6 @@
 /* Variation thread: the versions, their inline editor and per-version menu.
  * Visual reference: design/mockup.html #surface-detail. */
 
-.action-menu {
-  display: flex;
-  flex-direction: column;
-}
-
 .thread {
   display: flex;
   flex-direction: column;
@@ -26,34 +21,18 @@
   gap: var(--space-2);
 }
 
+/* Quieter than the header menu: it repeats on every version. The size wins
+ * over the width/height attributes ActionMenu sets on the svg. */
 .ver-menu {
   flex: none;
+  width: 16px;
+  height: 16px;
   margin-left: auto;
   color: var(--faint);
 }
 
 .ver-menu:hover {
   color: var(--ink);
-}
-
-.edit-option {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: none;
-  padding: var(--space-2) var(--space-2);
-  font-family: var(--font-sans);
-  font-size: 13px;
-  color: var(--ink);
-  text-align: left;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.edit-option:hover {
-  background: var(--ring);
 }
 
 .text {
