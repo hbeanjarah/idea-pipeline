@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useSession } from '@/hooks/useSession';
+import Alert from '@/components/Alert/Alert';
+import { failureText } from '@/lib/failureText';
 import styles from './SignInScreen.module.css';
 
 export default function SignInScreen() {
-  const { signIn } = useSession();
+  const { signIn, signInFailure, signOutIncomplete } = useSession();
   const [busy, setBusy] = useState(false);
 
   const submit = async () => {
@@ -73,6 +75,29 @@ export default function SignInScreen() {
         </svg>
         Se connecter avec Google
       </button>
+      {signInFailure && (
+        <div className={styles.notice}>
+          <Alert
+            title={failureText(signInFailure, 'signIn').title}
+            onRetry={() => void submit()}
+          >
+            {failureText(signInFailure, 'signIn').body}
+          </Alert>
+        </div>
+      )}
+
+      {/* Not a failure of this screen, but of the sign-out that led here: the
+          session is still alive on the server and the user should know. */}
+      {signOutIncomplete && (
+        <div className={styles.notice}>
+          <Alert title="Déconnexion incomplète">
+            Cet appareil est déconnecté, mais le serveur n&rsquo;a pas
+            pu être prévenu. La session restera ouverte à distance
+            jusqu&rsquo;à son expiration.
+          </Alert>
+        </div>
+      )}
+
       <p className={styles.legal}>
         Aucun mot de passe n&rsquo;est stocké. Tu peux déconnecter cet
         appareil à tout moment.

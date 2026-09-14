@@ -9,8 +9,18 @@
   padding: var(--space-3);
 }
 
-.title {
+/* Same grammar as the detail header: title left, actions right. */
+.titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
   margin: 0 0 var(--space-3);
+}
+
+/* The bottom margin moved to .titlebar, which now owns the spacing. */
+.title {
+  margin: 0;
   font-size: 14px;
   font-weight: 600;
 }

@@ -69,6 +69,13 @@
   flex: none;
 }
 
+/* The alert component is written for a left-aligned column; this surface is
+ * centred, so the wrapper carries the width and the text goes back to left. */
+.notice {
+  width: 100%;
+  text-align: left;
+}
+
 .legal {
   margin: var(--space-3) 0 0;
   font-size: 11px;
