@@ -17,7 +17,11 @@ export default function manifest(apiUrl: string) {
       service_worker: 'src/background/index.ts',
       type: 'module',
     },
-    permissions: ['storage', 'sidePanel'],
+    // Fixes the extension id, which the Google redirect URL is built from. An
+    // unpacked extension otherwise derives its id from the folder path, so it
+    // would change on another machine and break the registered redirect.
+    key: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxMjEpBrq/jwevb11Qn202LvGHpmj+3HJ/H5G90NtJ7EGbVcm+ksO2xBx+34ZLDxdUtGq/zCwoj7FkdBHVwtTPo97q5qk+CxhAtPoSSmAkK8PFL6Z3chJA1yayi6j+2IW9JO77+RPuFwupuwzDKs0PbqjgF2bvEtTy1mGTZNmOYdI65ieeKoUygo5Y4cDRryHbPwSAH+8xiolISVzHBfCCEplz60SsI9pjyyttG4KUrV7YoE1+j3n6PdNvttSaG9Cnjwx+yfGE22KPRm5o7V0VWQvnJ9tys6Wl00kjEIFXBj1cIaukd+E+deqEWk8mSvTiTNz0mwGgSy/LKglrIFvHwIDAQAB',
+    permissions: ['storage', 'sidePanel', 'identity'],
     // What exempts an extension page from CORS: no header is produced server
     // side, the browser grants the access instead.
     host_permissions: [`${apiUrl}/*`],
