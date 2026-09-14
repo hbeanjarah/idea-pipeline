@@ -76,10 +76,10 @@ export default function DetailScreen({ navigate, ideaId }: Props) {
               />
               {shown && (
                 <Alert
-                  title={failureText(shown).title}
+                  title={failureText(shown, 'write').title}
                   onRetry={retry ?? undefined}
                 >
-                  {failureText(shown).body}
+                  {failureText(shown, 'write').body}
                 </Alert>
               )}
             </div>
