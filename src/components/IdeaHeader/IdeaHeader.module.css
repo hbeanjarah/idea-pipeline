@@ -30,31 +30,6 @@
   color: var(--ink);
 }
 
-.action-menu {
-  display: flex;
-  flex-direction: column;
-}
-
-.delete-option {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: none;
-  padding: var(--space-2) var(--space-2);
-  font-family: var(--font-sans);
-  font-size: 13px;
-  color: var(--danger);
-  text-align: left;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.delete-option:hover {
-  background: var(--danger-bg);
-}
-
 .confirm-bar {
   display: flex;
   align-items: center;

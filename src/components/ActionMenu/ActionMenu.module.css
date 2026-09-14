@@ -1,0 +1,36 @@
+/* Actions menu (⋮): the floating list of entries. The trigger's own size and
+ * color belong to the caller, through the className it passes.
+ * Order matters: .danger comes after .option, same specificity, so it wins. */
+
+.menu {
+  display: flex;
+  flex-direction: column;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  padding: var(--space-2) var(--space-2);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--ink);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.option:hover {
+  background: var(--ring);
+}
+
+.danger {
+  color: var(--danger);
+}
+
+.danger:hover {
+  background: var(--danger-bg);
+}
