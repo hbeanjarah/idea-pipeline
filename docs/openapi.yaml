@@ -15,10 +15,10 @@ servers:
   - url: http://localhost:3000
     description: Serveur local — l'API n'est pas hébergée ailleurs.
 
-# L'API ne demande aucune authentification : outil mono-utilisateur, local.
-# Une liste vide le déclare explicitement, là où l'absence de champ laisserait
-# planer le doute entre « pas d'auth » et « oubli de le documenter ».
-security: []
+# Tous les endpoints exigent une session, sauf POST /auth/google qui la crée et
+# porte son propre `security: []`.
+security:
+  - sessionToken: []
 
 paths:
   /ideas:
@@ -26,7 +26,8 @@ paths:
       operationId: listIdeas
       summary: Liste des idées
       description: |
-        Retourne la collection complète des idées, sans filtrage ni pagination.
+        Retourne les idées **du compte appelant**, sans filtrage ni pagination.
+        Celles des autres comptes sont invisibles, pas filtrées après coup.
 
         Triée par le serveur : `updatedAt` décroissant, puis `id` décroissant
         pour départager les égalités. L'ordre est donc déterministe.
@@ -39,6 +40,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Idea'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
         '500':
           description: |
             `Erreur inattendue côté serveur.`
@@ -75,6 +78,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
         '500':
           description: |
             `Erreur inattendue côté serveur.`
@@ -101,6 +106,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
         '500':
           description: |
             `Erreur inattendue côté serveur.`
@@ -144,6 +151,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
         '500':
           description: |
             `Erreur inattendue côté serveur.`
@@ -191,6 +200,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
         '500':
           description: |
             `Erreur inattendue côté serveur.`
@@ -241,6 +252,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
         '500':
           description: |
             `Erreur inattendue côté serveur.`
@@ -249,7 +262,102 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /auth/google:
+    post:
+      operationId: signInWithGoogle
+      summary: Échange un code d'autorisation Google contre une session
+      description: |
+        Le serveur échange lui-même le code auprès de Google, avec son
+        `client_secret` — qui ne quitte donc jamais le serveur. Un compte est
+        créé au premier passage, retrouvé aux suivants.
+      # Le seul endpoint accessible sans session : c'est lui qui la crée.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoogleSignInRequest'
+      responses:
+        '201':
+          description: La session est ouverte.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '400':
+          description: |
+            `Code d'autorisation invalide.` — corps invalide, ou code refusé par
+            Google.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '502':
+          description: |
+            `Service d'authentification indisponible.` — Google est injoignable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: |
+            `Erreur inattendue côté serveur.`
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/me:
+    get:
+      operationId: getCurrentUser
+      summary: Le compte associé à la session courante
+      description: |
+        Permet au client de savoir si son jeton vaut encore, sans avoir à le
+        découvrir en échouant sur une requête métier.
+      responses:
+        '200':
+          description: La session est valide.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+
+  /auth/session:
+    delete:
+      operationId: signOut
+      summary: Déconnexion de cet appareil
+      description: |
+        Supprime la session portée par le jeton. Les autres appareils du même
+        compte restent connectés.
+      responses:
+        '204':
+          description: La session est supprimée.
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+
 components:
+  responses:
+    Unauthenticated:
+      description: |
+        `Authentification requise.` — jeton absent, invalide, expiré ou révoqué.
+        Un seul message pour les quatre causes : les distinguer renseignerait
+        un attaquant sur ce qu'il vient de toucher.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  securitySchemes:
+    sessionToken:
+      type: http
+      scheme: bearer
+      description: |
+        Jeton de session opaque, obtenu par `POST /auth/google`.
+        Révocable : supprimer la session le rend immédiatement invalide.
+
   parameters:
     IdeaId:
       name: id
@@ -325,6 +433,46 @@ components:
           minItems: 1
           items:
             $ref: '#/components/schemas/Variation'
+
+    GoogleSignInRequest:
+      type: object
+      additionalProperties: false
+      required: [code, codeVerifier]
+      properties:
+        code:
+          type: string
+          minLength: 1
+          description: Le code d'autorisation renvoyé par Google au client.
+        codeVerifier:
+          type: string
+          minLength: 1
+          description: Le vérificateur PKCE correspondant au défi envoyé à Google.
+
+    Session:
+      type: object
+      additionalProperties: false
+      required: [token, user]
+      properties:
+        token:
+          type: string
+          description: |
+            Jeton opaque à placer dans `Authorization: Bearer`. Il n'est
+            transmis qu'ici : le serveur n'en conserve qu'une empreinte.
+        user:
+          $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      additionalProperties: false
+      required: [id, email]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+          description: Fournie par Google. Elle peut changer ; `id` non.
 
     Error:
       type: object

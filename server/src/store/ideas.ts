@@ -31,6 +31,7 @@ const toIdea = (row: IdeaRow, variations: VariationRow[]): Idea => ({
   variations: variations.map(toVariation),
 });
 
+// Only ever called once the idea has been proved to belong to the caller.
 async function readVariations(
   ideaId: string,
 ): Promise<VariationRow[]> {
@@ -42,10 +43,11 @@ async function readVariations(
     .execute();
 }
 
-export async function listIdeas(): Promise<Idea[]> {
+export async function listIdeas(userId: string): Promise<Idea[]> {
   const rows = await db()
     .selectFrom('ideas')
     .selectAll()
+    .where('user_id', '=', userId)
     .orderBy('updated_at', 'desc')
     .orderBy('id', 'desc')
     .execute();
@@ -76,13 +78,16 @@ export async function listIdeas(): Promise<Idea[]> {
   return rows.map((row) => toIdea(row, grouped.get(row.id) ?? []));
 }
 
-export async function createIdea(text: string): Promise<Idea> {
+export async function createIdea(
+  userId: string,
+  text: string,
+): Promise<Idea> {
   return db()
     .transaction()
     .execute(async (trx) => {
       const idea = await trx
         .insertInto('ideas')
-        .defaultValues()
+        .values({ user_id: userId })
         .returningAll()
         .executeTakeFirstOrThrow();
 
@@ -96,18 +101,23 @@ export async function createIdea(text: string): Promise<Idea> {
     });
 }
 
-export async function deleteIdea(id: string): Promise<boolean> {
+export async function deleteIdea(
+  userId: string,
+  id: string,
+): Promise<boolean> {
   if (!UUID.test(id)) return false;
 
   const result = await db()
     .deleteFrom('ideas')
     .where('id', '=', id)
+    .where('user_id', '=', userId)
     .executeTakeFirst();
 
   return result.numDeletedRows > 0n;
 }
 
 export async function changeStatus(
+  userId: string,
   id: string,
   status: Status,
 ): Promise<Idea | null> {
@@ -117,6 +127,7 @@ export async function changeStatus(
     .updateTable('ideas')
     .set({ status, updated_at: touch() })
     .where('id', '=', id)
+    .where('user_id', '=', userId)
     .returningAll()
     .executeTakeFirst();
 
@@ -126,6 +137,7 @@ export async function changeStatus(
 }
 
 export async function addVariation(
+  userId: string,
   id: string,
   text: string,
 ): Promise<Idea | null> {
@@ -134,13 +146,14 @@ export async function addVariation(
   return db()
     .transaction()
     .execute(async (trx) => {
-      const exists = await trx
+      const owned = await trx
         .selectFrom('ideas')
         .select('id')
         .where('id', '=', id)
+        .where('user_id', '=', userId)
         .executeTakeFirst();
 
-      if (!exists) return null;
+      if (!owned) return null;
 
       await trx
         .insertInto('variations')
@@ -158,6 +171,7 @@ export async function addVariation(
         .updateTable('ideas')
         .set({ updated_at: touch() })
         .where('id', '=', id)
+        .where('user_id', '=', userId)
         .returningAll()
         .executeTakeFirstOrThrow();
 
@@ -179,6 +193,7 @@ export type EditVariationFailure =
   | 'variation-not-found';
 
 export async function editVariation(
+  userId: string,
   id: string,
   variationId: string,
   text: string,
@@ -189,13 +204,14 @@ export async function editVariation(
   return db()
     .transaction()
     .execute(async (trx) => {
-      const exists = await trx
+      const owned = await trx
         .selectFrom('ideas')
         .select('id')
         .where('id', '=', id)
+        .where('user_id', '=', userId)
         .executeTakeFirst();
 
-      if (!exists) return 'idea-not-found';
+      if (!owned) return 'idea-not-found';
 
       const edited = await trx
         .updateTable('variations')
@@ -211,6 +227,7 @@ export async function editVariation(
         .updateTable('ideas')
         .set({ updated_at: touch() })
         .where('id', '=', id)
+        .where('user_id', '=', userId)
         .returningAll()
         .executeTakeFirstOrThrow();
 
