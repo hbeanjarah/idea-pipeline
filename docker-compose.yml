@@ -3,10 +3,16 @@ services:
     image: postgres:17
     environment:
       POSTGRES_USER: idea
-      POSTGRES_PASSWORD: idea
+      # Lu depuis le .env de la racine, que Compose charge tout seul. La valeur
+      # par defaut garde le confort en developpement ; la production en fournit
+      # une engendree.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-idea}
       POSTGRES_DB: idea_pipeline
     ports:
-      - '5432:5432'
+      # 127.0.0.1 et pas 0.0.0.0 : la seconde forme publierait PostgreSQL sur
+      # tout le reseau, et sur Internet une fois heberge. Seule l'API, sur la
+      # meme machine, l'atteint.
+      - '127.0.0.1:5432:5432'
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
