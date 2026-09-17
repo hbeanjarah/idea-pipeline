@@ -1,6 +1,10 @@
 services:
   db:
     image: postgres:17
+    # Sans elle, le conteneur ne revient pas apres un redemarrage de l'hote :
+    # l'API repond encore 401 sans jeton, ce qui donne l'illusion que tout va
+    # bien, et echoue en 500 des la premiere requete authentifiee.
+    restart: unless-stopped
     environment:
       POSTGRES_USER: idea
       # Lu depuis le .env de la racine, que Compose charge tout seul. La valeur
