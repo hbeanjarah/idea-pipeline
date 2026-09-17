@@ -16,10 +16,14 @@
   /* Text — two levels only. A colour carrying text holds 4.5:1 (WCAG AA), and
    * the scale cannot hold three greys above it: they would all sit under a
    * 0.18 luminance and stop being distinguishable.
-   * On --surface: --ink 11.4:1 · --muted 4.94:1.
+   * The floor is measured on --sunken, the darkest ground text lands on, and
+   * not on --surface: the panel background, the filter pills and the sign-in
+   * lead all sit there. --muted used to be checked against pure white — a
+   * background no screen uses — where it read 4.94:1 and hid a real 4.01:1.
+   * --surface / --sunken: --ink 11.2:1 / 9.2:1 · --muted 5.63:1 / 4.65:1.
    * The removed --hint was 2.54:1 and --faint, on the version history, 2.13:1. */
   --ink: #323859;
-  --muted: #66708a;
+  --muted: #5d667e;
 
   /* Non-text only: rules, inactive dots, separators. Never set as `color`. */
   --faint: #aab2c4;
