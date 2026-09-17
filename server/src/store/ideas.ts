@@ -3,6 +3,7 @@ import type { Selectable } from 'kysely';
 
 import type { Idea, Status, Variation } from '#domain/types';
 import { db } from '#store/db';
+import { open, seal } from '#store/notes';
 import type { DB } from '#store/schema.generated';
 
 type IdeaRow = Selectable<DB['ideas']>;
@@ -17,7 +18,7 @@ const touch = () => sql<Date>`now()`;
 
 const toVariation = (row: VariationRow): Variation => ({
   id: row.id,
-  text: row.text,
+  text: open(row.text, row.idea_id),
   createdAt: row.created_at.toISOString(),
 });
 
@@ -93,7 +94,11 @@ export async function createIdea(
 
       const variation = await trx
         .insertInto('variations')
-        .values({ idea_id: idea.id, position: 1, text })
+        .values({
+          idea_id: idea.id,
+          position: 1,
+          text: seal(text, idea.id),
+        })
         .returningAll()
         .executeTakeFirstOrThrow();
 
@@ -159,7 +164,7 @@ export async function addVariation(
         .insertInto('variations')
         .values({
           idea_id: id,
-          text,
+          text: seal(text, id),
           // Computing the position in SQL keeps it inside the transaction; the
           // unique index on (idea_id, position) turns a concurrent insert into
           // an error rather than a silent reorder.
@@ -215,7 +220,7 @@ export async function editVariation(
 
       const edited = await trx
         .updateTable('variations')
-        .set({ text })
+        .set({ text: seal(text, id) })
         .where('id', '=', variationId)
         .where('idea_id', '=', id)
         .returning('id')
