@@ -9,7 +9,7 @@ import { noteKey } from '#config/env';
 // The prefix carries the key version. The day NOTE_KEY_V2 arrives, v1 rows stay
 // readable instead of all having to be rewritten the same day — which is the
 // difference between a rotation that happens and one that never does.
-const PREFIX = 'v1.';
+export const SEALED_PREFIX = 'v1.';
 const IV_BYTES = 12;
 const TAG_BYTES = 16;
 
@@ -29,17 +29,20 @@ export function seal(text: string, ideaId: string): string {
   ]);
 
   return (
-    PREFIX +
+    SEALED_PREFIX +
     Buffer.concat([iv, cipher.getAuthTag(), body]).toString('base64')
   );
 }
 
 export function open(stored: string, ideaId: string): string {
-  if (!stored.startsWith(PREFIX)) {
+  if (!stored.startsWith(SEALED_PREFIX)) {
     throw new Error('Unknown note encoding');
   }
 
-  const packed = Buffer.from(stored.slice(PREFIX.length), 'base64');
+  const packed = Buffer.from(
+    stored.slice(SEALED_PREFIX.length),
+    'base64',
+  );
   // Buffer.from(…, 'base64') drops what it cannot read rather than throwing, so
   // a mangled value arrives here short, not broken. Said plainly now, or node
   // says "Invalid initialization vector" three frames away.
