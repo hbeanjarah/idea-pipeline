@@ -102,6 +102,26 @@ appel réseau et ne voit jamais le jeton de session.
   de `createIdea`, pas par une contrainte SQL — le relationnel ne sait pas
   l'exprimer. Un `INSERT` manuel peut donc le violer.
 
+## Chiffrement au repos
+
+`variations.text` **ne contient jamais de texte lisible**. La couche `store/`
+chiffre à l'écriture et déchiffre à la lecture (`store/notes.ts`, AES-256-GCM) ;
+rien au-dessus ne le sait, et c'est voulu : le chiffrement est un détail de
+persistance, pas une règle de domaine.
+
+Trois conséquences à connaître avant de toucher au store :
+
+- **Le service valide le clair, avant** que le store ne chiffre. L'ordre des
+  couches ne change pas : Zod voit toujours le texte de l'utilisateur.
+- **Le `CHECK (btrim(text) <> '')` ne valide plus la saisie.** Un chiffré n'est
+  jamais vide, la contrainte passe donc toujours. C'est le schéma Zod du service
+  qui tient la règle « une note n'est pas vide ».
+- **Tout nouveau chemin d'écriture doit chiffrer.** `sealed-at-rest.test.ts` lit
+  les lignes en SQL brut et échoue si l'un d'eux l'oublie.
+
+L'identifiant de l'idée est mêlé à la signature : une ligne recopiée dans l'idée
+d'un autre compte ne s'ouvre plus. Détail dans `docs/security-design.md`.
+
 ## Étapes <-> libellés UI
 
 Le code manipule les valeurs anglaises ; l'UI affiche le français. Le mapping

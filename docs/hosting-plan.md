@@ -571,6 +571,10 @@ feat: point the extension at the hosted api
 
 ## Tâche 8 : les sauvegardes et la documentation
 
+> **Suppose `docs/security-plan.md` fait.** Le dump quotidien est conservé
+> quatorze jours : avant le chiffrement des notes, il fabrique quatorze copies
+> du texte en clair. Cette tâche passe après.
+
 - [ ] **Étape 1 : le dump quotidien**
 
 Sur le VPS :
