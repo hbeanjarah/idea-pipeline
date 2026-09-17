@@ -1,23 +1,7 @@
 import Popover from '@/components/Popover/Popover';
+import { STATUS_LABELS, STATUS_ORDER } from '@/lib/statusLabels';
 import type { Status } from '@/storage/types';
 import styles from './StatusPicker.module.css';
-
-// Provisional labels, kept in sync with the rest of the app (Home pipeline,
-// StatusFilter). A shared label map would be a separate refactor.
-const LABELS: Record<Status, string> = {
-  captured: 'Capturé',
-  maturing: 'Maturation',
-  ready: 'Prêt',
-  published: 'Publié',
-};
-
-// Pipeline order. Transitions are free: any step is reachable from any step.
-const ORDER: Status[] = [
-  'captured',
-  'maturing',
-  'ready',
-  'published',
-];
 
 interface Props {
   status: Status;
@@ -34,7 +18,7 @@ export default function StatusPicker({ status, onChange }: Props) {
         trigger={
           <span className={styles.badge}>
             <span className={`${styles.dot} ${styles[status]}`} />
-            {LABELS[status]}
+            {STATUS_LABELS[status]}
             <svg
               className={styles.chevron}
               viewBox="0 0 24 24"
@@ -53,7 +37,7 @@ export default function StatusPicker({ status, onChange }: Props) {
       >
         {(close) => (
           <div className={styles.statusMenu}>
-            {ORDER.map((candidate) => (
+            {STATUS_ORDER.map((candidate) => (
               <button
                 key={candidate}
                 type="button"
@@ -66,7 +50,7 @@ export default function StatusPicker({ status, onChange }: Props) {
                 <span
                   className={`${styles.dot} ${styles[candidate]}`}
                 />
-                {LABELS[candidate]}
+                {STATUS_LABELS[candidate]}
                 {candidate === status && (
                   <svg
                     className={styles.check}

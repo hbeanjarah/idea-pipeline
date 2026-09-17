@@ -1,5 +1,5 @@
 /* Search field. Visual reference: design/mockup.html #surface-list (.search).
- * Colors / radius via tokens; one-off geometry and font sizes are local literals. */
+ * Colors / radius / font sizes via tokens; one-off geometry is local. */
 
 .search {
   display: flex;
@@ -7,15 +7,15 @@
   gap: 8px;
   margin: 0 0 var(--space-3);
   padding: 8px 10px;
-  background: var(--card);
+  background: var(--surface);
   border: 1px solid var(--capbd);
   border-radius: var(--radius-md);
-  color: var(--hint);
+  color: var(--muted);
 }
 
 .icon {
   flex: none;
-  color: var(--hint);
+  color: var(--muted);
 }
 
 .input {
@@ -26,9 +26,14 @@
   outline: none;
   color: var(--ink);
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: var(--text-body);
 }
 
 .input::placeholder {
-  color: var(--hint);
+  color: var(--muted);
+}
+
+.search:focus-within {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
 }

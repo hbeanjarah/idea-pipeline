@@ -7,7 +7,7 @@
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-  background: var(--panel);
+  background: var(--sunken);
   padding: var(--space-3);
 }
 
@@ -34,7 +34,7 @@
 
 .title {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--text-title);
   font-weight: 600;
 }
 
@@ -73,6 +73,11 @@
 
 .empty-title {
   margin: 0 0 5px;
-  font-size: 13px;
+  font-size: var(--text-body);
   color: var(--muted);
+}
+
+.back:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
 }

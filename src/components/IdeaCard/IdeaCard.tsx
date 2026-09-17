@@ -1,3 +1,4 @@
+import { STATUS_LABELS } from '@/lib/statusLabels';
 import type { Idea } from '@/storage/types';
 import styles from './IdeaCard.module.css';
 
@@ -6,8 +7,7 @@ interface Props {
   onClick: () => void;
 }
 
-// Presentational only: reads the idea, never mutates. Shows the original
-// (first) variation as a preview + a status dot. Click opens the detail (lot 4).
+// Presentational only: reads the idea, never mutates.
 export default function IdeaCard({ idea, onClick }: Props) {
   // variations is guaranteed >= 1, so the first one is always present.
   const text = idea.variations[0].text;
@@ -18,9 +18,10 @@ export default function IdeaCard({ idea, onClick }: Props) {
       <span className={styles.text}>{text}</span>
       <span className={styles.meta}>
         <span className={`${styles.dot} ${styles[idea.status]}`} />
+        {STATUS_LABELS[idea.status]}
         {versionCount > 1 && (
           <span className={styles.versions}>
-            · {versionCount} versions
+            {versionCount} versions
           </span>
         )}
       </span>

@@ -67,13 +67,21 @@ describe('the http client', () => {
 
     // A typo in a path is invisible against a stubbed fetch unless it is
     // asserted: every call would still "succeed".
-    expect(fetched.mock.calls.map((call) => call[0])).toEqual([
-      'http://localhost:3000/ideas',
-      'http://localhost:3000/ideas',
-      'http://localhost:3000/ideas/i/variations',
-      'http://localhost:3000/ideas/i/variations/v',
-      'http://localhost:3000/ideas/i',
-      'http://localhost:3000/ideas/i',
+    //
+    // The path alone, never the whole URL: the host comes from VITE_API_URL,
+    // so asserting it would make this test pass or fail according to the .env
+    // of whoever runs it. It is the routing that is under test here.
+    expect(
+      fetched.mock.calls.map(
+        (call) => new URL(String(call[0])).pathname,
+      ),
+    ).toEqual([
+      '/ideas',
+      '/ideas',
+      '/ideas/i/variations',
+      '/ideas/i/variations/v',
+      '/ideas/i',
+      '/ideas/i',
     ]);
     expect(
       fetched.mock.calls.map(

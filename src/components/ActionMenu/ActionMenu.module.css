@@ -16,7 +16,7 @@
   background: none;
   padding: var(--space-2) var(--space-2);
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: var(--text-body);
   color: var(--ink);
   text-align: left;
   white-space: nowrap;
@@ -33,4 +33,9 @@
 
 .danger:hover {
   background: var(--danger-bg);
+}
+
+.option:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
 }

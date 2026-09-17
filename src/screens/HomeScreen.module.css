@@ -1,11 +1,9 @@
 /* Home surface. Visual reference: design/mockup.html #surface-home (+ #empty-states).
- * Colors / radius / status dots / box spacing via tokens; one-off geometry and
- * font sizes are local literals. Never-scroll surface (bounded to 5 cards). */
+ * Colors / radius / status dots / box spacing / font sizes via tokens; one-off
+ * geometry is local. Never-scroll surface (bounded to 5 cards). */
 
 .home {
-  background: var(--panel);
-  border: 1px solid var(--panelbd);
-  border-radius: var(--radius-lg);
+  background: var(--sunken);
   padding: var(--space-3);
 }
 
@@ -21,7 +19,7 @@
 /* The bottom margin moved to .titlebar, which now owns the spacing. */
 .title {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--text-title);
   font-weight: 600;
 }
 
@@ -30,7 +28,7 @@
   align-items: center;
   gap: var(--space-3);
   margin: 0 0 var(--space-3);
-  font-size: 11px;
+  font-size: var(--text-xs);
   color: var(--muted);
 }
 
@@ -71,16 +69,16 @@
 
 .hint {
   margin-top: 6px;
-  font-size: 11px;
-  color: var(--hint);
+  font-size: var(--text-xs);
+  color: var(--muted);
 }
 
 .eyebrow {
   margin: var(--space-4) 0 var(--space-2);
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--hint);
+  color: var(--muted);
 }
 
 .cards {
@@ -101,7 +99,7 @@
   background: var(--tagbg);
   color: var(--ink);
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: var(--text-body);
   cursor: pointer;
 }
 
@@ -112,8 +110,8 @@
 .more-count {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
-  font-size: 12px;
-  color: var(--hint);
+  font-size: var(--text-sm);
+  color: var(--muted);
 }
 
 .empty {
@@ -125,12 +123,17 @@
   display: flex;
   justify-content: center;
   margin-bottom: 10px;
-  color: var(--faint);
+  color: var(--muted);
 }
 
 .empty-title {
   margin: 0 0 5px;
-  font-size: 13px;
+  font-size: var(--text-body);
   font-weight: 600;
   color: var(--ink);
+}
+
+.more:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
 }

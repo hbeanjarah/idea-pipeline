@@ -1,10 +1,10 @@
 /* Reusable idea input. Visual reference: design/mockup.html #composer (.cap).
- * Colors / radius / focus ring / box padding via tokens; one-off geometry
- * (chevron offsets, 120px cap, icon size) and font sizes are local literals. */
+ * Colors / radius / focus ring / box padding / font sizes via tokens; one-off
+ * geometry (chevron offsets, 120px cap, icon size) is local. */
 
 .composer {
   position: relative;
-  background: var(--card);
+  background: var(--surface);
   border: 1px solid var(--capbd);
   border-radius: var(--radius-md);
   padding: var(--space-2) var(--space-3);
@@ -12,7 +12,8 @@
 
 /* Native focus state replaces the mockup's JS-driven .focus class. */
 .composer:focus-within {
-  box-shadow: var(--focus-ring);
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
 }
 
 .input {
@@ -24,7 +25,7 @@
   background: transparent;
   color: var(--ink);
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: var(--text-title);
   line-height: 1.5;
   /* Grows from one line up to the cap, then scrolls internally. */
   min-height: 21px;
@@ -36,7 +37,7 @@
 }
 
 .input::placeholder {
-  color: var(--hint);
+  color: var(--muted);
 }
 
 /* Thin scrollbar, cut above the chevron via the track's bottom margin. */
@@ -75,4 +76,9 @@
   display: block;
   width: 19px;
   height: 19px;
+}
+
+.send:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
 }

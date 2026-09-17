@@ -1,6 +1,6 @@
 /* Idea detail (read-only). Visual reference: design/mockup.html #surface-detail
- * (.bar / .thread / .ver). Colors / radius / status dots via tokens; one-off
- * geometry and font sizes are local literals. Fills the side panel height: only
+ * (.bar / .thread / .ver). Colors / radius / status dots / font sizes via
+ * tokens; one-off geometry is local. Fills the side panel height: only
  * .body scrolls, never the page. Structure leaves room for later actions
  * (status control, reformulation field, overflow menu). */
 
@@ -9,7 +9,7 @@
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-  background: var(--panel);
+  background: var(--sunken);
   padding: var(--space-3);
 }
 
@@ -38,10 +38,10 @@
 
 .eyebrow {
   margin: var(--space-4) 0 var(--space-2);
-  font-size: 11px;
+  font-size: var(--text-xs);
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--hint);
+  color: var(--muted);
 }
 
 .reform {
@@ -55,7 +55,7 @@
 
 .empty-title {
   margin: 0 0 var(--space-3);
-  font-size: 13px;
+  font-size: var(--text-body);
   color: var(--muted);
 }
 
@@ -66,10 +66,15 @@
   color: var(--ink);
   padding: var(--space-2) var(--space-3);
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: var(--text-body);
   cursor: pointer;
 }
 
 .empty-back:hover {
   background: var(--ring);
+}
+
+.empty-back:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
 }

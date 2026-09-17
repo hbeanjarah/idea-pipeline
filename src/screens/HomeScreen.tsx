@@ -7,6 +7,7 @@ import Alert from '@/components/Alert/Alert';
 import Composer from '@/components/Composer/Composer';
 import IdeaCard from '@/components/IdeaCard/IdeaCard';
 import { failureText } from '@/lib/failureText';
+import { STATUS_LABELS, STATUS_ORDER } from '@/lib/statusLabels';
 import styles from './HomeScreen.module.css';
 
 interface Props {
@@ -15,12 +16,11 @@ interface Props {
 
 const PREVIEW_LIMIT = 5;
 
-// Mini-pipeline segments — Publié excluded, per the mockup. Provisional labels.
-const PIPELINE_SEGMENTS: { status: Status; label: string }[] = [
-  { status: 'captured', label: 'Capturé' },
-  { status: 'maturing', label: 'Maturation' },
-  { status: 'ready', label: 'Prêt' },
-];
+// Mini-pipeline segments — Publié excluded, per the mockup.
+const PIPELINE_SEGMENTS: { status: Status; label: string }[] =
+  STATUS_ORDER.filter((status) => status !== 'published').map(
+    (status) => ({ status, label: STATUS_LABELS[status] }),
+  );
 
 // Data access via the hook only — never the repository directly.
 export default function HomeScreen({ navigate }: Props) {

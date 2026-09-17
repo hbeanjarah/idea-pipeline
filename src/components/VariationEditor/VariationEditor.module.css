@@ -3,14 +3,15 @@
  * Colors / radius / focus ring via tokens; font sizes and the cap are literals. */
 
 .editor {
-  background: var(--card);
+  background: var(--surface);
   border: 1px solid var(--capbd);
   border-radius: var(--radius-md);
   padding: var(--space-2) var(--space-3);
 }
 
 .editor:focus-within {
-  box-shadow: var(--focus-ring);
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
 }
 
 .input {
@@ -22,7 +23,7 @@
   background: transparent;
   color: var(--ink);
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: var(--text-title);
   line-height: 1.5;
   /* Grows from one line up to the cap, then scrolls internally. */
   min-height: 21px;
@@ -77,4 +78,14 @@
 
 .cancel:hover {
   color: var(--ink);
+}
+
+.save:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
+}
+
+.cancel:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
 }

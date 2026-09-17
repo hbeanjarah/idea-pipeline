@@ -24,14 +24,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 12px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--ink);
 }
 
 .device {
-  font-size: 11px;
-  color: var(--hint);
+  font-size: var(--text-xs);
+  color: var(--muted);
 }
 
 .separator {
@@ -49,7 +49,7 @@
   background: none;
   padding: var(--space-2);
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: var(--text-body);
   color: var(--danger);
   text-align: left;
   white-space: nowrap;
@@ -58,4 +58,9 @@
 
 .sign-out:hover {
   background: var(--danger-bg);
+}
+
+.sign-out:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
 }

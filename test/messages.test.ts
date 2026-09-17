@@ -88,10 +88,12 @@ describe('the idea requests', () => {
     await handle({ kind: 'ideas/delete', ideaId: 'i' });
 
     // A mis-wired switch branch would still answer ok, on the wrong endpoint.
+    // Path only: the host comes from VITE_API_URL, and asserting it would tie
+    // this test to the .env of whoever runs it.
     expect(
       fetched.mock.calls.map(
         (call) =>
-          `${(call[1] as { method: string }).method} ${String(call[0]).replace('http://localhost:3000', '')}`,
+          `${(call[1] as { method: string }).method} ${new URL(String(call[0])).pathname}`,
       ),
     ).toEqual([
       'GET /ideas',
