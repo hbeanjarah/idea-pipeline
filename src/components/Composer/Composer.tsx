@@ -46,13 +46,16 @@ export default function Composer({
     if (!trimmed || busy) return;
 
     setBusy(true);
+    // Cleared before the call, not after: the card is already on screen, and
+    // keeping the text here would show the same idea twice. The guarantee that
+    // a typed idea is never lost to a network failure still holds — it moved to
+    // the catch below.
+    setText('');
     try {
       await onSubmit(trimmed);
-      // Cleared only once the write is confirmed: an idea typed and lost to a
-      // network failure would be worse than the local-only behaviour we left.
-      setText('');
       setFailure(null);
     } catch (error) {
+      setText(trimmed);
       setFailure(failureOf(error));
     } finally {
       setBusy(false);

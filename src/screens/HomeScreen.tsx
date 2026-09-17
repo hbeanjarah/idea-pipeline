@@ -24,7 +24,8 @@ const PIPELINE_SEGMENTS: { status: Status; label: string }[] =
 
 // Data access via the hook only — never the repository directly.
 export default function HomeScreen({ navigate }: Props) {
-  const { ideas, loading, failure, retry, create } = useIdeas();
+  const { ideas, pendingIds, loading, failure, retry, create } =
+    useIdeas();
   const { user, signOut } = useSession();
 
   // A 404 is not shown here: the list has already been reloaded, there is
@@ -87,6 +88,7 @@ export default function HomeScreen({ navigate }: Props) {
               <IdeaCard
                 key={idea.id}
                 idea={idea}
+                pending={pendingIds.has(idea.id)}
                 onClick={() =>
                   navigate({ screen: 'detail', ideaId: idea.id })
                 }

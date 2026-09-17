@@ -8,6 +8,9 @@ import type { Idea, Status } from '@/storage/types';
 
 export interface IdeasContextValue {
   ideas: Idea[];
+  // Shown, but not confirmed by the server yet. A screen dims these so the
+  // panel never claims more than it knows.
+  pendingIds: ReadonlySet<string>;
   loading: boolean;
   create: (text: string) => Promise<Idea>;
   addVariation: (ideaId: string, text: string) => Promise<Idea>;

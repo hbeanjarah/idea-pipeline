@@ -1,102 +1,62 @@
 // Holds the single shared ideas state and exposes it through IdeasContext.
 // Mounted once in App. The only consumer of ideaRepository on the React side.
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { ideaRepository } from '@/storage/storage';
-import { failureOf } from '@/lib/failure';
-import type { Displayable } from '@/lib/failureText';
+import type { OptimisticState } from '@/lib/optimistic';
+import {
+  confirmProvisional,
+  dropProvisional,
+  provisionalIdea,
+  restoreAt,
+  withProvisional,
+} from '@/lib/optimistic';
 import type { Idea, Status } from '@/storage/types';
+import { useFailureRetry } from './useFailureRetry';
 import { IdeasContext } from './useIdeas';
 
 interface Props {
   children: ReactNode;
 }
 
+// The list and the ids awaiting confirmation move together, in one state: two
+// useState would drift apart the moment one answer lands while another is still
+// in flight.
+const NOTHING: OptimisticState = { ideas: [], pendingIds: new Set() };
+
 export function IdeasProvider({ children }: Props) {
-  const [ideas, setIdeas] = useState<Idea[]>([]);
+  const [state, setState] = useState<OptimisticState>(NOTHING);
   const [loading, setLoading] = useState(true);
-  const [failure, setFailure] = useState<Displayable | null>(null);
-  // The operation that just failed, kept raw so it can be run again as is.
-  const [pending, setPending] = useState<
-    (() => Promise<unknown>) | null
-  >(null);
 
-  // Whether the list ever came back. A retry that succeeds while this is false
-  // would leave the screen showing only what it just wrote, the rest of the
-  // account staying missing until the panel is reopened.
-  const loaded = useRef(false);
-
-  // Throws on failure: attempt below is the single place that decides what a
-  // failure means, including for the initial load.
+  // A full reload clears pendingIds: what the server hands back is confirmed
+  // by definition.
   const reload = useCallback(async () => {
-    setIdeas(await ideaRepository.list());
-    loaded.current = true;
+    setState({
+      ideas: await ideaRepository.list(),
+      pendingIds: new Set(),
+    });
   }, []);
 
-  // Every operation funnels through here, so the failure and the way to replay
-  // it are built in one place rather than in each screen.
-  const attempt = useCallback(
-    async <T,>(run: () => Promise<T>): Promise<T> => {
-      try {
-        const result = await run();
-        setFailure(null);
-        setPending(null);
-
-        // The write went through, so the server is back: fetch what the failed
-        // load never delivered.
-        if (!loaded.current) void reload().catch(() => undefined);
-
-        return result;
-      } catch (error) {
-        const next = failureOf(error);
-
-        // An idea deleted on another device is not something to retry: this
-        // list is simply out of date. Refreshing it may fail too, and that
-        // failure is not the one worth showing.
-        if (next.reason === 'gone')
-          void reload().catch(() => undefined);
-
-        setFailure(next);
-        setPending(() => run);
-        throw error;
-      }
-    },
-    [reload],
-  );
-
-  const retry = useMemo(
-    () => (pending ? () => void attempt(pending) : null),
-    [pending, attempt],
-  );
+  const { failure, retry, attempt, markLoaded } =
+    useFailureRetry(reload);
 
   useEffect(() => {
     let active = true;
 
+    // Through attempt like every other operation, so a failed first load is
+    // recorded and replayed by the same "Réessayer" as the rest.
+    //
     // An effect callback cannot be async: React reads whatever it returns as
     // the cleanup function. The call is therefore started and not awaited —
     // the active flag is what discards an answer that comes back late.
-    void ideaRepository
-      .list()
-      .then((fetched) => {
-        if (!active) return;
-        setIdeas(fetched);
-        loaded.current = true;
-        setFailure(null);
-      })
-      .catch((error: unknown) => {
-        if (!active) return;
-        setFailure(failureOf(error));
-        // Retried through attempt, so a second failure is handled like any
-        // other rather than by a second code path.
-        setPending(() => reload);
-      })
+    void attempt(async () => {
+      const fetched = await ideaRepository.list();
+      if (!active) return;
+      setState({ ideas: fetched, pendingIds: new Set() });
+      markLoaded();
+    })
+      .catch(() => undefined)
       .finally(() => {
         if (active) setLoading(false);
       });
@@ -104,23 +64,55 @@ export function IdeasProvider({ children }: Props) {
     return () => {
       active = false;
     };
-  }, [reload]);
+  }, [attempt, markLoaded]);
 
   // Driven by Composer, which owns the text and therefore owns the failure:
   // recording it here too would show two alerts for one outage. It throws, and
   // the caller decides.
+  //
+  // The idea is shown before the server has seen it. The provisional id is made
+  // here and never leaves the panel: the answer replaces it.
   const create = useCallback(async (text: string) => {
-    const idea = await ideaRepository.create(text);
+    const provisional = provisionalIdea(
+      text,
+      crypto.randomUUID(),
+      new Date().toISOString(),
+    );
 
-    setIdeas((current) => [...current, idea]);
+    setState((current) => withProvisional(current, provisional));
 
-    return idea;
+    try {
+      const idea = await ideaRepository.create(text);
+      setState((current) =>
+        confirmProvisional(current, provisional.id, idea),
+      );
+      return idea;
+    } catch (error) {
+      setState((current) => dropProvisional(current, provisional.id));
+      throw error;
+    }
   }, []);
 
-  const replace = (idea: Idea) =>
-    setIdeas((current) =>
-      current.map((item) => (item.id === idea.id ? idea : item)),
-    );
+  // The ideas move, the pending marks stay. Named once so every write below
+  // reads as what it does rather than as a state spread. Both are wrapped so
+  // they can sit in the dependency lists below without recreating every write
+  // on each render.
+  const onIdeas = useCallback(
+    (update: (ideas: Idea[]) => Idea[]) =>
+      setState((current) => ({
+        ...current,
+        ideas: update(current.ideas),
+      })),
+    [],
+  );
+
+  const replace = useCallback(
+    (idea: Idea) =>
+      onIdeas((ideas) =>
+        ideas.map((item) => (item.id === idea.id ? idea : item)),
+      ),
+    [onIdeas],
+  );
 
   // Driven by Composer too — same reasoning as create.
   const addVariation = useCallback(
@@ -131,7 +123,7 @@ export function IdeasProvider({ children }: Props) {
 
       return idea;
     },
-    [],
+    [replace],
   );
 
   const editVariation = useCallback(
@@ -145,36 +137,71 @@ export function IdeasProvider({ children }: Props) {
         replace(idea);
         return idea;
       }),
-    [attempt],
+    [attempt, replace],
   );
 
+  // Applied locally first, put back as it was if the server refuses. There is
+  // no provisional idea to drop here — there is a previous value to restore.
+  //
+  // Two status changes started within one round trip is a known gap: the second
+  // captures the first one's optimistic value as its "before", so if the second
+  // fails it restores a status the server never had. Retrying re-syncs it. A
+  // write queue would close it and is not worth its weight in a single panel.
   const changeStatus = useCallback(
     (ideaId: string, status: Status) =>
       attempt(async () => {
-        const idea = await ideaRepository.changeStatus(
-          ideaId,
-          status,
+        const before = state.ideas.find((item) => item.id === ideaId);
+
+        onIdeas((ideas) =>
+          ideas.map((item) =>
+            item.id === ideaId ? { ...item, status } : item,
+          ),
         );
-        replace(idea);
-        return idea;
+
+        try {
+          const idea = await ideaRepository.changeStatus(
+            ideaId,
+            status,
+          );
+          replace(idea);
+          return idea;
+        } catch (error) {
+          if (before) replace(before);
+          throw error;
+        }
       }),
-    [attempt],
+    [attempt, replace, onIdeas, state.ideas],
   );
 
   const deleteIdea = useCallback(
     (ideaId: string) =>
       attempt(async () => {
-        await ideaRepository.delete(ideaId);
-        setIdeas((current) =>
-          current.filter((item) => item.id !== ideaId),
+        const index = state.ideas.findIndex(
+          (item) => item.id === ideaId,
         );
+        const removed = state.ideas[index];
+
+        onIdeas((ideas) =>
+          ideas.filter((item) => item.id !== ideaId),
+        );
+
+        try {
+          await ideaRepository.delete(ideaId);
+        } catch (error) {
+          // Back at its index, not at the end: the caller sorts the list, but a
+          // return to the bottom would still be seen for a render.
+          if (removed)
+            onIdeas((ideas) => restoreAt(ideas, index, removed));
+          throw error;
+        }
       }),
-    [attempt],
+    [attempt, onIdeas, state.ideas],
   );
 
   const value = useMemo(
     () => ({
-      ideas,
+      ideas: state.ideas,
+      pendingIds: state.pendingIds,
       loading,
       failure,
       retry,
@@ -185,7 +212,7 @@ export function IdeasProvider({ children }: Props) {
       deleteIdea,
     }),
     [
-      ideas,
+      state,
       loading,
       failure,
       retry,

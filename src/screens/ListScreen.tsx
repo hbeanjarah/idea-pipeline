@@ -17,7 +17,7 @@ interface Props {
 // Data access via the hook only — never the repository directly. Read-only here;
 // the active filter is local UI state, applied in memory via the pure filterIdeas.
 export default function ListScreen({ navigate }: Props) {
-  const { ideas, loading, failure, retry } = useIdeas();
+  const { ideas, pendingIds, loading, failure, retry } = useIdeas();
 
   // A 404 is not shown here: the list has already been reloaded.
   const shown = failure && failure.reason !== 'gone' ? failure : null;
@@ -111,6 +111,7 @@ export default function ListScreen({ navigate }: Props) {
               <IdeaCard
                 key={idea.id}
                 idea={idea}
+                pending={pendingIds.has(idea.id)}
                 onClick={() =>
                   navigate({ screen: 'detail', ideaId: idea.id })
                 }
