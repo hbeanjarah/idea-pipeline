@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import Alert from '@/components/Alert/Alert';
+import { applyEdit, bulletEdit } from '@/lib/bullets';
 import { failureOf } from '@/lib/failure';
 import { failureText } from '@/lib/failureText';
 import type { Displayable } from '@/lib/failureText';
@@ -73,7 +74,20 @@ export default function Composer({
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       void submit();
+      return;
     }
+
+    const input = inputRef.current;
+    if (!input) return;
+    const edit = bulletEdit(
+      event.key,
+      input.value,
+      input.selectionStart,
+      input.selectionEnd,
+    );
+    if (!edit) return;
+    event.preventDefault();
+    applyEdit(input, edit);
   };
 
   return (

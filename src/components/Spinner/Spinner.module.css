@@ -1,0 +1,24 @@
+.spinner {
+  flex: none;
+  width: 17px;
+  height: 17px;
+  border: 2px solid var(--capbd);
+  border-top-color: var(--accent);
+  border-radius: var(--radius-pill);
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* A spinner is nothing but its movement — stopping it would leave a ring that
+ * reads as broken. Every caller therefore pairs it with words, which are what
+ * carries the wait here. */
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    display: none;
+  }
+}

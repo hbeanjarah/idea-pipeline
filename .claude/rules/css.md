@@ -158,6 +158,17 @@ invisible.
   `.editor`, `.search`), jamais sur l'`<input>` lui-même : les deux anneaux se
   superposeraient. L'`<input>` garde son `outline: none`.
 
+**Le décalage dépend de ce qu'on bague.**
+
+| Cible | `outline-offset` | Pourquoi |
+| ----- | ---------------- | -------- |
+| Bouton, lien, icône | `var(--focus-offset)` | Le fond reste visible entre l'élément et l'anneau, qui se lit donc aussi sur un bouton plein. |
+| **Boîte de saisie bordée** | `0` **+ `border-color: var(--accent)`** | Elle porte déjà une bordure de 1px : un anneau posé 2px plus loin fait une **seconde bordure** mal emboîtée. À plat et recolorée, les deux n'en forment qu'une. |
+
+Le cas n'est pas théorique : `VariationEditor` prend le focus au montage, donc
+son `:focus-within` est l'état **permanent** de l'éditeur ouvert, pas un état de
+passage. La double bordure y restait affichée tout le temps de l'édition.
+
 **L'anneau est en `--accent` plein, et ce n'est pas un choix esthétique.** WCAG
 2.2 exige 3:1 contre les couleurs voisines. Le turquoise plein donne 4,02:1 sur
 `--surface` et 3,32:1 sur `--sunken` ; **dès 75 % d'opacité il tombe à 2,79 et
