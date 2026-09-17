@@ -1,7 +1,3 @@
-/* Reusable idea card. Visual reference: design/mockup.html #idea-card (.card).
- * Colors / radius / box padding / status dots / font sizes via tokens; one-off
- * geometry (dot size, gaps) is local. */
-
 .card {
   display: block;
   width: 100%;
@@ -68,6 +64,13 @@
   margin-left: auto;
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+}
+
+/* Border and halo, never a different fill: a third surface would undo the two
+ * the palette settles on (css.md). */
+.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgb(3 140 140 / 0.13);
 }
 
 /* Shown, but the server has not confirmed it yet. Dimmed rather than hidden:

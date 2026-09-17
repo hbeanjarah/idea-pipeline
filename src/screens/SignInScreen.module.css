@@ -1,6 +1,3 @@
-/* Sign-in surface. Visual reference: design/mockup-auth.html, first column.
- * Colors / radius / spacing / font sizes via tokens. */
-
 /* Le panneau va de ~320 a ~1000 px : sans borne, .button (en width: 100%)
  * suivait la fenetre et mesurait 960 px pour 190 px de texte, sur le premier
  * ecran que voit un nouvel arrivant. */

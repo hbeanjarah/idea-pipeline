@@ -1,11 +1,6 @@
-/* Status filter bar. Colors / radius / font sizes via tokens; one-off geometry
- * is local.
- *
- * Wraps rather than scrolls horizontally: the bar used to hide its own
- * scrollbar, so in a column narrower than the five pills, the last stages left
- * the screen with nothing to say they existed. The four stages of the pipeline
- * and their counts are the only place the pipeline is visible at all — they do
- * not get to hide. */
+/* Wraps rather than scrolls: these four stages and their counts are the only
+ * place the pipeline is visible at all, so none of them may leave the screen —
+ * which is what a hidden horizontal scrollbar used to let happen. */
 
 .filters {
   display: flex;

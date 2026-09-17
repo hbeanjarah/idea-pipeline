@@ -1,0 +1,48 @@
+.current {
+  position: relative;
+}
+
+/* 58ch, not the pane width: comfortable reading sits between 45 and 75
+ * characters a line, 66 being the target, and WCAG caps it at 80. Without a
+ * bound the text runs the full width of a wide panel. */
+.text {
+  margin: 0;
+  max-width: 58ch;
+  font-size: var(--text-hero);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+/* Discoverability is the known failing of in-place editing: with no visible
+ * sign, the function does not exist. It appears on hover, and on focus too —
+ * hover never happens for someone on a keyboard. */
+.fix {
+  position: absolute;
+  top: 0;
+  right: 0;
+  opacity: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--ring);
+  color: var(--accent);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  padding: 3px 9px;
+  cursor: pointer;
+}
+
+.current:hover .fix,
+.fix:focus-visible {
+  opacity: 1;
+}
+
+.fix:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .fix {
+    transition: opacity 0.12s ease-out;
+  }
+}

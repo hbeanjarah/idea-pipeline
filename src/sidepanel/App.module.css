@@ -1,0 +1,58 @@
+/* The two-pane shell. The Side Panel is a document of its own — its viewport IS
+ * the panel — so @media answers the panel's width here. It is one of the rare
+ * places where a container query would add nothing. */
+
+.shell {
+  display: flex;
+  gap: var(--space-2);
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Not decoration: without it a flex child refuses to shrink below its content,
+ * and one long unbroken word pushes a column past the panel edge. */
+.master,
+.detail {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+}
+
+.master {
+  flex: 1;
+}
+
+/* Below the threshold, one pane at a time — whichever the selection names. */
+.detail {
+  display: none;
+  flex: 1;
+}
+
+.selected .master {
+  display: none;
+}
+
+.selected .detail {
+  display: flex;
+}
+
+/* 306px for the list, ~380 minimum for an idea's text to keep a readable line
+ * length, plus the gutters. */
+@media (min-width: 720px) {
+  /* Only here: with two panes side by side the light one needs a margin to read
+   * as a surface rather than as the panel's own background. A single pane at
+   * narrow width sits flush, as it always has. */
+  .shell {
+    padding: var(--space-2);
+  }
+
+  .master {
+    flex: none;
+    width: 306px;
+  }
+
+  .detail,
+  .selected .master {
+    display: flex;
+  }
+}

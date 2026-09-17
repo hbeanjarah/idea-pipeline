@@ -4,7 +4,6 @@ import VariationEditor from '@/components/VariationEditor/VariationEditor';
 import type { Variation } from '@/storage/types';
 import styles from './VariationThread.module.css';
 
-// ISO 8601 -> readable timestamp with time (mono metadata in the UI).
 function formatTimestamp(iso: string): string {
   return new Date(iso).toLocaleString('fr-FR', {
     day: 'numeric',
@@ -20,8 +19,8 @@ interface Props {
   onEdit: (variationId: string, text: string) => Promise<unknown>;
 }
 
-// Presentational: owns only which variation is being edited, which is display
-// state. Saving is the screen's business.
+// The versions the idea no longer says. The current one is not here: it lives
+// in CurrentVersion.
 export default function VariationThread({
   variations,
   onEdit,
@@ -30,16 +29,10 @@ export default function VariationThread({
 
   return (
     <div className={styles.thread}>
-      {variations.map((variation, index) => (
-        <div
-          key={variation.id}
-          className={`${styles.ver} ${
-            index === variations.length - 1 ? styles.current : ''
-          }`}
-        >
+      {variations.map((variation) => (
+        <div key={variation.id} className={styles.ver}>
           {editingId === variation.id ? (
-            // Editing in place: onEdit fixes the text, never adds a version.
-            // The first variation uses this same path.
+            // onEdit fixes the text of this version; it never adds one.
             <VariationEditor
               initialText={variation.text}
               onSave={async (text) => {

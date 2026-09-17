@@ -1,35 +1,30 @@
-/* Full idea list. Visual reference: design/mockup.html #surface-list (.bar / .ttl).
- * Colors / radius / box spacing via tokens; one-off geometry and font sizes are
- * local literals. Fills the side panel height: only .rows scrolls, never the body. */
+/* Only .rows scrolls, never the body: the composer must never leave the
+ * screen. */
 
 .list {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
   background: var(--sunken);
   padding: var(--space-3);
 }
 
-/* Header: back-to-home control + title, pinned above the scroll area. */
+/* Title left, account right. There is no back control any more: this screen is
+ * the only place one comes from. */
 .bar {
   display: flex;
   align-items: center;
-  gap: 9px;
+  justify-content: space-between;
+  gap: var(--space-2);
   margin: 0 0 var(--space-3);
 }
 
-.back {
-  display: flex;
-  border: none;
-  background: none;
-  padding: 0;
+.hint {
+  margin: 6px 0 0;
+  font-size: var(--text-xs);
   color: var(--muted);
-  cursor: pointer;
-}
-
-.back:hover {
-  color: var(--ink);
 }
 
 .title {
@@ -71,13 +66,24 @@
   text-align: center;
 }
 
-.empty-title {
-  margin: 0 0 5px;
-  font-size: var(--text-body);
+.empty-cue {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
   color: var(--muted);
 }
 
-.back:focus-visible {
-  outline: var(--focus-outline);
-  outline-offset: var(--focus-offset);
+/* An invitation to write the first idea — it carries weight. */
+.empty-title {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* A plain statement that a filter matched nothing — it does not. */
+.empty-note {
+  margin: 0;
+  font-size: var(--text-body);
+  color: var(--muted);
 }

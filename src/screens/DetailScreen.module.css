@@ -1,15 +1,16 @@
-/* Idea detail (read-only). Visual reference: design/mockup.html #surface-detail
- * (.bar / .thread / .ver). Colors / radius / status dots / font sizes via
- * tokens; one-off geometry is local. Fills the side panel height: only
- * .body scrolls, never the page. Structure leaves room for later actions
- * (status control, reformulation field, overflow menu). */
+/* The shell owns the height; only .body scrolls, never the page.
+ * --surface, not --sunken: the palette puts content on the light surface, and
+ * this is the reading surface of the whole product (css.md). */
 
 .detail {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
-  background: var(--sunken);
+  background: var(--surface);
+  border: 1px solid var(--cardbd);
+  border-radius: var(--radius-lg);
   padding: var(--space-3);
 }
 
@@ -44,8 +45,63 @@
   color: var(--muted);
 }
 
-.reform {
-  margin-top: var(--space-3);
+/* Directly under the text it transforms. It used to sit at the bottom, past the
+ * history and 128px of nothing — a messaging layout applied to writing. */
+.reformulate {
+  margin-top: var(--space-4);
+  border: 1px solid var(--capbd);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--accent);
+  padding: var(--space-2) var(--space-4);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.reformulate:hover {
+  background: var(--ring);
+}
+
+.reformulate:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
+}
+
+.draft {
+  margin-top: var(--space-4);
+}
+
+/* Offered, but no longer the default: a reformulation is almost always a
+ * retouch of what is already there. */
+.blank {
+  margin-top: var(--space-2);
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.blank:hover {
+  color: var(--ink);
+}
+
+.blank:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
+}
+
+/* The history takes the bottom, which is what removes the empty gap that used
+ * to sit between it and the field. */
+.history {
+  margin-top: var(--space-5);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--cardbd);
 }
 
 .empty {
@@ -55,6 +111,12 @@
 
 .empty-title {
   margin: 0 0 var(--space-3);
+  font-size: var(--text-body);
+  color: var(--muted);
+}
+
+.empty-note {
+  margin: 0;
   font-size: var(--text-body);
   color: var(--muted);
 }

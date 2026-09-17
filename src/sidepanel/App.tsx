@@ -1,18 +1,17 @@
 import { useState } from 'react';
-import type { ReactNode } from 'react';
 import type { Route } from '@/routes/routes';
 import { IdeasProvider } from '@/hooks/IdeasProvider';
 import { useSession } from '@/hooks/useSession';
-import HomeScreen from '@/screens/HomeScreen';
 import ListScreen from '@/screens/ListScreen';
 import DetailScreen from '@/screens/DetailScreen';
 import SignInScreen from '@/screens/SignInScreen';
+import styles from './App.module.css';
 
-// The only place that maps a Route to a screen. Screens never read the route
-// state directly — they receive navigate (and their params) as props.
-// IdeasProvider is mounted once here, wrapping every screen.
+// Both panes are always rendered; which one is on screen is a CSS question,
+// answered by the panel's own width. Nothing here knows the threshold — adding
+// a matchMedia would put it in two languages at once.
 export default function App() {
-  const [route, setRoute] = useState<Route>({ screen: 'home' });
+  const [route, setRoute] = useState<Route>({ selectedId: null });
   const { connected, checking } = useSession();
 
   // Nothing while the worker is being asked: showing the sign-in screen first
@@ -20,20 +19,29 @@ export default function App() {
   if (checking) return null;
   if (!connected) return <SignInScreen />;
 
-  let screen: ReactNode;
-  switch (route.screen) {
-    case 'home':
-      screen = <HomeScreen navigate={setRoute} />;
-      break;
-    case 'list':
-      screen = <ListScreen navigate={setRoute} />;
-      break;
-    case 'detail':
-      screen = (
-        <DetailScreen navigate={setRoute} ideaId={route.ideaId} />
-      );
-      break;
-  }
-
-  return <IdeasProvider>{screen}</IdeasProvider>;
+  return (
+    <IdeasProvider>
+      <div
+        className={`${styles.shell} ${
+          route.selectedId === null ? '' : styles.selected
+        }`}
+      >
+        <div className={styles.master}>
+          <ListScreen
+            navigate={setRoute}
+            selectedId={route.selectedId}
+          />
+        </div>
+        <div className={styles.detail}>
+          {/* Keyed on the selection: a half-written reformulation must not
+              follow the reader to the next idea. */}
+          <DetailScreen
+            key={route.selectedId ?? 'none'}
+            navigate={setRoute}
+            ideaId={route.selectedId}
+          />
+        </div>
+      </div>
+    </IdeasProvider>
+  );
 }

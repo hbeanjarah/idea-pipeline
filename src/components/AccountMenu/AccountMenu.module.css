@@ -1,6 +1,3 @@
-/* Account menu: who is connected, and the way out.
- * Visual reference: design/mockup-profile.html, second column. */
-
 .menu {
   display: flex;
   flex-direction: column;

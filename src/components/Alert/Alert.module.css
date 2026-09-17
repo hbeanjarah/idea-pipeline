@@ -1,5 +1,4 @@
-/* Failure notice. Visual reference: design/mockup-auth.html, third column.
- * --danger covers destructive actions and failures alike. */
+/* --danger covers destructive actions and failures alike. */
 
 .alert {
   display: flex;

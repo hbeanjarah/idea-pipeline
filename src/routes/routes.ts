@@ -1,11 +1,5 @@
-// Single source of truth for "where we are". No router (Side Panel: no URL,
-// no deep-link). App.tsx is the only place that maps a Route to a screen.
+// Pas de routeur : le Side Panel n'a ni URL ni lien profond, un routeur
+// n'apporterait rien.
+export type Route = { selectedId: string | null };
 
-export type Route =
-  | { screen: 'home' }
-  | { screen: 'list' }
-  | { screen: 'detail'; ideaId: string };
-
-// One typed argument: the discriminated union forces completeness — reaching
-// 'detail' without an ideaId is a compile error.
 export type Navigate = (route: Route) => void;

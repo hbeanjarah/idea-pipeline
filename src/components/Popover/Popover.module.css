@@ -1,7 +1,3 @@
-/* Reusable popover primitive. Behavior in Popover.tsx; here only the wrapper,
- * a reset trigger button, and the floating surface. Colors / radius / elevation
- * via tokens; the stacking literal is one-off geometry. */
-
 .popover {
   position: relative;
   display: inline-flex;
