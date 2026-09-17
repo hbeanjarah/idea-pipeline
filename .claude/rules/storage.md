@@ -105,14 +105,12 @@ appel réseau et ne voit jamais le jeton de session.
 ## Étapes <-> libellés UI
 
 Le code manipule les valeurs anglaises ; l'UI affiche le français. Le mapping
-vit côté UI, rappelé ici pour mémoire :
+vit **à un seul endroit**, `src/lib/statusLabels.ts`, avec l'ordre du pipeline.
 
-| `Status`    | Libellé UI    |
-| ----------- | ------------- |
-| `captured`  | Capturé       |
-| `maturing`  | En maturation |
-| `ready`     | Prêt          |
-| `published` | Publié        |
+Il n'est pas recopié ici. Cette page a longtemps porté « En maturation » quand
+les trois copies du code disaient « Maturation » — c'est ce que coûte un
+libellé écrit à deux endroits. `Record<Status, string>` garantit qu'aucune
+étape n'y manque : en ajouter une au domaine casse la compilation.
 
 ## Hors-périmètre (pour l'instant)
 

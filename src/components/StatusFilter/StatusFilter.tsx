@@ -1,4 +1,5 @@
 import type { FilterStatus } from '@/lib/filterIdeas';
+import { STATUS_LABELS, STATUS_ORDER } from '@/lib/statusLabels';
 import styles from './StatusFilter.module.css';
 
 interface Props {
@@ -7,13 +8,14 @@ interface Props {
   onChange: (status: FilterStatus) => void;
 }
 
-// Provisional labels. Same status keeps the same label everywhere (cf. Home pipeline).
+// 'all' n'est pas un Status mais un FilterStatus : il s'ajoute devant les
+// quatre étapes, qui viennent du seul endroit où elles sont nommées.
 const SEGMENTS: { value: FilterStatus; label: string }[] = [
   { value: 'all', label: 'Tous' },
-  { value: 'captured', label: 'Capturé' },
-  { value: 'maturing', label: 'Maturation' },
-  { value: 'ready', label: 'Prêt' },
-  { value: 'published', label: 'Publié' },
+  ...STATUS_ORDER.map((status) => ({
+    value: status,
+    label: STATUS_LABELS[status],
+  })),
 ];
 
 // Presentational only: receives the active filter, the per-segment counts and a

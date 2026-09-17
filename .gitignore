@@ -27,3 +27,5 @@ key.pem
 
 # Misc
 *.local
+
+.superpowers/*

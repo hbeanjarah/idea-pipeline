@@ -1,14 +1,17 @@
 /* Sign-in surface. Visual reference: design/mockup-auth.html, first column.
- * Colors / radius / spacing via tokens; one-off font sizes are local. */
+ * Colors / radius / spacing / font sizes via tokens. */
 
+/* Le panneau va de ~320 a ~1000 px : sans borne, .button (en width: 100%)
+ * suivait la fenetre et mesurait 960 px pour 190 px de texte, sur le premier
+ * ecran que voit un nouvel arrivant. */
 .sign-in {
   display: flex;
   flex-direction: column;
   align-items: center;
+  max-width: 380px;
+  margin: 0 auto;
   padding: 34px var(--space-3) 28px;
-  background: var(--panel);
-  border: 1px solid var(--panelbd);
-  border-radius: var(--radius-lg);
+  background: var(--sunken);
   text-align: center;
 }
 
@@ -20,16 +23,16 @@
 
 .title {
   margin: 0 0 var(--space-2);
-  font-size: 15px;
+  font-size: var(--text-title);
   font-weight: 600;
 }
 
 .lead {
   margin: 0 0 var(--space-5);
   max-width: 32ch;
-  font-size: 12px;
+  font-size: var(--text-sm);
   line-height: 1.5;
-  color: var(--hint);
+  color: var(--muted);
 }
 
 .button {
@@ -39,11 +42,11 @@
   gap: 9px;
   width: 100%;
   padding: 10px var(--space-4);
-  background: var(--card);
+  background: var(--surface);
   border: 1px solid var(--capbd);
   border-radius: var(--radius-md);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--text-body);
   font-weight: 600;
   color: var(--ink);
   cursor: pointer;
@@ -54,8 +57,8 @@
 }
 
 .button:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
 }
 
 /* The window is open and waiting on the user; a second click would open a
@@ -78,7 +81,7 @@
 
 .legal {
   margin: var(--space-3) 0 0;
-  font-size: 11px;
+  font-size: var(--text-xs);
   line-height: 1.45;
-  color: var(--faint);
+  color: var(--muted);
 }

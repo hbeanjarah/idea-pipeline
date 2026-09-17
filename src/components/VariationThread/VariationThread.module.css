@@ -28,7 +28,7 @@
   width: 16px;
   height: 16px;
   margin-left: auto;
-  color: var(--faint);
+  color: var(--muted);
 }
 
 .ver-menu:hover {
@@ -37,7 +37,7 @@
 
 .text {
   flex: 1;
-  font-size: 13px;
+  font-size: var(--text-body);
   line-height: 1.5;
   color: var(--tagink);
   white-space: pre-wrap;
@@ -45,13 +45,13 @@
 }
 
 .current .text {
-  font-size: 14px;
+  font-size: var(--text-title);
   color: var(--ink);
 }
 
 .date {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
-  font-size: 11px;
-  color: var(--hint);
+  font-size: var(--text-xs);
+  color: var(--muted);
 }

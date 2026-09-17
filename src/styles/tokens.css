@@ -1,22 +1,29 @@
 /* Design tokens — single source of truth for shared values.
- * Colors are reported verbatim from design/mockup.html (no rounding).
- * Spacing is a regular 4px scale; mockup values are rounded onto it.
+ * Spacing is a regular 4px scale.
  * This file holds variables only — no visual rules. */
 :root {
-  /* Surfaces & borders */
-  --bg: #e8ebf1;
-  --panel: #f2f6fc;
-  --card: #ffffff;
+  /* Surfaces & borders — two levels, not three. The step is 1.210:1, against
+   * 1.085:1 between the old card and its panel: below that, the eye does not
+   * separate the surfaces on its own and the borders carry the structure.
+   * Cool ~218deg on both: the old --card was pure white, the one neutral value
+   * in a cool series. */
+  --sunken: #e2e8f2;
+  --surface: #fcfdff;
   --panelbd: #dce4f0;
   --cardbd: #e4ebf4;
   --capbd: #cdddf0;
   --ring: #e3edf9;
   --spine: #dce4f0;
 
-  /* Text */
+  /* Text — two levels only. A colour carrying text holds 4.5:1 (WCAG AA), and
+   * the scale cannot hold three greys above it: they would all sit under a
+   * 0.18 luminance and stop being distinguishable.
+   * On --surface: --ink 11.4:1 · --muted 4.94:1.
+   * The removed --hint was 2.54:1 and --faint, on the version history, 2.13:1. */
   --ink: #323859;
-  --muted: #6f7891;
-  --hint: #9aa3b5;
+  --muted: #66708a;
+
+  /* Non-text only: rules, inactive dots, separators. Never set as `color`. */
   --faint: #aab2c4;
 
   /* Accents & brand */
@@ -36,6 +43,16 @@
   /* Danger — the only warm color, reserved for destructive actions (delete) */
   --danger: #c0453b;
   --danger-bg: #f6ece9;
+
+  /* Type scale — contrasted steps. The 38 sizes of the project were literals
+   * spread over 16 files, progressing 1px at a time, so nothing stood out.
+   * --text-hero had no equivalent: the detail pane had no size for its current
+   * text. */
+  --text-hero: 20px;
+  --text-title: 16px;
+  --text-body: 13px;
+  --text-sm: 12px;
+  --text-xs: 11px;
 
   /* Typography — system stacks only, no webfont */
   --font-sans:
@@ -60,8 +77,16 @@
   --radius-lg: 14px;
   --radius-pill: 999px;
 
+  /* Keyboard focus. WCAG 2.2 asks 3:1 against the colours it sits next to; the
+   * previous halo (3px of --ring) measured 1.16:1 on --surface and 1.04:1 on
+   * --sunken — present in the CSS, absent to the eye. Solid --accent is the
+   * only value that clears the bar on both (4.02:1 and 3.32:1): at 75% opacity
+   * it already falls to 2.79 and 2.45. The offset leaves the background
+   * visible, so the ring reads on a filled button too. */
+  --focus-outline: 2px solid var(--accent);
+  --focus-offset: 2px;
+
   /* Shadows */
-  --focus-ring: 0 0 0 3px var(--ring);
   /* Soft elevation for floating surfaces (popover, later: delete confirm),
    * derived from --ink (#323859 = rgb 50 56 89), kept low-opacity and discreet. */
   --shadow-popover: 0 6px 20px rgba(50, 56, 89, 0.16);

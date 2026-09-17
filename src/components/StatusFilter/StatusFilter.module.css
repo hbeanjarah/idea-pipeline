@@ -1,17 +1,17 @@
-/* Status filter bar. Visual reference: design/mockup.html #surface-list (.filters / .pill).
- * Colors / radius via tokens; one-off geometry and font sizes are local literals.
- * Horizontally scrollable, scrollbar hidden — like the mockup. */
+/* Status filter bar. Colors / radius / font sizes via tokens; one-off geometry
+ * is local.
+ *
+ * Wraps rather than scrolls horizontally: the bar used to hide its own
+ * scrollbar, so in a column narrower than the five pills, the last stages left
+ * the screen with nothing to say they existed. The four stages of the pipeline
+ * and their counts are the only place the pipeline is visible at all — they do
+ * not get to hide. */
 
 .filters {
   display: flex;
+  flex-wrap: wrap;
   gap: 5px;
-  overflow-x: auto;
-  padding-bottom: 3px;
   margin: 0 0 var(--space-3);
-}
-
-.filters::-webkit-scrollbar {
-  height: 0;
 }
 
 .pill {
@@ -25,7 +25,7 @@
   padding: 4px 11px;
   color: var(--muted);
   font-family: var(--font-sans);
-  font-size: 11px;
+  font-size: var(--text-xs);
   white-space: nowrap;
   cursor: pointer;
 }
@@ -40,9 +40,14 @@
 .count {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
-  color: var(--faint);
+  color: var(--muted);
 }
 
 .pill.on .count {
   color: var(--tagink);
+}
+
+.pill:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
 }

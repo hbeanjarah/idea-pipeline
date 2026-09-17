@@ -12,7 +12,7 @@
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-pill);
   background: var(--tagbg);
-  font-size: 13px;
+  font-size: var(--text-body);
   color: var(--muted);
 }
 
@@ -35,7 +35,7 @@
   background: none;
   padding: var(--space-2) var(--space-2);
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: var(--text-body);
   color: var(--ink);
   text-align: left;
   cursor: pointer;
@@ -71,4 +71,9 @@
 
 .published {
   background: var(--status-published);
+}
+
+.status-option:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
 }

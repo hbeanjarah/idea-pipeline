@@ -577,7 +577,7 @@ Sur le VPS :
 
 ```bash
 sudo mkdir -p /var/backups/idea-pipeline
-sudo chown deploy:deploy /var/backups/idea-pipeline
+sudo chown ubuntu:ubuntu /var/backups/idea-pipeline
 
 cat > /srv/idea-pipeline/backup.sh <<'EOF'
 #!/bin/sh

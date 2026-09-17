@@ -17,7 +17,7 @@ figure {
 }
 
 body {
-  background: var(--bg);
+  background: var(--sunken);
   color: var(--ink);
   font-family: var(--font-sans);
   line-height: 1.5;
