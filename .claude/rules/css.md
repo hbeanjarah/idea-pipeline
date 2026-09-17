@@ -62,14 +62,19 @@ valeur neutre d'une série froide.
 
 **Texte — deux niveaux, et un seuil**
 
-Toute couleur qui porte du texte atteint **4,5:1** (WCAG AA) sur la surface où
-elle se pose.
+Toute couleur qui porte du texte atteint **4,5:1** (WCAG AA) sur **chacune**
+des surfaces où elle se pose. C'est `--sunken` qui commande : c'est le fond le
+plus sombre que du texte rencontre, donc celui qui fixe le plancher. Un ratio
+mesuré sur du blanc pur ne prouve rien — aucun écran n'en affiche.
 
-| Token     | Valeur    | Contraste sur `--surface` | Usage                  |
-| --------- | --------- | ------------------------- | ---------------------- |
-| `--ink`   | `#323859` | 11,4:1                    | texte principal        |
-| `--muted` | `#66708a` | 4,94:1                    | tout texte secondaire  |
-| `--faint` | `#aab2c4` | 2,13:1 — **non textuel**  | filets, pastilles      |
+| Token     | Valeur    | sur `--surface`  | sur `--sunken`   | Usage                 |
+| --------- | --------- | ---------------- | ---------------- | --------------------- |
+| `--ink`   | `#323859` | 11,2:1           | 9,2:1            | texte principal       |
+| `--muted` | `#5d667e` | 5,63:1           | 4,65:1           | tout texte secondaire |
+| `--faint` | `#aab2c4` | 2,13:1 — **non textuel**            | filets, pastilles     |
+
+`--muted` porte aussi du texte sur `--tagbg` (4,90:1) et `--ring` (4,84:1) :
+les fonds teintés passent dès que `--sunken` passe.
 
 `--faint` ne se pose **jamais** en `color`. Il ne sert qu'à ce qui n'est pas du
 texte : séparateurs, pastilles inactives, icônes décoratives.

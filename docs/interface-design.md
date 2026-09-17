@@ -215,9 +215,17 @@ Une couleur qui passe AA sur `--panel` doit descendre à une luminance
 d'environ 0,165 — c'est-à-dire presque aussi sombre que `--muted`. **La
 hiérarchie à trois gris ne survit pas à AA** : elle se réduit à deux.
 
-- `--muted` devient **`#66708a`** — 4,94:1, conforme.
+- `--muted` devient **`#5d667e`** — 5,63:1 sur `--surface`, 4,65:1 sur
+  `--sunken`, conforme sur les deux.
 - `--hint` et `--faint` cessent de porter du texte. Ils restent pour ce qui n'en
   est pas : bordures, pastilles inactives, icônes décoratives.
+
+> **Correction après coup.** La table ci-dessus mesure sur fond blanc, base
+> valable tant que `--card` existait. La section suivante le remplace par
+> `--surface` et `--sunken` sans que ces mesures soient refaites : le `#66708a`
+> d'abord retenu ne tenait que 4,01:1 sur `--sunken`, où se posent les pastilles
+> de filtre, l'aide clavier et l'accroche de connexion. Le plancher se mesure
+> désormais sur `--sunken`, fond le plus sombre que du texte rencontre.
 
 ## Les surfaces — deux au lieu de trois
 
