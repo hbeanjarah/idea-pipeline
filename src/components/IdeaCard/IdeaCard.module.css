@@ -70,6 +70,13 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Shown, but the server has not confirmed it yet. Dimmed rather than hidden:
+ * the idea is captured as far as the writer is concerned, and it will either
+ * settle or be withdrawn within a round trip. */
+.pending {
+  opacity: 0.5;
+}
+
 .card:focus-visible {
   outline: var(--focus-outline);
   outline-offset: var(--focus-offset);

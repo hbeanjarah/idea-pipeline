@@ -44,7 +44,11 @@ idea-pipeline/
 │   ├── components/         # briques réutilisables (IdeaCard, Composer,
 │   │                       #   Avatar, AccountMenu, ActionMenu, Popover…)
 │   ├── hooks/              # IdeasProvider, SessionProvider et leurs hooks
+│   │   └── useFailureRetry.ts  # ce qui a échoué + comment le rejouer
 │   ├── lib/                # protocol.ts (contrat panneau ↔ worker), config, failures
+│   │                       #   statusLabels.ts  libellés FR des 4 étapes
+│   │                       #   variations.ts    la variation courante
+│   │                       #   optimistic.ts    affichage avant confirmation
 │   ├── storage/
 │   │   ├── types.ts        # modèle de domaine : Idea, Variation, Status, User
 │   │   ├── remote.ts       # IdeaRepository passant par le service worker
