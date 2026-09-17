@@ -60,6 +60,39 @@ Une fois le serveur démarré :
 Pour arrêter : `Ctrl+C`, puis `docker compose down`. Les données survivent dans
 un volume Docker ; `docker compose down -v` les supprime définitivement.
 
+### La clé de chiffrement des notes
+
+`server/.env` doit contenir `NOTE_KEY_V1`, sans quoi **l'API refuse de
+démarrer** :
+
+```bash
+openssl rand -base64 32
+```
+
+Elle chiffre le contenu des notes avant qu'il n'atteigne PostgreSQL : un
+`SELECT text FROM variations` ne renvoie que des valeurs préfixées `v1.`. La
+conception est dans `docs/security-design.md`.
+
+> **La perdre, c'est perdre toutes les notes.** Aucune restauration n'est
+> possible sans elle. Elle se sauvegarde ailleurs que sur la machine, et
+> **jamais dans la même sauvegarde que la base** — les deux réunies annulent
+> tout le bénéfice.
+
+Une clé de **développement** et une clé de **production** sont deux clés
+distinctes. Ne jamais réutiliser l'une pour l'autre : chiffrer la base de prod
+avec la clé de dev revient à la publier.
+
+### Reprendre des notes écrites avant le chiffrement
+
+```bash
+pnpm --dir server db:seal
+```
+
+Idempotent : une ligne déjà chiffrée est comptée, pas retouchée. Le script
+**s'arrête** s'il trouve une ligne préfixée `v1.` qui refuse de s'ouvrir — c'est
+le signe que `NOTE_KEY_V1` n'est pas la clé qui a servi à l'écrire, et la
+rechiffrer par-dessus serait sans retour.
+
 ### Après avoir écrit une migration
 
 ```bash
@@ -148,6 +181,7 @@ du Compose : lancer les tests ne touche jamais à la base de développement.
 | `docs/openapi.yaml`            | la spécification OpenAPI — **source de vérité** du modèle     |
 | `docs/persistence-design.md`   | la conception de la persistance                               |
 | `docs/auth-design.md`          | comptes, sessions révocables, cloisonnement                   |
+| `docs/security-design.md`      | le chiffrement des notes au repos                             |
 | `docs/front-api-design.md`     | la liaison panneau ↔ service worker ↔ API                     |
 | `docs/google-signin-design.md` | la connexion Google, côté extension                           |
 | `CLAUDE.md`                    | le cadre de travail, la pile, le hors-scope                   |

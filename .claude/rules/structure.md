@@ -76,6 +76,9 @@ idea-pipeline/
 │       └── store/          # persistance PostgreSQL, via Kysely
 │           ├── db.ts               # instance Kysely, construite à la 1re requête
 │           ├── ideas.ts            # les 6 opérations du domaine
+│           ├── notes.ts            # seal/open — le SEUL endroit qui chiffre
+│           ├── seal.ts             # reprise des lignes écrites avant le chiffrement
+│           ├── seal-cli.ts         # point d'entrée de `db:seal`
 │           ├── migrations.ts       # runner : applique les fichiers .sql
 │           ├── migrate-cli.ts      # point d'entrée de `db:migrate`
 │           └── schema.generated.ts # GÉNÉRÉ depuis la base, non versionné
@@ -140,6 +143,8 @@ idea-pipeline/
   divergence assumée avec le front, qui garde les siens dans `test/` à la
   racine. `server/test/` ne contient **pas** de tests : seulement le harnais
   qui démarre le conteneur PostgreSQL et vide la base entre chaque test.
+- **Chiffrement** → `store/notes.ts`, et nulle part ailleurs. Aucune autre
+  couche n'appelle `seal` ou `open` (détail dans `storage.md`).
 - **Schéma de la base** → une nouvelle migration dans `server/migrations/`,
   jamais un `ALTER` à la main. Puis `db:migrate && db:types` (détail dans
   `storage.md`).
