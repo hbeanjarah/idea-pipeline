@@ -1,13 +1,18 @@
+/* flex-end plus an auto margin on .back, not space-between: above the
+ * threshold .back is display:none, and space-between then hands the whole row
+ * to the only child left — the menu jumped to the left edge, taking its
+ * right-anchored popover off the panel with it. */
 .bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin: 0 0 var(--space-3);
   color: var(--muted);
 }
 
 .back {
   display: flex;
+  margin-right: auto;
   border: none;
   background: none;
   padding: 0;

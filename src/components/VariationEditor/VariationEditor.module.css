@@ -9,8 +9,9 @@
 }
 
 .editor:focus-within {
+  border-color: var(--accent);
   outline: var(--focus-outline);
-  outline-offset: var(--focus-offset);
+  outline-offset: 0;
 }
 
 .input {

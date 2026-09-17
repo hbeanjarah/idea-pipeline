@@ -32,7 +32,8 @@ export default function CurrentVersion({ variation, onFix }: Props) {
 
   return (
     <div className={styles.current}>
-      <p className={styles.text}>{variation.text}</p>
+      {/* Before the text, not after: a float only pushes the lines that come
+          after it in the source. */}
       <button
         type="button"
         className={styles.fix}
@@ -40,6 +41,7 @@ export default function CurrentVersion({ variation, onFix }: Props) {
       >
         Corriger
       </button>
+      <p className={styles.text}>{variation.text}</p>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import type { ChangeEvent, KeyboardEvent } from 'react';
+import { applyEdit, bulletEdit } from '@/lib/bullets';
 import styles from './VariationEditor.module.css';
 
 interface Props {
@@ -64,10 +65,25 @@ export default function VariationEditor({
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       void save();
-    } else if (event.key === 'Escape') {
+      return;
+    }
+    if (event.key === 'Escape') {
       event.preventDefault();
       onCancel();
+      return;
     }
+
+    const input = inputRef.current;
+    if (!input) return;
+    const edit = bulletEdit(
+      event.key,
+      input.value,
+      input.selectionStart,
+      input.selectionEnd,
+    );
+    if (!edit) return;
+    event.preventDefault();
+    applyEdit(input, edit);
   };
 
   return (

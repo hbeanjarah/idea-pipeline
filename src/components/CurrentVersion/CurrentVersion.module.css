@@ -1,12 +1,22 @@
-.current {
-  position: relative;
+/* The button floats, so the text wraps around it instead of running under it —
+ * and only on the lines it actually occupies. It kept its gutter by floating
+ * even while invisible: reserving the space on hover would shift the text under
+ * the cursor. */
+.current::after {
+  content: '';
+  display: block;
+  clear: both;
 }
 
 /* 58ch, not the pane width: comfortable reading sits between 45 and 75
  * characters a line, 66 being the target, and WCAG caps it at 80. Without a
  * bound the text runs the full width of a wide panel. */
+/* pre-wrap, as on the old versions in VariationThread: the line breaks are in
+ * the database — trim() only touches the ends — and HTML collapsed them on the
+ * one surface where the idea is actually read. */
 .text {
   margin: 0;
+  white-space: pre-wrap;
   max-width: 58ch;
   font-size: var(--text-hero);
   line-height: 1.5;
@@ -17,9 +27,8 @@
  * sign, the function does not exist. It appears on hover, and on focus too —
  * hover never happens for someone on a keyboard. */
 .fix {
-  position: absolute;
-  top: 0;
-  right: 0;
+  float: right;
+  margin-left: var(--space-3);
   opacity: 0;
   border: none;
   border-radius: var(--radius-sm);

@@ -195,6 +195,33 @@ Même traitement pour `changeStatus` — la pastille change de couleur tout de
 suite et revient si le serveur refuse — et pour `deleteIdea`, où la carte
 disparaît immédiatement.
 
+## Les puces
+
+Le composeur de LinkedIn n'a **aucun outil de mise en forme** : pas de gras, pas
+d'italique, pas de liste, et il n'interprète ni Markdown ni HTML. Une puce y est
+le caractère `•`, tapé en début de ligne à la main.
+
+Conséquence directe sur le modèle : **on ne stocke rien d'autre que du texte.**
+Un format riche (HTML, JSON d'éditeur) devrait être aplati à la sortie, et
+l'aplatissement détruirait précisément la mise en forme ajoutée. Ce qui est
+écrit ici est déjà ce qui sera publié.
+
+Deux gestes, aucun bouton, aucune dépendance :
+
+| Geste                                          | Effet                                           |
+| ---------------------------------------------- | ----------------------------------------------- |
+| `-` ou `*` seul en début de ligne, puis espace | devient `• `                                    |
+| `⇧⏎` sur une ligne à puce                      | reprend la puce à la ligne suivante             |
+| `⇧⏎` sur une puce restée vide                  | la retire — c'est ainsi qu'une liste se termine |
+
+`⏎` n'est pas concerné : il valide, dans les deux champs. C'est `⇧⏎` qui produit
+une nouvelle ligne, donc c'est lui qui porte la reprise.
+
+La logique vit dans `src/lib/bullets.ts`, en fonctions pures ; les deux champs
+(`Composer`, `VariationEditor`) n'en appellent qu'une. L'écriture passe par
+`execCommand` et non par l'état React, pour que la pile d'annulation du
+navigateur survive à la transformation.
+
 ## Les couleurs de texte
 
 Mesures faites sur les jetons actuels, sur fond blanc (`--card`) :

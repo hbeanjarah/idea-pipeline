@@ -68,7 +68,7 @@ export default function ListScreen({ navigate, selectedId }: Props) {
 
       <Composer onSubmit={create} autoFocus />
       <p className={styles.hint}>
-        ⏎ enregistrer · ⇧⏎ retour à la ligne
+        ⏎ enregistrer · ⇧⏎ retour à la ligne · - puce
       </p>
 
       {shown && (

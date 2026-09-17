@@ -59,10 +59,10 @@
 }
 
 /* The window is open and waiting on the user; a second click would open a
- * second one. */
+ * second one. Not dimmed: the button now says what it is doing, and fading an
+ * explanation the user reads for several seconds took it to 3.49:1. */
 .button:disabled {
   cursor: default;
-  opacity: 0.6;
 }
 
 .google-mark {

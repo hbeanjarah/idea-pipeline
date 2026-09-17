@@ -6,9 +6,13 @@
   padding: var(--space-2) var(--space-3);
 }
 
+/* No offset here, unlike a button: the box already draws a 1px border, and a
+ * ring set 2px further out reads as a second, badly nested border. Flush and
+ * recoloured, the two make one edge. */
 .composer:focus-within {
+  border-color: var(--accent);
   outline: var(--focus-outline);
-  outline-offset: var(--focus-offset);
+  outline-offset: 0;
 }
 
 .input {
