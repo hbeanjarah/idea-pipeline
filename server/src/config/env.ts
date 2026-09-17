@@ -28,6 +28,24 @@ export function databaseUrl(): string {
   return raw;
 }
 
+export function noteKey(): Buffer {
+  const raw = process.env.NOTE_KEY_V1;
+  if (raw === undefined || raw === '') {
+    throw new Error('NOTE_KEY_V1 is required');
+  }
+
+  const key = Buffer.from(raw, 'base64');
+  // Checked here because nothing downstream would complain: AES-256 takes the
+  // key it is handed, and a short one weakens every note in silence.
+  if (key.length !== 32) {
+    throw new Error(
+      `NOTE_KEY_V1 must decode to 32 bytes, got ${key.length}`,
+    );
+  }
+
+  return key;
+}
+
 export function googleConfig(): {
   clientId: string;
   clientSecret: string;
