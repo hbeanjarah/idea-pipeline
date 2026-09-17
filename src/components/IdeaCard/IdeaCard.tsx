@@ -8,13 +8,15 @@ interface Props {
   onClick: () => void;
   // Displayed while the write is still in flight.
   pending?: boolean;
+  // This idea is the one open in the detail pane.
+  selected?: boolean;
 }
 
-// Presentational only: reads the idea, never mutates.
 export default function IdeaCard({
   idea,
   onClick,
   pending = false,
+  selected = false,
 }: Props) {
   const text = currentVariation(idea).text;
   const versionCount = idea.variations.length;
@@ -22,7 +24,11 @@ export default function IdeaCard({
   return (
     <button
       type="button"
-      className={`${styles.card} ${pending ? styles.pending : ''}`}
+      className={[
+        styles.card,
+        pending ? styles.pending : '',
+        selected ? styles.selected : '',
+      ].join(' ')}
       onClick={onClick}
     >
       <span className={styles.text}>{text}</span>

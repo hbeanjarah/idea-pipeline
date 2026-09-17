@@ -1,6 +1,5 @@
-// What went wrong last, and how to run it again. Split out of IdeasProvider,
-// which owns the ideas: this hook never sees them. Its only tie to the data is
-// `reload`, which it calls in two recovery cases.
+// Never sees the ideas: its only tie to the data is `reload`, called in the two
+// recovery cases below.
 
 import { useCallback, useMemo, useRef, useState } from 'react';
 
@@ -10,11 +9,9 @@ import type { Displayable } from '@/lib/failureText';
 export interface FailureRetry {
   failure: Displayable | null;
   retry: (() => void) | null;
-  // Every operation funnels through here, so the failure and the way to replay
-  // it are built in one place rather than in each screen. Rethrows, so the
-  // caller still decides what a failure means for its own state.
+  // Rethrows: recording the failure here does not spare the caller from
+  // deciding what it means for its own state.
   attempt: <T>(run: () => Promise<T>) => Promise<T>;
-  // Called by the owner once the collection has come back at least once.
   markLoaded: () => void;
 }
 

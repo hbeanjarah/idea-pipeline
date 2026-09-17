@@ -47,8 +47,8 @@ export default function SignInScreen() {
         onClick={() => void submit()}
         disabled={busy}
       >
-        {/* Google's own mark, four paths, taken from design/mockup-auth.html.
-            Its colors are Google's and are not project tokens. */}
+        {/* These four colors are Google's own and are not project tokens —
+            they must not be swapped for one. */}
         <svg
           className={styles.googleMark}
           viewBox="0 0 48 48"

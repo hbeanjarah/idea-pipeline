@@ -1,6 +1,4 @@
-/* Design tokens — single source of truth for shared values.
- * Spacing is a regular 4px scale.
- * This file holds variables only — no visual rules. */
+/* Variables only — never a visual rule. */
 :root {
   /* Surfaces & borders — two levels, not three. The step is 1.210:1, against
    * 1.085:1 between the old card and its panel: below that, the eye does not

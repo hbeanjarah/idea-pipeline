@@ -1,6 +1,3 @@
-/* Search field. Visual reference: design/mockup.html #surface-list (.search).
- * Colors / radius / font sizes via tokens; one-off geometry is local. */
-
 .search {
   display: flex;
   align-items: center;

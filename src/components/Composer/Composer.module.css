@@ -1,7 +1,3 @@
-/* Reusable idea input. Visual reference: design/mockup.html #composer (.cap).
- * Colors / radius / focus ring / box padding / font sizes via tokens; one-off
- * geometry (chevron offsets, 120px cap, icon size) is local. */
-
 .composer {
   position: relative;
   background: var(--surface);
@@ -10,7 +6,6 @@
   padding: var(--space-2) var(--space-3);
 }
 
-/* Native focus state replaces the mockup's JS-driven .focus class. */
 .composer:focus-within {
   outline: var(--focus-outline);
   outline-offset: var(--focus-offset);

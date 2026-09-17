@@ -1,6 +1,5 @@
-/* Inline variation editor. Shares the Composer's box look (card + capbd border
- * + focus ring) but pairs the field with ✓/✕ actions instead of a send chevron.
- * Colors / radius / focus ring via tokens; font sizes and the cap are literals. */
+/* Deliberately shares the Composer's box — surface, capbd border, focus ring —
+ * and differs only in pairing the field with ✓/✕ instead of a send chevron. */
 
 .editor {
   background: var(--surface);

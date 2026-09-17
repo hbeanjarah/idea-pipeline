@@ -1,0 +1,49 @@
+/* Same box as IdeaCard — surface, border, radius, padding. The two must stay in
+ * step, or the list jumps when the real cards take their place. */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--cardbd);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+}
+
+.line,
+.meta {
+  display: block;
+  border-radius: var(--radius-xs);
+  background: var(--cardbd);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+/* Widths differ so the four cards do not read as a printed grid. */
+.line {
+  height: 12px;
+  width: 78%;
+  margin: 3px 0;
+}
+
+.meta {
+  height: 9px;
+  width: 34%;
+  margin-top: 8px;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* A pulse that never stops is exactly what this setting asks to remove. The
+ * shapes stay, the movement goes. */
+@media (prefers-reduced-motion: reduce) {
+  .line,
+  .meta {
+    animation: none;
+  }
+}

@@ -7,3 +7,16 @@ import type { Idea, Variation } from '@/storage/types';
 export function currentVariation(idea: Idea): Variation {
   return idea.variations[idea.variations.length - 1];
 }
+
+export function previousVariations(idea: Idea): Variation[] {
+  return idea.variations.slice(0, -1);
+}
+
+// Un brouillon identique au texte courant serait une version qui ne varie pas.
+export function isMeaningfulDraft(
+  draft: string,
+  current: string,
+): boolean {
+  const trimmed = draft.trim();
+  return trimmed.length > 0 && trimmed !== current.trim();
+}
