@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import type { Navigate } from '@/routes/routes';
 import { useIdeas } from '@/hooks/useIdeas';
+import { useLabels } from '@/hooks/useLabels';
 import Alert from '@/components/Alert/Alert';
 import CurrentVersion from '@/components/CurrentVersion/CurrentVersion';
 import IdeaHeader from '@/components/IdeaHeader/IdeaHeader';
-import StatusPicker from '@/components/StatusPicker/StatusPicker';
+import LabelPicker from '@/components/LabelPicker/LabelPicker';
 import VariationEditor from '@/components/VariationEditor/VariationEditor';
 import VariationThread from '@/components/VariationThread/VariationThread';
 import { failureText } from '@/lib/failureText';
@@ -17,24 +18,22 @@ import styles from './DetailScreen.module.css';
 
 interface Props {
   navigate: Navigate;
-  // null when nothing is open — which only happens on a wide panel, where this
-  // pane is on screen next to the list rather than instead of it.
+
   ideaId: string | null;
 }
 
-// Data via the hook only — never the repository. The idea is looked up in the
-// in-memory list; everything below is presentational and receives callbacks.
 export default function DetailScreen({ navigate, ideaId }: Props) {
   const {
     ideas,
     loading,
     addVariation,
     editVariation,
-    changeStatus,
+    setLabel,
     deleteIdea,
     failure,
     retry,
   } = useIdeas();
+  const { labels } = useLabels();
 
   // A 404 here means the idea is gone from under us; the list has already been
   // reloaded and the screen falls back to its missing-idea branch.
@@ -52,13 +51,13 @@ export default function DetailScreen({ navigate, ideaId }: Props) {
     await deleteIdea(id);
     // Left only once the deletion is confirmed: navigating away on a failure
     // would claim the idea is gone when it is still there.
-    navigate({ selectedId: null });
+    navigate({ screen: 'ideas', selectedId: null });
   };
 
   return (
     <main className={styles.detail}>
       <IdeaHeader
-        onBack={() => navigate({ selectedId: null })}
+        onBack={() => navigate({ screen: 'ideas', selectedId: null })}
         onDelete={
           !loading && idea
             ? () => void remove(idea.id).catch(() => undefined)
@@ -69,10 +68,13 @@ export default function DetailScreen({ navigate, ideaId }: Props) {
       {!loading &&
         (idea ? (
           <div className={styles.body}>
-            <StatusPicker
-              status={idea.status}
-              onChange={(status) =>
-                void changeStatus(idea.id, status)
+            <LabelPicker
+              className={styles.stage}
+              labels={labels}
+              labelId={idea.labelId}
+              onChange={(labelId) => void setLabel(idea.id, labelId)}
+              onManage={() =>
+                navigate({ screen: 'labels', selectedId: idea.id })
               }
             />
 
@@ -169,7 +171,9 @@ export default function DetailScreen({ navigate, ideaId }: Props) {
               <button
                 type="button"
                 className={styles.emptyBack}
-                onClick={() => navigate({ selectedId: null })}
+                onClick={() =>
+                  navigate({ screen: 'ideas', selectedId: null })
+                }
               >
                 Retour à la liste
               </button>

@@ -3,12 +3,17 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   addVariation,
   ApiFailure,
-  changeStatus,
   createIdea,
+  createLabel,
   deleteIdea,
+  deleteLabel,
   editVariation,
   fetchIdentity,
   listIdeas,
+  listLabels,
+  renameLabel,
+  reorderLabels,
+  setIdeaLabel,
   revokeSession,
   signInWithGoogle,
 } from '@/background/api';
@@ -62,8 +67,13 @@ describe('the http client', () => {
     await createIdea('t', 'x');
     await addVariation('t', 'i', 'x');
     await editVariation('t', 'i', 'v', 'x');
-    await changeStatus('t', 'i', 'ready');
+    await setIdeaLabel('t', 'i', 'l');
     await deleteIdea('t', 'i');
+    await listLabels('t');
+    await createLabel('t', 'Prêt');
+    await reorderLabels('t', ['l']);
+    await renameLabel('t', 'l', 'Publié');
+    await deleteLabel('t', 'l');
 
     // A typo in a path is invisible against a stubbed fetch unless it is
     // asserted: every call would still "succeed".
@@ -82,12 +92,30 @@ describe('the http client', () => {
       '/ideas/i/variations/v',
       '/ideas/i',
       '/ideas/i',
+      '/labels',
+      '/labels',
+      '/labels',
+      '/labels/l',
+      '/labels/l',
     ]);
     expect(
       fetched.mock.calls.map(
         (call) => (call[1] as { method: string }).method,
       ),
-    ).toEqual(['GET', 'POST', 'POST', 'PATCH', 'PATCH', 'DELETE']);
+    ).toEqual([
+      'GET',
+      'POST',
+      'POST',
+      'PATCH',
+      'PATCH',
+      'DELETE',
+      'GET',
+      'POST',
+      // The collection PATCH and the item PATCH are one character apart.
+      'PATCH',
+      'PATCH',
+      'DELETE',
+    ]);
   });
 
   it('reads 401 as a dead session', async () => {

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   MessagingIdeaRepository,
+  MessagingLabelRepository,
   RepositoryError,
 } from '@/storage/remote';
 
@@ -12,6 +13,7 @@ const runtime = () =>
   };
 
 const repository = new MessagingIdeaRepository();
+const labels = new MessagingLabelRepository();
 
 describe('the messaging repository', () => {
   it('hands back what the worker answered', async () => {
@@ -36,8 +38,13 @@ describe('the messaging repository', () => {
     await repository.list();
     await repository.addVariation('i', 'x');
     await repository.editVariation('i', 'v', 'x');
-    await repository.changeStatus('i', 'ready');
+    await repository.setLabel('i', 'l');
     await repository.delete('i');
+    await labels.list();
+    await labels.create('Prêt');
+    await labels.rename('l', 'Publié');
+    await labels.reorder(['l']);
+    await labels.delete('l');
 
     // A typo in a kind would be answered by the worker default branch, not by
     // an error: the two sides have to agree on the exact strings.
@@ -50,8 +57,13 @@ describe('the messaging repository', () => {
         variationId: 'v',
         text: 'x',
       },
-      { kind: 'ideas/changeStatus', ideaId: 'i', status: 'ready' },
+      { kind: 'ideas/setLabel', ideaId: 'i', labelId: 'l' },
       { kind: 'ideas/delete', ideaId: 'i' },
+      { kind: 'labels/list' },
+      { kind: 'labels/create', name: 'Prêt' },
+      { kind: 'labels/rename', labelId: 'l', name: 'Publié' },
+      { kind: 'labels/reorder', ids: ['l'] },
+      { kind: 'labels/delete', labelId: 'l' },
     ]);
   });
 

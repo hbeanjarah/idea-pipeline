@@ -77,3 +77,9 @@
   font-size: var(--text-body);
   color: var(--muted);
 }
+
+/* The stages screen takes the panel; the list and the detail stay mounted
+ * underneath so their filter and unsent text survive the trip. */
+.behind {
+  display: none;
+}

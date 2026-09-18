@@ -140,3 +140,10 @@
   outline: var(--focus-outline);
   outline-offset: var(--focus-offset);
 }
+
+/* Bigger than on a card: here the stage is read, not glanced at. */
+.stage {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-body);
+}
