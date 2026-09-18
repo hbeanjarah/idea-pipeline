@@ -1,11 +1,14 @@
-import { STATUS_LABELS } from '@/lib/statusLabels';
+import LabelPicker from '@/components/LabelPicker/LabelPicker';
 import { currentVariation } from '@/lib/variations';
-import type { Idea } from '@/storage/types';
+import type { Idea, Label } from '@/storage/types';
 import styles from './IdeaCard.module.css';
 
 interface Props {
   idea: Idea;
+  labels: Label[];
   onClick: () => void;
+  onLabelChange: (labelId: string | null) => void;
+  onManageLabels: () => void;
   // Displayed while the write is still in flight.
   pending?: boolean;
   // This idea is the one open in the detail pane.
@@ -14,7 +17,10 @@ interface Props {
 
 export default function IdeaCard({
   idea,
+  labels,
   onClick,
+  onLabelChange,
+  onManageLabels,
   pending = false,
   selected = false,
 }: Props) {
@@ -22,25 +28,30 @@ export default function IdeaCard({
   const versionCount = idea.variations.length;
 
   return (
-    <button
-      type="button"
+    <div
       className={[
         styles.card,
         pending ? styles.pending : '',
         selected ? styles.selected : '',
       ].join(' ')}
-      onClick={onClick}
     >
-      <span className={styles.text}>{text}</span>
-      <span className={styles.meta}>
-        <span className={`${styles.dot} ${styles[idea.status]}`} />
-        {STATUS_LABELS[idea.status]}
+      <button type="button" className={styles.open} onClick={onClick}>
+        <span className={styles.text}>{text}</span>
+      </button>
+
+      <div className={styles.meta}>
+        <LabelPicker
+          labels={labels}
+          labelId={idea.labelId}
+          onChange={onLabelChange}
+          onManage={onManageLabels}
+        />
         {versionCount > 1 && (
           <span className={styles.versions}>
             {versionCount} versions
           </span>
         )}
-      </span>
-    </button>
+      </div>
+    </div>
   );
 }

@@ -1,11 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { filterIdeas } from '@/lib/filterIdeas';
-import type { Idea, Status, Variation } from '@/storage/types';
+import { ALL, UNCLASSIFIED, filterIdeas } from '@/lib/filterIdeas';
+import type { Idea, Variation } from '@/storage/types';
+
+const CAPTURE = 'l-capture';
+const MATURING = 'l-maturing';
+const PUBLISHED = 'l-published';
 
 // Minimal Idea fixture — only the fields filterIdeas reads matter here.
 function makeIdea(
   id: string,
-  status: Status,
+  labelId: string | null,
   texts: string[] = [id],
 ): Idea {
   const variations: Variation[] = texts.map((text, index) => ({
@@ -15,7 +19,7 @@ function makeIdea(
   }));
   return {
     id,
-    status,
+    labelId,
     variations,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
@@ -23,52 +27,63 @@ function makeIdea(
 }
 
 const ideas: Idea[] = [
-  makeIdea('a', 'captured'),
-  makeIdea('b', 'maturing'),
-  makeIdea('c', 'captured'),
-  makeIdea('d', 'published'),
+  makeIdea('a', CAPTURE),
+  makeIdea('b', MATURING),
+  makeIdea('c', CAPTURE),
+  makeIdea('d', null),
 ];
 
 describe('filterIdeas', () => {
-  describe('status', () => {
-    it("returns every idea when status is 'all'", () => {
-      expect(filterIdeas(ideas, { status: 'all' })).toEqual(ideas);
+  describe('stage', () => {
+    it('returns every idea when the filter is ALL', () => {
+      expect(filterIdeas(ideas, { label: ALL })).toEqual(ideas);
     });
 
-    it('returns only the ideas matching a specific status', () => {
-      const result = filterIdeas(ideas, { status: 'captured' });
+    it('returns only the ideas at a given stage', () => {
+      const result = filterIdeas(ideas, { label: CAPTURE });
       expect(result.map((idea) => idea.id)).toEqual(['a', 'c']);
     });
 
-    it('returns an empty list when no idea matches the status', () => {
-      expect(filterIdeas(ideas, { status: 'ready' })).toEqual([]);
+    it('returns the ideas with no stage at all', () => {
+      const result = filterIdeas(ideas, { label: UNCLASSIFIED });
+      expect(result.map((idea) => idea.id)).toEqual(['d']);
+    });
+
+    it('never confuses a free idea with a stage that has none', () => {
+      // Both answer "nothing here", and they must not answer the same thing:
+      // UNCLASSIFIED is a real segment of the filter strip, not an empty one.
+      expect(filterIdeas(ideas, { label: PUBLISHED })).toEqual([]);
+      expect(
+        filterIdeas(ideas, { label: UNCLASSIFIED }),
+      ).toHaveLength(1);
     });
 
     it('returns an empty list when given an empty list', () => {
-      expect(filterIdeas([], { status: 'all' })).toEqual([]);
-      expect(filterIdeas([], { status: 'captured' })).toEqual([]);
+      expect(filterIdeas([], { label: ALL })).toEqual([]);
+      expect(filterIdeas([], { label: CAPTURE })).toEqual([]);
+      expect(filterIdeas([], { label: UNCLASSIFIED })).toEqual([]);
     });
 
     it('preserves input order', () => {
-      const result = filterIdeas(ideas, { status: 'captured' });
+      const result = filterIdeas(ideas, { label: CAPTURE });
       expect(result).toEqual([ideas[0], ideas[2]]);
     });
   });
 
   describe('query', () => {
     const corpus: Idea[] = [
-      makeIdea('react', 'captured', ['Why React beats everything']),
-      makeIdea('history', 'maturing', [
+      makeIdea('react', CAPTURE, ['Why React beats everything']),
+      makeIdea('history', MATURING, [
         'First take on hooks',
         'Now mostly about Vue',
       ]),
-      makeIdea('plain', 'published', ['Shipping fast']),
+      makeIdea('plain', null, ['Shipping fast']),
     ];
 
     it('matches case-insensitively on a substring', () => {
       // "react" matches "React" (case) inside a longer word/phrase.
       const result = filterIdeas(corpus, {
-        status: 'all',
+        label: ALL,
         query: 'react',
       });
       expect(result.map((idea) => idea.id)).toEqual(['react']);
@@ -77,30 +92,30 @@ describe('filterIdeas', () => {
     it('matches a term found in a non-latest variation', () => {
       // "hooks" only appears in the first variation, not the latest one.
       const result = filterIdeas(corpus, {
-        status: 'all',
+        label: ALL,
         query: 'hooks',
       });
       expect(result.map((idea) => idea.id)).toEqual(['history']);
     });
 
     it('treats an empty or blank query as a no-op', () => {
+      expect(filterIdeas(corpus, { label: ALL, query: '' })).toEqual(
+        corpus,
+      );
       expect(
-        filterIdeas(corpus, { status: 'all', query: '' }),
-      ).toEqual(corpus);
-      expect(
-        filterIdeas(corpus, { status: 'all', query: '   ' }),
+        filterIdeas(corpus, { label: ALL, query: '   ' }),
       ).toEqual(corpus);
     });
 
-    it('combines status and query as an intersection', () => {
-      // "a" appears in several texts, but only captured ideas are kept.
+    it('combines stage and query as an intersection', () => {
+      // "alpha" appears in several texts, but only one stage is kept.
       const mixed: Idea[] = [
-        makeIdea('x', 'captured', ['alpha']),
-        makeIdea('y', 'maturing', ['alpha']),
-        makeIdea('z', 'captured', ['beta']),
+        makeIdea('x', CAPTURE, ['alpha']),
+        makeIdea('y', MATURING, ['alpha']),
+        makeIdea('z', CAPTURE, ['beta']),
       ];
       const result = filterIdeas(mixed, {
-        status: 'captured',
+        label: CAPTURE,
         query: 'alpha',
       });
       expect(result.map((idea) => idea.id)).toEqual(['x']);
@@ -108,7 +123,7 @@ describe('filterIdeas', () => {
 
     it('returns an empty list when nothing contains the term', () => {
       expect(
-        filterIdeas(corpus, { status: 'all', query: 'nonexistent' }),
+        filterIdeas(corpus, { label: ALL, query: 'nonexistent' }),
       ).toEqual([]);
     });
   });

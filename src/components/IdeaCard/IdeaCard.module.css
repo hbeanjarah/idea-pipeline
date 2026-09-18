@@ -1,12 +1,24 @@
+/* Never make this a <button> again: the stage picker inside it is one, and the
+ * browser repairs a nested button by closing the outer one early — the layout
+ * breaks and the clicks land elsewhere. */
 .card {
-  display: block;
-  width: 100%;
-  text-align: left;
   background: var(--surface);
   border: 1px solid var(--cardbd);
   border-radius: var(--radius-md);
   padding: var(--space-2) var(--space-3);
   font-family: var(--font-sans);
+}
+
+/* Covers the text only, so clicking the stage does not open the idea. */
+.open {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: none;
+  padding: 0;
+  font-family: inherit;
+  text-align: left;
   cursor: pointer;
 }
 
@@ -34,29 +46,6 @@
   color: var(--muted);
 }
 
-.dot {
-  flex: none;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-}
-
-.captured {
-  background: var(--status-captured);
-}
-
-.maturing {
-  background: var(--status-maturing);
-}
-
-.ready {
-  background: var(--status-ready);
-}
-
-.published {
-  background: var(--status-published);
-}
-
 /* Metadata: mono + tabular-nums, per css.md. Pushed to the far end so the
  * stage reads on the left and the count on the right, instead of the two
  * running together behind a separator dot. */
@@ -80,7 +69,7 @@
   opacity: 0.5;
 }
 
-.card:focus-visible {
+.open:focus-visible {
   outline: var(--focus-outline);
   outline-offset: var(--focus-offset);
 }

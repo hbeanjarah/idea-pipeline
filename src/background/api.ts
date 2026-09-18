@@ -1,11 +1,7 @@
 import { DEFAULT_API_URL } from '@/lib/config';
 import type { Failure } from '@/lib/protocol';
-import type { Idea, Status, User } from '@/storage/types';
+import type { Idea, Label, User } from '@/storage/types';
 
-// Resolved at build time from VITE_API_URL, which vite.config.ts injects here
-// and into host_permissions from the same value — if the manifest and the
-// fetch disagree, Chrome blocks the request without explaining why. The
-// fallback only serves a checkout with no .env.
 const API_URL = import.meta.env.VITE_API_URL ?? DEFAULT_API_URL;
 
 export class ApiFailure extends Error {
@@ -99,15 +95,39 @@ export const editVariation = (
     body: { text },
   });
 
-export const changeStatus = (
+export const setIdeaLabel = (
   token: string,
   ideaId: string,
-  status: Status,
+  labelId: string | null,
 ) =>
   call<Idea>(token, `/ideas/${ideaId}`, {
     method: 'PATCH',
-    body: { status },
+    body: { labelId },
   });
+
+export const listLabels = (token: string) =>
+  call<Label[]>(token, '/labels');
+
+export const createLabel = (token: string, name: string) =>
+  call<Label>(token, '/labels', { method: 'POST', body: { name } });
+
+export const renameLabel = (
+  token: string,
+  labelId: string,
+  name: string,
+) =>
+  call<Label>(token, `/labels/${labelId}`, {
+    method: 'PATCH',
+    body: { name },
+  });
+
+export const deleteLabel = (token: string, labelId: string) =>
+  call<null>(token, `/labels/${labelId}`, { method: 'DELETE' });
+
+// The whole ordered list, not a move: PATCH on the collection renumbers every
+// stage at once.
+export const reorderLabels = (token: string, ids: string[]) =>
+  call<Label[]>(token, '/labels', { method: 'PATCH', body: { ids } });
 
 export const deleteIdea = (token: string, ideaId: string) =>
   call<null>(token, `/ideas/${ideaId}`, { method: 'DELETE' });

@@ -1,9 +1,6 @@
-// Holds the single shared ideas state and exposes it through IdeasContext.
-// Mounted once in App. The only consumer of ideaRepository on the React side.
-
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { ideaRepository } from '@/storage/storage';
+import { ideaRepository } from '@/storage/remote';
 import type { OptimisticState } from '@/lib/optimistic';
 import {
   confirmProvisional,
@@ -12,7 +9,7 @@ import {
   restoreAt,
   withProvisional,
 } from '@/lib/optimistic';
-import type { Idea, Status } from '@/storage/types';
+import type { Idea } from '@/storage/types';
 import { useFailureRetry } from './useFailureRetry';
 import { IdeasContext } from './useIdeas';
 
@@ -20,17 +17,14 @@ interface Props {
   children: ReactNode;
 }
 
-// The list and the ids awaiting confirmation move together, in one state: two
-// useState would drift apart the moment one answer lands while another is still
-// in flight.
+// One state, never two: split in two useState they drift apart the moment one
+// answer lands while another is still in flight.
 const NOTHING: OptimisticState = { ideas: [], pendingIds: new Set() };
 
 export function IdeasProvider({ children }: Props) {
   const [state, setState] = useState<OptimisticState>(NOTHING);
   const [loading, setLoading] = useState(true);
 
-  // A full reload clears pendingIds: what the server hands back is confirmed
-  // by definition.
   const reload = useCallback(async () => {
     setState({
       ideas: await ideaRepository.list(),
@@ -44,12 +38,8 @@ export function IdeasProvider({ children }: Props) {
   useEffect(() => {
     let active = true;
 
-    // Through attempt like every other operation, so a failed first load is
-    // recorded and replayed by the same "Réessayer" as the rest.
-    //
-    // An effect callback cannot be async: React reads whatever it returns as
-    // the cleanup function. The call is therefore started and not awaited —
-    // the active flag is what discards an answer that comes back late.
+    // An effect callback cannot be async — React reads what it returns as the
+    // cleanup. Started and not awaited; `active` discards a late answer.
     void attempt(async () => {
       const fetched = await ideaRepository.list();
       if (!active) return;
@@ -66,12 +56,8 @@ export function IdeasProvider({ children }: Props) {
     };
   }, [attempt, markLoaded]);
 
-  // Driven by Composer, which owns the text and therefore owns the failure:
-  // recording it here too would show two alerts for one outage. It throws, and
-  // the caller decides.
-  //
-  // The idea is shown before the server has seen it. The provisional id is made
-  // here and never leaves the panel: the answer replaces it.
+  // Not wrapped in attempt: Composer owns the text, and therefore the failure.
+  // Recording it here too would show two alerts for one outage.
   const create = useCallback(async (text: string) => {
     const provisional = provisionalIdea(
       text,
@@ -93,10 +79,6 @@ export function IdeasProvider({ children }: Props) {
     }
   }, []);
 
-  // The ideas move, the pending marks stay. Named once so every write below
-  // reads as what it does rather than as a state spread. Both are wrapped so
-  // they can sit in the dependency lists below without recreating every write
-  // on each render.
   const onIdeas = useCallback(
     (update: (ideas: Idea[]) => Idea[]) =>
       setState((current) => ({
@@ -114,7 +96,7 @@ export function IdeasProvider({ children }: Props) {
     [onIdeas],
   );
 
-  // Driven by Composer too — same reasoning as create.
+  // Not wrapped in attempt either — same reason as create.
   const addVariation = useCallback(
     async (ideaId: string, text: string) => {
       const idea = await ideaRepository.addVariation(ideaId, text);
@@ -140,29 +122,22 @@ export function IdeasProvider({ children }: Props) {
     [attempt, replace],
   );
 
-  // Applied locally first, put back as it was if the server refuses. There is
-  // no provisional idea to drop here — there is a previous value to restore.
-  //
-  // Two status changes started within one round trip is a known gap: the second
-  // captures the first one's optimistic value as its "before", so if the second
-  // fails it restores a status the server never had. Retrying re-syncs it. A
-  // write queue would close it and is not worth its weight in a single panel.
-  const changeStatus = useCallback(
-    (ideaId: string, status: Status) =>
+  // Known gap: two changes started within one round trip make the second
+  // capture the first one's optimistic value as its "before", so a failure
+  // restores a stage the server never had. Retrying re-syncs it.
+  const setLabel = useCallback(
+    (ideaId: string, labelId: string | null) =>
       attempt(async () => {
         const before = state.ideas.find((item) => item.id === ideaId);
 
         onIdeas((ideas) =>
           ideas.map((item) =>
-            item.id === ideaId ? { ...item, status } : item,
+            item.id === ideaId ? { ...item, labelId } : item,
           ),
         );
 
         try {
-          const idea = await ideaRepository.changeStatus(
-            ideaId,
-            status,
-          );
+          const idea = await ideaRepository.setLabel(ideaId, labelId);
           replace(idea);
           return idea;
         } catch (error) {
@@ -171,6 +146,20 @@ export function IdeasProvider({ children }: Props) {
         }
       }),
     [attempt, replace, onIdeas, state.ideas],
+  );
+
+  // Without it the panel keeps showing cards pointing at a stage that is gone:
+  // the server freed them, this state did not.
+  const forgetLabel = useCallback(
+    (labelId: string) =>
+      onIdeas((ideas) =>
+        ideas.map((idea) =>
+          idea.labelId === labelId
+            ? { ...idea, labelId: null }
+            : idea,
+        ),
+      ),
+    [onIdeas],
   );
 
   const deleteIdea = useCallback(
@@ -188,8 +177,6 @@ export function IdeasProvider({ children }: Props) {
         try {
           await ideaRepository.delete(ideaId);
         } catch (error) {
-          // Back at its index, not at the end: the caller sorts the list, but a
-          // return to the bottom would still be seen for a render.
           if (removed)
             onIdeas((ideas) => restoreAt(ideas, index, removed));
           throw error;
@@ -208,7 +195,8 @@ export function IdeasProvider({ children }: Props) {
       create,
       addVariation,
       editVariation,
-      changeStatus,
+      setLabel,
+      forgetLabel,
       deleteIdea,
     }),
     [
@@ -219,7 +207,8 @@ export function IdeasProvider({ children }: Props) {
       create,
       addVariation,
       editVariation,
-      changeStatus,
+      setLabel,
+      forgetLabel,
       deleteIdea,
     ],
   );

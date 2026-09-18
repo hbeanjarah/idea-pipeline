@@ -1,4 +1,4 @@
-import type { Idea, Status, User } from '@/storage/types';
+import type { Idea, Label, User } from '@/storage/types';
 
 export type Request =
   | { kind: 'ideas/list' }
@@ -10,8 +10,13 @@ export type Request =
       variationId: string;
       text: string;
     }
-  | { kind: 'ideas/changeStatus'; ideaId: string; status: Status }
+  | { kind: 'ideas/setLabel'; ideaId: string; labelId: string | null }
   | { kind: 'ideas/delete'; ideaId: string }
+  | { kind: 'labels/list' }
+  | { kind: 'labels/create'; name: string }
+  | { kind: 'labels/rename'; labelId: string; name: string }
+  | { kind: 'labels/delete'; labelId: string }
+  | { kind: 'labels/reorder'; ids: string[] }
   | { kind: 'session/status' }
   | { kind: 'session/signIn' }
   | { kind: 'session/identity' }
@@ -34,10 +39,15 @@ export interface ReplyData {
   'ideas/create': Idea;
   'ideas/addVariation': Idea;
   'ideas/editVariation': Idea;
-  'ideas/changeStatus': Idea;
+  'ideas/setLabel': Idea;
   // null and not void: a value has to cross sendMessage, where undefined
   // already means the channel broke.
   'ideas/delete': null;
+  'labels/list': Label[];
+  'labels/create': Label;
+  'labels/rename': Label;
+  'labels/delete': null;
+  'labels/reorder': Label[];
   'session/status': { connected: boolean };
   'session/signIn': { user: User };
   'session/identity': User;

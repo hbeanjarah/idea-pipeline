@@ -13,7 +13,7 @@ const NOW = '2026-09-17T10:00:00.000Z';
 
 const existing: Idea = {
   id: 'server-1',
-  status: 'maturing',
+  labelId: 'l-maturing',
   createdAt: '2026-09-01T00:00:00.000Z',
   updatedAt: '2026-09-01T00:00:00.000Z',
   variations: [
@@ -32,7 +32,8 @@ describe('a provisional idea', () => {
     const idea = provisionalIdea('une idée', 'tmp-1', NOW);
 
     expect(idea.id).toBe('tmp-1');
-    expect(idea.status).toBe('captured');
+    // Born free: the panel no longer guesses an initial stage.
+    expect(idea.labelId).toBeNull();
     expect(idea.createdAt).toBe(NOW);
     expect(idea.updatedAt).toBe(NOW);
     expect(idea.variations).toHaveLength(1);

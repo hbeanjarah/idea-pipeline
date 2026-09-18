@@ -1,0 +1,103 @@
+.bar {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  margin: 0 0 var(--space-3);
+}
+
+/* Keep the wrap and the clamp. Switching to nowrap, or hiding the overflow
+ * pills with display:none, stops them being laid out — and their offsetTop is
+ * the whole measurement. */
+.strip {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 5px;
+  max-height: 25px;
+  overflow: hidden;
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: none;
+  padding: 4px 11px;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.pill.on {
+  background: var(--hl);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* Counter: mono + tabular-nums metadata, per css.md. */
+.count {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.pill.on .count {
+  color: var(--tagink);
+}
+
+.pill:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
+}
+
+.more {
+  flex: none;
+  background: var(--tagbg);
+  color: var(--tagink);
+  font-weight: 600;
+}
+
+.chevron {
+  opacity: 0.7;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+}
+
+.entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  padding: var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  color: var(--ink);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.entry:hover {
+  background: var(--ring);
+}
+
+.entry:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
+}
+
+.entry .count {
+  margin-left: auto;
+}

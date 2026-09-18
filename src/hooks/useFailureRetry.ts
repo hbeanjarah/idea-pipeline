@@ -1,6 +1,3 @@
-// Never sees the ideas: its only tie to the data is `reload`, called in the two
-// recovery cases below.
-
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { failureOf } from '@/lib/failure';
@@ -10,7 +7,7 @@ export interface FailureRetry {
   failure: Displayable | null;
   retry: (() => void) | null;
   // Rethrows: recording the failure here does not spare the caller from
-  // deciding what it means for its own state.
+  // handling it.
   attempt: <T>(run: () => Promise<T>) => Promise<T>;
   markLoaded: () => void;
 }
@@ -19,14 +16,12 @@ export function useFailureRetry(
   reload: () => Promise<unknown>,
 ): FailureRetry {
   const [failure, setFailure] = useState<Displayable | null>(null);
-  // The operation that just failed, kept raw so it can be run again as is.
   const [pending, setPending] = useState<
     (() => Promise<unknown>) | null
   >(null);
 
-  // Whether the collection ever came back. A retry that succeeds while this is
-  // false would leave the screen showing only what it just wrote, the rest of
-  // the account staying missing until the panel is reopened.
+  // Drop this and a retry that succeeds leaves the screen showing only what it
+  // just wrote, the rest of the account missing until the panel is reopened.
   const loaded = useRef(false);
 
   const markLoaded = useCallback(() => {
@@ -40,9 +35,8 @@ export function useFailureRetry(
         setFailure(null);
         setPending(null);
 
-        // The write went through, so the server is back: fetch what the failed
-        // load never delivered. Marked here and not in reload, or every later
-        // write would keep re-fetching the whole collection.
+        // Marked here and not inside reload, or every later write would
+        // re-fetch the whole collection.
         if (!loaded.current)
           void reload()
             .then(markLoaded)
@@ -52,9 +46,8 @@ export function useFailureRetry(
       } catch (error) {
         const next = failureOf(error);
 
-        // An idea deleted on another device is not something to retry: this
-        // list is simply out of date. Refreshing it may fail too, and that
-        // failure is not the one worth showing.
+        // Swallowed on purpose: the refresh may fail too, and that failure is
+        // not the one worth showing.
         if (next.reason === 'gone')
           void reload().catch(() => undefined);
 

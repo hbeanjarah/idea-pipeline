@@ -36,11 +36,16 @@
   --tagbg: #e7eef8;
   --tagink: #5b6480;
 
-  /* Status colors — reuse the brand palette */
-  --status-captured: var(--taupe);
-  --status-maturing: var(--violet);
-  --status-ready: var(--accent);
-  --status-published: var(--ink);
+  /* A stage carries a slot number, 1 to 8, never a colour. Past eight the
+   * server starts over at 1, so there must be exactly eight here. */
+  --label-1: var(--taupe);
+  --label-2: var(--violet);
+  --label-3: var(--accent);
+  --label-4: var(--ink);
+  --label-5: #4b7ca8;
+  --label-6: #5f8a63;
+  --label-7: #9c5f7e;
+  --label-8: #8a6b3f;
 
   /* Danger — the only warm color, reserved for destructive actions (delete) */
   --danger: #c0453b;

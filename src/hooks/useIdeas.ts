@@ -1,10 +1,6 @@
-// React-side data access. Wraps the repository behind a Context so the screens
-// never see chrome.storage — and the inside stays freely replaceable (backend).
-// Context here is an explicit, PO-approved revision of structure.md's "no Context".
-
 import { createContext, useContext } from 'react';
 import type { Displayable } from '@/lib/failureText';
-import type { Idea, Status } from '@/storage/types';
+import type { Idea } from '@/storage/types';
 
 export interface IdeasContextValue {
   ideas: Idea[];
@@ -19,7 +15,10 @@ export interface IdeasContextValue {
     variationId: string,
     text: string,
   ) => Promise<Idea>;
-  changeStatus: (ideaId: string, status: Status) => Promise<Idea>;
+  setLabel: (ideaId: string, labelId: string | null) => Promise<Idea>;
+  // Clears a deleted stage from the ideas already on screen. Local, immediate,
+  // and never a network call.
+  forgetLabel: (labelId: string) => void;
   deleteIdea: (ideaId: string) => Promise<void>;
   // What went wrong last, and how to try it again. Exposed here so no screen
   // invents its own error handling — they would drift.

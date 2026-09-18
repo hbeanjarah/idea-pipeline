@@ -832,6 +832,15 @@ Il affiche `Comptes pourvus: N. Déjà pourvus: M. Liens créés: K.`
 
 ## Lot 4 — Le panneau
 
+> **Ce lot est une seule unité de compilation.** Côté serveur, la bascule
+> `status` → `labelId` s'est absorbée dans `store/ideas.ts` et tout ce qui était
+> au-dessus a continué de compiler. Le panneau n'a pas de couture équivalente :
+> `Idea` est consommé directement par les composants, les écrans, les hooks et
+> `lib/`, donc le changement touche seize fichiers d'un coup.
+>
+> **Seule la tâche 13 se termine verte.** Les tâches 9 à 12 sont des points de
+> revue, pas des états livrables, et le lot se commite d'un bloc.
+
 ### Tâche 9 : le tuyau, et la mort de `storage.ts`
 
 **Pourquoi.** Le contrat panneau ↔ worker se déclare d'abord (`structure.md`) ;
