@@ -93,6 +93,20 @@ Idempotent : une ligne déjà chiffrée est comptée, pas retouchée. Le script
 le signe que `NOTE_KEY_V1` n'est pas la clé qui a servi à l'écrire, et la
 rechiffrer par-dessus serait sans retour.
 
+### Convertir les anciens statuts en étapes
+
+```bash
+pnpm --dir server db:labels
+```
+
+À lancer **une fois**, sur une base qui date d'avant les étapes configurables :
+chaque compte reçoit les quatre étapes historiques, et ses idées sont rattachées
+à celle qui correspond à leur ancien `status`.
+
+Idempotent : un compte qui a déjà des étapes est sauté, sans rien créer. Relancer
+le script est donc la façon de vérifier que la conversion est complète — il doit
+alors n'annoncer que des comptes « déjà pourvus » et zéro lien.
+
 ### Après avoir écrit une migration
 
 ```bash
@@ -181,15 +195,16 @@ du Compose : lancer les tests ne touche jamais à la base de développement.
 
 ## Documentation
 
-| Fichier                        | Contenu                                                       |
-| ------------------------------ | ------------------------------------------------------------- |
-| `docs/api-design.md`           | le contrat REST, et la table exhaustive des messages d'erreur |
-| `docs/openapi.yaml`            | la spécification OpenAPI — **source de vérité** du modèle     |
-| `docs/persistence-design.md`   | la conception de la persistance                               |
-| `docs/auth-design.md`          | comptes, sessions révocables, cloisonnement                   |
-| `docs/security-design.md`      | le chiffrement des notes au repos                             |
-| `docs/front-api-design.md`     | la liaison panneau ↔ service worker ↔ API                     |
-| `docs/google-signin-design.md` | la connexion Google, côté extension                           |
-| `CLAUDE.md`                    | le cadre de travail, la pile, le hors-scope                   |
+| Fichier                        | Contenu                                                         |
+| ------------------------------ | --------------------------------------------------------------- |
+| `docs/api-design.md`           | le contrat REST, et la table exhaustive des messages d'erreur   |
+| `docs/openapi.yaml`            | la spécification OpenAPI — **source de vérité** du modèle       |
+| `docs/persistence-design.md`   | la conception de la persistance                                 |
+| `docs/auth-design.md`          | comptes, sessions révocables, cloisonnement                     |
+| `docs/security-design.md`      | le chiffrement des notes au repos                               |
+| `docs/labels-design.md`        | les étapes configurables : une par idée, renommables, ordonnées |
+| `docs/front-api-design.md`     | la liaison panneau ↔ service worker ↔ API                       |
+| `docs/google-signin-design.md` | la connexion Google, côté extension                             |
+| `CLAUDE.md`                    | le cadre de travail, la pile, le hors-scope                     |
 
 Chaque conception est suivie de son plan d'implémentation (`*-plan.md`).

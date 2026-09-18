@@ -25,7 +25,7 @@ CSS pur, **aucun framework UI** (ni Tailwind, ni librairie de composants).
 ## Nommage des classes
 
 Les classes d'un `*.module.css` sont locales : on les écrit en **kebab-case**
-(`.idea-card`, `.status-badge`) et on règle Vite avec
+(`.idea-card`, `.label-dot`) et on règle Vite avec
 `css.modules.localsConvention: 'camelCaseOnly'`, pour y accéder en camelCase
 côté JS (`styles.ideaCard`). CSS idiomatique d'un côté, accès propre de l'autre.
 
@@ -95,14 +95,23 @@ supprimé ; l'ancien `--faint` portait l'historique des idées à **2,13:1**.
 | `--tagbg`  | `#e7eef8` | fond de tag                     |
 | `--tagink` | `#5b6480` | texte de tag                    |
 
-**Couleurs de statut** (pastilles) — réutilisent la palette ci-dessus :
+**Palette des étapes** (pastilles) — huit rangs, `--label-1` à `--label-8` :
 
-| `Status`    | Couleur                |
-| ----------- | ---------------------- |
-| `captured`  | taupe (`--taupe`)      |
-| `maturing`  | violet (`--violet`)    |
-| `ready`     | turquoise (`--accent`) |
-| `published` | bleu nuit (`--ink`)    |
+| Token       | Valeur                 | Token       | Valeur    |
+| ----------- | ---------------------- | ----------- | --------- |
+| `--label-1` | taupe (`--taupe`)      | `--label-5` | `#4b7ca8` |
+| `--label-2` | violet (`--violet`)    | `--label-6` | `#5f8a63` |
+| `--label-3` | turquoise (`--accent`) | `--label-7` | `#9c5f7e` |
+| `--label-4` | bleu nuit (`--ink`)    | `--label-8` | `#8a6b3f` |
+
+Une étape porte un **rang**, jamais une couleur : `Label.color` vaut 1 à 8 et
+`LabelDot` est le seul à le traduire en variable. **Il en faut exactement
+huit** — au-delà, le serveur recommence à 1, et un neuvième token ne serait
+jamais atteint tandis qu'un septième manquant laisserait une pastille sans
+couleur.
+
+L'utilisateur ne choisit pas : la couleur est attribuée à la création, en
+prenant le plus petit rang libre.
 
 Les **espacements**, **rayons** et **ombres** viennent de `design/mockup.html`
 et n'ont pas bougé. Les surfaces, les couleurs de texte et les tailles, si :
@@ -129,14 +138,14 @@ L'échelle est **contrastée** à dessein : elle allait de 11 à 15 px par pas d
 Deux familles, **toutes deux système** (pas de webfont : zéro dépendance, zéro
 latence) :
 
-- `--font-sans` (stack système) → corps des idées, libellés de statut, boutons,
+- `--font-sans` (stack système) → corps des idées, noms d'étapes, boutons,
   titres.
 - `--font-mono` (`ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, …`)
   → **uniquement les métadonnées**.
 
 Mono **+ `tabular-nums`** sur : dates de version (avec l'heure, effet
 timestamp), compteurs (filtres, nombre de versions, « voir plus »), tags.
-**Jamais** de mono sur le corps d'une idée, les libellés de statut, les boutons
+**Jamais** de mono sur le corps d'une idée, les noms d'étapes, les boutons
 ou les titres.
 
 ## Focus clavier

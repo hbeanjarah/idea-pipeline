@@ -37,23 +37,30 @@ idea-pipeline/
 │   │   ├── index.html      # point d'entrée HTML du panneau
 │   │   ├── main.tsx        # bootstrap React
 │   │   └── App.tsx         # racine + navigation entre surfaces
+│   ├── routes/
+│   │   └── routes.ts       # le type Route — seule source de vérité de la nav
 │   ├── screens/            # les surfaces du pipeline
 │   │   ├── ListScreen.tsx      # capture + liste — la colonne maître
 │   │   ├── DetailScreen.tsx    # détail d'une idée
+│   │   ├── LabelsScreen.tsx    # gérer les étapes : renommer, ordonner, supprimer
 │   │   └── SignInScreen.tsx    # connexion Google
 │   ├── components/         # briques réutilisables (IdeaCard, Composer,
 │   │                       #   CurrentVersion, CardSkeleton, Spinner,
 │   │                       #   Avatar, AccountMenu, ActionMenu, Popover…)
-│   ├── hooks/              # IdeasProvider, SessionProvider et leurs hooks
+│   │                       # les étapes : LabelDot (la pastille de couleur),
+│   │                       #   LabelPicker (classer), LabelFilter (filtrer),
+│   │                       #   LabelRow (une ligne de l'écran de gestion)
+│   ├── hooks/              # IdeasProvider, LabelsProvider, SessionProvider
+│   │                       #   et leurs hooks
 │   │   └── useFailureRetry.ts  # ce qui a échoué + comment le rejouer
 │   ├── lib/                # protocol.ts (contrat panneau ↔ worker), config, failures
-│   │                       #   statusLabels.ts  libellés FR des 4 étapes
 │   │                       #   variations.ts    la variation courante
+│   │                       #   filterIdeas.ts   étape + recherche
+│   │                       #   rowOverflow.ts   ce qui tient sur une rangée
 │   │                       #   optimistic.ts    affichage avant confirmation
 │   ├── storage/
-│   │   ├── types.ts        # modèle de domaine : Idea, Variation, Status, User
-│   │   ├── remote.ts       # IdeaRepository passant par le service worker
-│   │   └── storage.ts      # ancienne implémentation chrome.storage.local
+│   │   ├── types.ts        # modèle de domaine : Idea, Variation, Label, User
+│   │   └── remote.ts       # IdeaRepository + LabelRepository, par le worker
 │   └── styles/
 │       ├── tokens.css      # design tokens (palette, typo mono, espacements)
 │       └── global.css      # reset + base
@@ -62,7 +69,8 @@ idea-pipeline/
 │   ├── tsconfig.json       # éditeur + typecheck (voit src/ et test/)
 │   ├── tsconfig.build.json # build seul — exclut les *.test.ts et test/ de dist/
 │   ├── migrations/         # *.sql versionnés — LA source du schéma
-│   ├── test/               # harnais vitest : conteneur PostgreSQL + TRUNCATE
+│   ├── test/               # harnais vitest : conteneur PostgreSQL, TRUNCATE,
+│   │                       #   fabriques de données et client HTTP
 │   └── src/
 │       ├── index.ts        # bootstrap (listen)
 │       ├── app.ts          # assemblage Express : json, routes, fallbacks
@@ -77,17 +85,23 @@ idea-pipeline/
 │       └── store/          # persistance PostgreSQL, via Kysely
 │           ├── db.ts               # instance Kysely, construite à la 1re requête
 │           ├── ideas.ts            # les 6 opérations du domaine
+│           ├── labels.ts           # les étapes + l'amorçage d'un compte neuf
+│           ├── users.ts            # upsert à la connexion Google
+│           ├── sessions.ts         # jetons opaques, révocables
 │           ├── notes.ts            # seal/open — le SEUL endroit qui chiffre
+│           ├── uuid.ts             # isUuid — un id malformé doit faire 404, pas 500
 │           ├── seal.ts             # reprise des lignes écrites avant le chiffrement
 │           ├── seal-cli.ts         # point d'entrée de `db:seal`
+│           ├── adopt-labels.ts     # reprise des `status` en étapes — temporaire
+│           ├── adopt-labels-cli.ts # point d'entrée de `db:labels`
 │           ├── migrations.ts       # runner : applique les fichiers .sql
 │           ├── migrate-cli.ts      # point d'entrée de `db:migrate`
 │           └── schema.generated.ts # GÉNÉRÉ depuis la base, non versionné
-├── docs/
+├── docs/                   # une conception + un plan par brique
 │   ├── api-design.md       # contrat REST + table exhaustive des messages
-│   ├── openapi.yaml        # spécification OpenAPI des 6 endpoints
-│   ├── persistence-design.md # conception de la persistance (PostgreSQL)
-│   └── persistence-plan.md # son plan d'implémentation
+│   ├── openapi.yaml        # spécification OpenAPI — 14 opérations
+│   ├── labels-design.md    # les étapes configurables
+│   └── …                   # persistence, auth, google-signin, security, hosting…
 ├── docker-compose.yml      # PostgreSQL de développement
 ├── README.md               # prérequis, installation, comment lancer les deux moitiés
 ├── CLAUDE.md
@@ -99,16 +113,16 @@ idea-pipeline/
 
 ## Où va quoi
 
-- **Types du domaine** (`Idea`, `Variation`, `Status`, `User`) →
+- **Types du domaine** (`Idea`, `Variation`, `Label`, `User`) →
   `src/storage/types.ts`. Tout le monde les importe de là (détail dans
   `storage.md`).
-- **Accès aux données** → uniquement à travers un `IdeaRepository`. Le panneau ne
-  fait **aucun appel réseau** : il envoie un message au service worker, seul
-  détenteur du jeton et seul à parler à l'API.
+- **Accès aux données** → uniquement à travers un repository (`IdeaRepository`,
+  `LabelRepository`). Le panneau ne fait **aucun appel réseau** : il envoie un
+  message au service worker, seul détenteur du jeton et seul à parler à l'API.
 - **Le contrat panneau ↔ worker** vit dans `src/lib/protocol.ts`. Un message
   nouveau s'y déclare d'abord — la table `ReplyData` dit ce que chacun répond.
-- **Surfaces** (accueil / liste / détail) → `src/screens/`, une par fichier.
-  Navigation entre elles : voir la section ci-dessous.
+- **Surfaces** (connexion / liste / détail / étapes) → `src/screens/`, une par
+  fichier. Navigation entre elles : voir la section ci-dessous.
 - **Composants réutilisables** → `src/components/`, un composant par fichier
   (`IdeaCard.tsx`).
 - **Styles** → `src/styles/` : `tokens.css` (variables), `global.css` (reset +
@@ -142,8 +156,9 @@ idea-pipeline/
   `dist/` périmé.
 - **Tests colocalisés** : `ideas.test.ts` à côté de `ideas.ts`. C'est une
   divergence assumée avec le front, qui garde les siens dans `test/` à la
-  racine. `server/test/` ne contient **pas** de tests : seulement le harnais
-  qui démarre le conteneur PostgreSQL et vide la base entre chaque test.
+  racine. `server/test/` ne contient **pas** de tests : seulement le harnais —
+  le conteneur PostgreSQL, le `TRUNCATE` entre chaque test, les fabriques de
+  données (`factories.ts`) et le client HTTP (`http.ts`).
 - **Chiffrement** → `store/notes.ts`, et nulle part ailleurs. Aucune autre
   couche n'appelle `seal` ou `open` (détail dans `storage.md`).
 - **Schéma de la base** → une nouvelle migration dans `server/migrations/`,
@@ -153,13 +168,17 @@ idea-pipeline/
 ## Navigation
 
 Pas de routeur en MVP (Side Panel : pas d'URL, pas de deep-link — un routeur
-n'apporterait rien). La navigation entre les 3 surfaces vit à **un seul
-endroit** :
+n'apporterait rien). La navigation entre les 4 surfaces vit à **un seul
+endroit**, `src/routes/routes.ts` :
 
-- un type `Route` unique (union discriminée) = source de vérité ;
+- un type `Route` unique = source de vérité ;
 - `App.tsx` est le seul à mapper `Route` → écran ;
 - les écrans reçoivent une fonction `navigate` (et leurs params) en props ;
   ils n'accèdent jamais à l'état de route directement.
+
+`Route` est un **enregistrement**, pas une union discriminée : `selectedId`
+accompagne les deux écrans. Partir gérer ses étapes depuis le détail d'une idée
+puis revenir ne doit pas perdre l'idée qu'on lisait.
 
 Cette discipline garde une éventuelle migration vers react-router triviale
 (seul `App.tsx` change), si un jour le besoin se présente.
