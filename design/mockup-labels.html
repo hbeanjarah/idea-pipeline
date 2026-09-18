@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Étapes configurables</title>
+<style>
+  /* Tokens repris tels quels de src/styles/tokens.css (version courante :
+   * --muted corrigé, --hint supprimé, --surface / --sunken en place).
+   * SEULE NOUVEAUTÉ : --label-1..8, la palette dans laquelle une étiquette
+   * reçoit sa couleur à la création. Les quatre premières sont exactement les
+   * quatre couleurs de statut d'aujourd'hui, pour que la reprise des comptes
+   * existants ne change rien à l'œil. C'est un point à valider. */
+  :root{
+    --sunken:#e2e8f2; --surface:#fcfdff; --panelbd:#dce4f0; --cardbd:#e4ebf4;
+    --capbd:#cdddf0; --ring:#e3edf9; --spine:#dce4f0;
+    --ink:#323859; --muted:#5d667e; --faint:#aab2c4;
+    --accent:#038c8c; --hl:#bdd9f2; --violet:#4a3f73; --taupe:#a68776;
+    --tagbg:#e7eef8; --tagink:#5b6480;
+    --danger:#c0453b; --danger-bg:#f6ece9; --dangerbd:#eddcd7;
+
+    --label-1:#a68776;  /* taupe  — ex --status-captured  */
+    --label-2:#4a3f73;  /* violet — ex --status-maturing  */
+    --label-3:#038c8c;  /* teal   — ex --status-ready     */
+    --label-4:#323859;  /* ink    — ex --status-published */
+    --label-5:#4b7ca8;  /* bleu   */
+    --label-6:#5f8a63;  /* vert   */
+    --label-7:#9c5f7e;  /* prune  */
+    --label-8:#8a6b3f;  /* bronze */
+
+    --shadow-popover:0 6px 20px rgba(50,56,89,.16);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#e8ebf1;color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;padding-block:34px;padding-inline:20px;line-height:1.5}
+  .page-h{max-width:1160px;margin:0 auto 24px}
+  .page-h h1{font-size:19px;font-weight:600;margin:0 0 5px;letter-spacing:-.01em}
+  .page-h p{font-size:13px;color:var(--muted);margin:0;max-width:72ch}
+  .stage{max-width:1160px;margin:0 auto;display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start;justify-content:center}
+  .col{width:344px;max-width:100%}
+  .col-label{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:0 0 9px 2px;font-weight:600}
+  .col-label span{color:var(--faint);text-transform:none;letter-spacing:0;font-weight:400}
+  .panel{background:var(--sunken);border:1px solid var(--panelbd);border-radius:14px;padding:13px;position:relative}
+
+  .ttl{font-size:16px;font-weight:600;margin:0 0 11px}
+  .dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex:none}
+  .l1{background:var(--label-1)} .l2{background:var(--label-2)} .l3{background:var(--label-3)}
+  .l4{background:var(--label-4)} .l5{background:var(--label-5)} .l6{background:var(--label-6)}
+  .l7{background:var(--label-7)} .l8{background:var(--label-8)}
+  .ic{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+  /* ---------- capture ---------- */
+  .cap{background:var(--surface);border:1px solid var(--capbd);border-radius:10px;padding:9px 11px;position:relative;font-size:13px}
+  .cap-input{min-height:21px;color:var(--muted)}
+  .send{position:absolute;right:9px;bottom:8px;color:var(--faint);line-height:0}
+  .send svg{width:19px;height:19px;display:block}
+  .hint{font-size:11px;color:var(--muted);margin-top:6px}
+
+  /* ---------- filtre ---------- */
+  .filters{display:flex;flex-wrap:wrap;gap:5px;margin:12px 0;overflow:hidden;max-height:25px}
+  .pill{display:flex;align-items:center;gap:5px;flex:none;border-radius:999px;padding:4px 11px;
+    color:var(--muted);font-size:11px;white-space:nowrap;cursor:pointer;background:none;border:0;font-family:inherit}
+  .pill.on{background:var(--hl);color:var(--ink);font-weight:600}
+  .pill .count{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums;color:var(--muted)}
+  .pill.on .count{color:var(--tagink)}
+  .more{background:var(--tagbg);color:var(--tagink);font-weight:600}
+  .more svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+
+  /* ---------- carte ---------- */
+  .card{background:var(--surface);border:1px solid var(--cardbd);border-radius:10px;padding:9px 11px;position:relative}
+  .card + .card{margin-top:7px}
+  .card .tx{font-size:13px;line-height:1.4}
+  .meta{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);margin-top:6px}
+  .badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:2px 8px;
+    background:var(--tagbg);color:var(--tagink);font-size:11px;cursor:pointer;border:0;font-family:inherit}
+  /* L'invitation est l'étiquette vide : même fond, même rayon, même pastille —
+   * simplement pas encore remplie. Classer une idée revient à colorer le point. */
+  .classer{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:2px 8px;
+    background:var(--tagbg);border:0;color:var(--tagink);font-size:11px;cursor:pointer;font-family:inherit}
+  .hollow{width:7px;height:7px;border-radius:50%;display:inline-block;flex:none;
+    background:none;border:1.5px solid var(--faint)}
+  /* Le chevron marque « ceci ouvre le menu des étapes ». Il est sur les DEUX
+   * états : sans lui, la carte libre annoncerait un menu que la carte classée
+   * cacherait, alors qu'elles ouvrent le même. */
+  .chev{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.1;
+    stroke-linecap:round;stroke-linejoin:round;flex:none;opacity:.7}
+  .versions{margin-left:auto;color:var(--muted)}
+
+  /* ---------- popover ---------- */
+  .pop{position:absolute;z-index:5;background:var(--surface);border:1px solid var(--cardbd);
+    border-radius:10px;box-shadow:var(--shadow-popover);padding:5px;min-width:186px}
+  .opt{display:flex;align-items:center;gap:8px;padding:6px 9px;border-radius:7px;font-size:12px;color:var(--ink);cursor:pointer;white-space:nowrap}
+  .opt:hover{background:var(--tagbg)}
+  .opt .chk{margin-left:auto;color:var(--accent)}
+  .opt .count{margin-left:auto;font-family:ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums;color:var(--muted);font-size:11px}
+  .opt.none{color:var(--muted)}
+  .sep{height:1px;background:var(--cardbd);margin:5px 3px}
+  .opt.manage{color:var(--muted);font-size:11px}
+
+  /* ---------- gestion des étapes ---------- */
+  .steps{display:flex;flex-direction:column;gap:6px;margin:12px 0}
+  .step{display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--cardbd);
+    border-radius:10px;padding:8px 10px;font-size:13px}
+  /* Disques pleins, pas un tracé : six points en stroke de 1,8px à 13px de côté
+   * ne produisent plus que du gris. La zone de préhension déborde le glyphe
+   * (padding compensé par une marge négative, donc sans décaler la ligne) :
+   * au doigt on vise 21px, pas 15. touch-action:none, sinon le geste part en
+   * défilement avant d'atteindre le pointermove. */
+  .grip{color:var(--faint);cursor:grab;line-height:0;padding:3px;margin:-3px;
+    border-radius:5px;touch-action:none;transition:color .12s ease,background .12s ease}
+  .grip:hover{color:var(--tagink);background:var(--tagbg)}
+  .grip:active{cursor:grabbing}
+  .grip svg{width:15px;height:15px;display:block}
+
+  /* Les fleches ne signalent pas le glissement : elles sont le chemin SANS
+   * glissement qu'exige WCAG 2.2 (2.5.7 Dragging Movements). Elles partent donc
+   * avec la poignee, jamais a sa place. */
+  .arrows{display:flex;gap:1px;margin-left:auto}
+  .ab{background:none;border:0;padding:3px;line-height:0;color:var(--muted);cursor:pointer;border-radius:5px}
+  .ab:hover{background:var(--tagbg);color:var(--ink)}
+  .ab:disabled{color:#c9cfdb;cursor:default;background:none}
+  .ab svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+  .step .nm{flex:1}
+  .step .rm{color:var(--muted);line-height:0;cursor:pointer;background:none;border:0;padding:2px}
+  .step .rm svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round}
+  .step.editing{border-color:var(--accent);outline:2px solid var(--accent);outline-offset:0}
+  .step.editing .nm{color:var(--ink)}
+  .caret{display:inline-block;width:1px;height:14px;background:var(--ink);vertical-align:-2px;margin-left:1px}
+  .add{display:flex;align-items:center;gap:7px;border:1px dashed var(--capbd);border-radius:10px;
+    padding:8px 10px;color:var(--muted);font-size:12px;cursor:pointer;background:none;width:100%;font-family:inherit}
+  .add svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round}
+  .lead{font-size:12px;color:var(--muted);margin:0 0 12px;line-height:1.5}
+  .btn{display:block;width:100%;background:var(--accent);color:#fff;border:0;border-radius:10px;
+    padding:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:13px}
+  .headbar{display:flex;align-items:center;justify-content:space-between;margin:0 0 11px}
+  .headbar .x{color:var(--muted);line-height:0;cursor:pointer}
+  .headbar .x svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round}
+  .counthint{font-size:11px;color:var(--muted);margin:3px 0 0 2px}
+
+  /* ---------- confirmation ---------- */
+  .confirm{background:var(--danger-bg);border:1px solid var(--dangerbd);border-radius:10px;padding:10px 11px;margin-top:9px}
+  .confirm .t{display:block;font-weight:600;color:var(--danger);font-size:12px;margin-bottom:3px}
+  .confirm .b{font-size:12px;color:var(--tagink);line-height:1.45}
+  .confirm .row{display:flex;gap:7px;margin-top:9px}
+  .confirm button{flex:1;border-radius:8px;padding:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+  .b-cancel{background:none;border:1px solid var(--cardbd);color:var(--muted)}
+  .b-del{background:var(--danger);border:1px solid var(--danger);color:#fff}
+
+  /* ---------- vide ---------- */
+  .empty{padding:30px 14px;text-align:center}
+  .empty-cue{color:var(--faint);display:flex;justify-content:center;margin-bottom:10px}
+  .empty-t{font-size:13px;font-weight:600;margin:0 0 5px}
+  .empty-s{font-size:12px;color:var(--muted);margin:0;max-width:32ch;margin-inline:auto;line-height:1.5}
+
+  /* ---------- notes ---------- */
+  .note{max-width:1160px;margin:34px auto 0;font-size:12px;color:var(--muted);line-height:1.6}
+  .note h2{font-size:13px;color:var(--ink);margin:22px 0 6px}
+  .note b{color:var(--ink)}
+  .note ul{margin:6px 0 0;padding-left:18px}
+  .note li{margin-bottom:6px}
+  .q{color:var(--danger);font-weight:600}
+</style>
+</head>
+<body>
+  <div class="page-h">
+    <h1>Étapes configurables</h1>
+    <p>Le statut figé à quatre valeurs devient une liste que l'utilisateur écrit. Une idée est à une seule étape, ou à aucune — elle naît libre. Palette, panneau et composants sont ceux du produit ; tout ce qui est nouveau est signalé dans les notes. Textes provisoires.</p>
+  </div>
+
+  <div class="stage">
+
+    <!-- 1. AMORÇAGE -->
+    <div class="col">
+      <p class="col-label">Amorçage <span>· juste après la connexion Google</span></p>
+      <div class="panel">
+        <p class="ttl">Tes étapes</p>
+        <p class="lead">Une idée peut traverser des étapes — de la capture à la publication. Voici une proposition&nbsp;: renomme-la, retire ce qui ne te sert pas, ajoute ce qui te manque.</p>
+        <div class="steps">
+          <div class="step"><span class="grip"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg></span><span class="dot l1"></span><span class="nm">Capturé</span><span class="arrows"><button class="ab" type="button"><svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg></button><button class="ab" type="button"><svg viewBox="0 0 24 24"><path d="M12 5v13"/><path d="M18 12l-6 6-6-6"/></svg></button></span><button class="rm"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+          <div class="step"><span class="grip"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg></span><span class="dot l2"></span><span class="nm">Maturation</span><span class="arrows"><button class="ab" type="button"><svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg></button><button class="ab" type="button"><svg viewBox="0 0 24 24"><path d="M12 5v13"/><path d="M18 12l-6 6-6-6"/></svg></button></span><button class="rm"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+          <div class="step"><span class="grip"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg></span><span class="dot l3"></span><span class="nm">Prêt</span><span class="arrows"><button class="ab" type="button"><svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg></button><button class="ab" type="button"><svg viewBox="0 0 24 24"><path d="M12 5v13"/><path d="M18 12l-6 6-6-6"/></svg></button></span><button class="rm"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+          <div class="step"><span class="grip"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg></span><span class="dot l4"></span><span class="nm">Publié</span><span class="arrows"><button class="ab" type="button"><svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg></button><button class="ab" type="button"><svg viewBox="0 0 24 24"><path d="M12 5v13"/><path d="M18 12l-6 6-6-6"/></svg></button></span><button class="rm"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+        </div>
+        <button class="add"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Ajouter une étape</button>
+        <button class="btn">Commencer</button>
+        <p class="counthint">Tu pourras les modifier à tout moment.</p>
+      </div>
+    </div>
+
+    <!-- 2. LISTE, TOUT EST LIBRE -->
+    <div class="col">
+      <p class="col-label">Premières captures <span>· une idée naît libre</span></p>
+      <div class="panel">
+        <p class="ttl">Mes idées</p>
+        <div class="cap">
+          <div class="cap-input">Une idée…</div>
+          <span class="send"><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M7 5.4 L18.6 12 L7 18.6 Q9.4 12 7 5.4 Z"/></svg></span>
+        </div>
+        <p class="hint">⏎ enregistrer · ⇧⏎ retour à la ligne · - puce</p>
+        <div class="filters">
+          <span class="pill on">Tous <span class="count">3</span></span>
+          <span class="pill">Sans étape <span class="count">3</span></span>
+          <span class="pill">Capturé <span class="count">0</span></span>
+          <span class="pill more">+3 <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+        </div>
+        <div class="card">
+          <div class="tx">On nous paie pour livrer vite, pas pour la maintenabilité.</div>
+          <div class="meta"><button class="classer"><span class="hollow"></span> Classer <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button></div>
+        </div>
+        <div class="card">
+          <div class="tx">Le vrai coût d'une réunion, ce n'est pas l'heure passée.</div>
+          <div class="meta"><button class="classer"><span class="hollow"></span> Classer <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button></div>
+        </div>
+        <div class="card">
+          <div class="tx">Trois ans de code legacy m'ont appris une chose.</div>
+          <div class="meta"><button class="classer"><span class="hollow"></span> Classer <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button><span class="versions">2 versions</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. LE SÉLECTEUR -->
+    <div class="col">
+      <p class="col-label">Classer depuis la carte <span>· le geste nouveau</span></p>
+      <div class="panel">
+        <p class="ttl">Mes idées</p>
+        <div class="filters">
+          <span class="pill on">Tous <span class="count">3</span></span>
+          <span class="pill">Sans étape <span class="count">3</span></span>
+          <span class="pill">Capturé <span class="count">0</span></span>
+          <span class="pill more">+3 <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+        </div>
+        <div class="card" style="padding-bottom:9px">
+          <div class="tx">On nous paie pour livrer vite, pas pour la maintenabilité.</div>
+          <div class="meta"><button class="classer"><span class="hollow"></span> Classer <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button></div>
+          <div class="pop" style="left:11px;top:74px">
+            <div class="opt none">Aucune étape <span class="chk"><svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M20 6L9 17l-5-5"/></svg></span></div>
+            <div class="sep"></div>
+            <div class="opt"><span class="dot l1"></span> Capturé</div>
+            <div class="opt"><span class="dot l2"></span> Maturation</div>
+            <div class="opt"><span class="dot l3"></span> Prêt</div>
+            <div class="opt"><span class="dot l4"></span> Publié</div>
+            <div class="sep"></div>
+            <div class="opt manage">Gérer les étapes…</div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:210px">
+          <div class="tx">Le vrai coût d'une réunion, ce n'est pas l'heure passée.</div>
+          <div class="meta"><button class="classer"><span class="hollow"></span> Classer <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. LISTE CLASSÉE -->
+    <div class="col">
+      <p class="col-label">Liste classée <span>· filtre sur une seule rangée</span></p>
+      <div class="panel">
+        <p class="ttl">Mes idées</p>
+        <div class="cap">
+          <div class="cap-input">Une idée…</div>
+          <span class="send"><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M7 5.4 L18.6 12 L7 18.6 Q9.4 12 7 5.4 Z"/></svg></span>
+        </div>
+        <p class="hint">⏎ enregistrer · ⇧⏎ retour à la ligne · - puce</p>
+        <div class="filters">
+          <span class="pill on">Tous <span class="count">12</span></span>
+          <span class="pill">Sans étape <span class="count">3</span></span>
+          <span class="pill">Capturé <span class="count">4</span></span>
+          <span class="pill more">+3 <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+        </div>
+        <div class="card">
+          <div class="tx">On nous paie pour livrer vite, pas pour la maintenabilité.</div>
+          <div class="meta"><button class="badge"><span class="dot l2"></span> Maturation <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button><span class="versions">3 versions</span></div>
+        </div>
+        <div class="card">
+          <div class="tx">Le vrai coût d'une réunion, ce n'est pas l'heure passée.</div>
+          <div class="meta"><button class="badge"><span class="dot l1"></span> Capturé <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button></div>
+        </div>
+        <div class="card">
+          <div class="tx">Trois ans de code legacy m'ont appris une chose.</div>
+          <div class="meta"><button class="classer"><span class="hollow"></span> Classer <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button><span class="versions">2 versions</span></div>
+        </div>
+        <div class="card">
+          <div class="tx">Personne ne lit la documentation. Tout le monde lit le code.</div>
+          <div class="meta"><button class="badge"><span class="dot l3"></span> Prêt <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. DÉBORDEMENT OUVERT -->
+    <div class="col">
+      <p class="col-label">Le débordement <span>· rien ne disparaît en silence</span></p>
+      <div class="panel">
+        <p class="ttl">Mes idées</p>
+        <div class="filters" style="overflow:visible;max-height:none;position:relative;z-index:6">
+          <span class="pill on">Tous <span class="count">12</span></span>
+          <span class="pill">Sans étape <span class="count">3</span></span>
+          <span class="pill">Capturé <span class="count">4</span></span>
+          <span class="pill more">+3 <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+        </div>
+        <div class="pop" style="right:13px;top:64px">
+          <div class="opt"><span class="dot l2"></span> Maturation <span class="count">3</span></div>
+          <div class="opt"><span class="dot l3"></span> Prêt <span class="count">1</span></div>
+          <div class="opt"><span class="dot l4"></span> Publié <span class="count">1</span></div>
+        </div>
+        <div style="margin-top:104px">
+          <div class="card">
+            <div class="tx">On nous paie pour livrer vite, pas pour la maintenabilité.</div>
+            <div class="meta"><button class="badge"><span class="dot l2"></span> Maturation <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button><span class="versions">3 versions</span></div>
+          </div>
+          <div class="card">
+            <div class="tx">Le vrai coût d'une réunion, ce n'est pas l'heure passée.</div>
+            <div class="meta"><button class="badge"><span class="dot l1"></span> Capturé <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. GESTION -->
+    <div class="col">
+      <p class="col-label">Gérer les étapes <span>· depuis le menu de compte — même écran qu'à l'amorçage</span></p>
+      <div class="panel">
+        <div class="headbar">
+          <p class="ttl" style="margin:0">Étapes</p>
+          <span class="x"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+        </div>
+        <div class="steps">
+          <div class="step"><span class="grip"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg></span><span class="dot l1"></span><span class="nm">Capturé</span><span class="arrows"><button class="ab" type="button"><svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg></button><button class="ab" type="button"><svg viewBox="0 0 24 24"><path d="M12 5v13"/><path d="M18 12l-6 6-6-6"/></svg></button></span><button class="rm"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+          <div class="step editing"><span class="grip"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg></span><span class="dot l2"></span><span class="nm">À explorer<span class="caret"></span></span></div>
+          <div class="step"><span class="grip"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg></span><span class="dot l3"></span><span class="nm">Prêt</span><span class="arrows"><button class="ab" type="button"><svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg></button><button class="ab" type="button"><svg viewBox="0 0 24 24"><path d="M12 5v13"/><path d="M18 12l-6 6-6-6"/></svg></button></span><button class="rm"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+          <div class="step"><span class="grip"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg></span><span class="dot l4"></span><span class="nm">Publié</span><span class="arrows"><button class="ab" type="button"><svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg></button><button class="ab" type="button"><svg viewBox="0 0 24 24"><path d="M12 5v13"/><path d="M18 12l-6 6-6-6"/></svg></button></span><button class="rm"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+          <div class="step"><span class="grip"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg></span><span class="dot l5"></span><span class="nm">Archivé</span><span class="arrows"><button class="ab" type="button"><svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg></button><button class="ab" type="button"><svg viewBox="0 0 24 24"><path d="M12 5v13"/><path d="M18 12l-6 6-6-6"/></svg></button></span><button class="rm"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+        </div>
+        <button class="add"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Ajouter une étape</button>
+        <p class="counthint">Renommer n'affecte aucune idée.</p>
+      </div>
+    </div>
+
+    <!-- 7. SUPPRESSION -->
+    <div class="col">
+      <p class="col-label">Supprimer une étape <span>· la confirmation annonce le nombre</span></p>
+      <div class="panel">
+        <div class="headbar">
+          <p class="ttl" style="margin:0">Étapes</p>
+          <span class="x"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+        </div>
+        <div class="steps">
+          <div class="step"><span class="grip"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg></span><span class="dot l1"></span><span class="nm">Capturé</span><span class="arrows"><button class="ab" type="button"><svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg></button><button class="ab" type="button"><svg viewBox="0 0 24 24"><path d="M12 5v13"/><path d="M18 12l-6 6-6-6"/></svg></button></span><button class="rm"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+          <div class="step" style="opacity:.55"><span class="grip"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg></span><span class="dot l2"></span><span class="nm">Maturation</span><span class="arrows"><button class="ab" type="button"><svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg></button><button class="ab" type="button"><svg viewBox="0 0 24 24"><path d="M12 5v13"/><path d="M18 12l-6 6-6-6"/></svg></button></span><button class="rm"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+        </div>
+        <div class="confirm">
+          <span class="t">Supprimer « Maturation » ?</span>
+          <span class="b">3 idées n'auront plus d'étape. Elles ne sont pas supprimées — tu pourras les reclasser.</span>
+          <div class="row">
+            <button class="b-cancel">Annuler</button>
+            <button class="b-del">Supprimer</button>
+          </div>
+        </div>
+        <div class="steps" style="margin-top:6px">
+          <div class="step"><span class="grip"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg></span><span class="dot l3"></span><span class="nm">Prêt</span><span class="arrows"><button class="ab" type="button"><svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg></button><button class="ab" type="button"><svg viewBox="0 0 24 24"><path d="M12 5v13"/><path d="M18 12l-6 6-6-6"/></svg></button></span><button class="rm"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+          <div class="step"><span class="grip"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg></span><span class="dot l4"></span><span class="nm">Publié</span><span class="arrows"><button class="ab" type="button"><svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg></button><button class="ab" type="button"><svg viewBox="0 0 24 24"><path d="M12 5v13"/><path d="M18 12l-6 6-6-6"/></svg></button></span><button class="rm"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. AUCUNE ÉTAPE -->
+    <div class="col">
+      <p class="col-label">Aucune étape <span>· état légal, pas un cas limite</span></p>
+      <div class="panel">
+        <p class="ttl">Mes idées</p>
+        <div class="cap">
+          <div class="cap-input">Une idée…</div>
+          <span class="send"><svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M7 5.4 L18.6 12 L7 18.6 Q9.4 12 7 5.4 Z"/></svg></span>
+        </div>
+        <p class="hint">⏎ enregistrer · ⇧⏎ retour à la ligne · - puce</p>
+        <div style="margin-top:12px">
+          <div class="card" style="padding-bottom:9px">
+            <div class="tx">On nous paie pour livrer vite, pas pour la maintenabilité.</div>
+            <div class="meta"><button class="classer"><span class="hollow"></span> Classer <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button></div>
+            <div class="pop" style="left:11px;top:74px">
+              <div class="opt none">Aucune étape <span class="chk"><svg class="ic" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M20 6L9 17l-5-5"/></svg></span></div>
+              <div class="sep"></div>
+              <div class="opt manage" style="color:var(--accent);font-size:12px;font-weight:600">＋ Créer une première étape</div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:92px">
+            <div class="tx">Le vrai coût d'une réunion, ce n'est pas l'heure passée.</div>
+            <div class="meta"><button class="classer"><span class="hollow"></span> Classer <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button></div>
+          </div>
+        </div>
+        <p class="counthint" style="margin-top:11px">Pas de rangée de filtre : sans étape, « Tous » et « Sans étape » diraient la même chose.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="note">
+    <h2>Ce que le mockup acte</h2>
+    <ul>
+      <li><b>La carte n'est plus un <code>&lt;button&gt;</code>.</b> L'étiquette et l'invitation « Classer » sont des boutons frères du bouton d'ouverture, pas des enfants — un bouton imbriqué est du HTML invalide et casse la mise en page.</li>
+      <li><b>L'emplacement de l'étiquette existe toujours</b>, rempli ou non. Une carte libre montre l'étiquette <i>vide</i> — même fond, même pastille, creuse au lieu d'être pleine. Classer revient visuellement à colorer le point, et rien ne se décale.</li>
+      <li><b>Le chevron est sur les deux états</b>, vide et rempli : c'est lui qui signale que le menu des étapes s'ouvre. Un « + » aurait promis une création alors qu'on choisit dans une liste existante.</li>
+      <li><b>Le filtre tient sur une rangée.</b> Les pastilles rejetées se repèrent à leur <code>offsetTop</code> et passent dans « +N ». <code>Tous</code> et <code>Sans étape</code> sont épinglées ; la pastille active est toujours tirée dans la rangée visible.</li>
+      <li><b>Un seul écran de gestion</b>, montré à l'amorçage (« Commencer ») et depuis le menu de compte (croix de fermeture). Même liste, même code.</li>
+      <li><b>Supprimer annonce le nombre</b> et rappelle que les idées survivent.</li>
+      <li><b>Réordonner : glissement au pointeur <i>et</i> flèches.</b> La poignée — six points 2×3, la convention de Notion, Linear et Jira — porte le glissement, souris et tactile. Les deux flèches ne sont pas la version économique : WCAG 2.2 (critère 2.5.7) exige qu'une fonction opérable par glissement le soit aussi sans glisser. Les deux partent ensemble, jamais l'une à la place de l'autre.</li>
+      <li><b>Un nom d'étape fait 32 caractères au plus</b>, et deux étapes ne peuvent pas porter le même nom — comparaison après <code>trim</code>, casse ignorée, accents non repliés (même règle que la recherche : « é » ≠ « e »).</li>
+      <li><b>Les quatre couleurs d'aujourd'hui deviennent les quatre premières de la palette</b> : après la reprise, un compte existant est visuellement identique.</li>
+    </ul>
+
+    <h2>Points à trancher</h2>
+    <ul>
+      <li><span class="q">L'amorçage vient-il après la connexion, ou après la première capture&nbsp;?</span> Le mockup montre ton choix (après la connexion). La recherche sur l'onboarding pousse vers « après une première action qui compte » — au moment où l'utilisateur a enfin une idée à ranger.</li>
+      <li><span class="q">Sauter l'amorçage.</span> Il n'y a pas de bouton « Passer » : vider la liste puis « Commencer » donne zéro étape. Suffisant, ou faut-il une sortie explicite&nbsp;?</li>
+      <li><span class="q">« Gérer les étapes… » en pied du sélecteur.</span> Deuxième porte d'entrée vers l'écran de gestion, en plus du menu de compte. À garder ou à retirer.</li>
+      <li><span class="q">La palette à huit couleurs</span> — les quatre nouvelles (bleu, vert, prune, bronze) sont une proposition. Au-delà de huit étapes, on recommence au début.</li>
+    </ul>
+  </div>
+</body>
+</html>

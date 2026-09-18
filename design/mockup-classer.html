@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Le bouton « Classer »</title>
+<style>
+  :root{
+    --sunken:#e2e8f2; --surface:#fcfdff; --panelbd:#dce4f0; --cardbd:#e4ebf4;
+    --capbd:#cdddf0; --ring:#e3edf9;
+    --ink:#323859; --muted:#5d667e; --faint:#aab2c4;
+    --accent:#038c8c; --hl:#bdd9f2; --tagbg:#e7eef8; --tagink:#5b6480;
+    --label-1:#a68776; --label-2:#4a3f73; --label-3:#038c8c;
+    --accent-soft:#e0f0ef;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#e8ebf1;color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;padding-block:34px;padding-inline:20px;line-height:1.5}
+  .page-h{max-width:1160px;margin:0 auto 24px}
+  .page-h h1{font-size:19px;font-weight:600;margin:0 0 5px;letter-spacing:-.01em}
+  .page-h p{font-size:13px;color:var(--muted);margin:0;max-width:74ch}
+  .stage{max-width:1160px;margin:0 auto;display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start;justify-content:center}
+  .col{width:344px;max-width:100%}
+  .col-label{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:0 0 3px 2px;font-weight:600}
+  .col-sub{font-size:11px;color:var(--muted);margin:0 0 9px 2px;line-height:1.45;min-height:32px}
+  .panel{background:var(--sunken);border:1px solid var(--panelbd);border-radius:14px;padding:13px}
+
+  .dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex:none}
+  .l1{background:var(--label-1)} .l2{background:var(--label-2)} .l3{background:var(--label-3)}
+  .hollow{width:7px;height:7px;border-radius:50%;display:inline-block;flex:none;
+    background:none;border:1.5px solid var(--faint)}
+  .hollow-a{border-color:var(--accent)}
+  .chev{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round;flex:none;opacity:.7}
+  .plus{width:10px;height:10px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;flex:none}
+
+  .card{background:var(--surface);border:1px solid var(--cardbd);border-radius:10px;padding:9px 11px}
+  .card + .card{margin-top:7px}
+  .card .tx{font-size:13px;line-height:1.4}
+  .meta{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);margin-top:6px}
+  .versions{margin-left:auto;color:var(--muted)}
+
+  /* l'étiquette remplie — la référence que l'invitation doit accompagner */
+  .badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:2px 8px;
+    background:var(--tagbg);color:var(--tagink);font-size:11px;cursor:pointer;border:0;font-family:inherit}
+
+  /* base commune à toutes les variantes */
+  .cl{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:2px 8px;
+    font-size:11px;cursor:pointer;font-family:inherit;background:none;border:0;
+    transition:background .12s ease,color .12s ease,border-color .12s ease}
+  .cl:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* A — pointillé (l'actuel) */
+  .a{border:1px dashed var(--faint);color:var(--muted)}
+  .a:hover{border-color:var(--accent);color:var(--accent)}
+
+  /* B — pastille creuse + chevron, sur fond d'étiquette */
+  .b{background:var(--tagbg);color:var(--tagink)}
+  .b:hover{background:var(--hl);color:var(--ink)}
+
+  /* C — accent pâle */
+  .c{background:var(--accent-soft);color:var(--accent);font-weight:600}
+  .c:hover{background:#cfe7e6}
+
+  /* D — texte nu + chevron */
+  .d{color:var(--muted);padding-inline:0}
+  .d:hover{color:var(--accent)}
+  .d .u{border-bottom:1px solid currentColor;padding-bottom:1px}
+
+  /* E — petit bouton bordé */
+  .e{background:var(--surface);border:1px solid var(--capbd);color:var(--muted)}
+  .e:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+
+  /* F — contour accent */
+  .f{border:1px solid var(--accent);color:var(--accent);background:none;font-weight:600}
+  .f:hover{background:var(--accent);color:#fff}
+  .f:hover .hollow-a{border-color:#fff}
+
+  .note{max-width:1160px;margin:34px auto 0;font-size:12px;color:var(--muted);line-height:1.6}
+  .note h2{font-size:13px;color:var(--ink);margin:22px 0 6px}
+  .note b{color:var(--ink)}
+  .note ul{margin:6px 0 0;padding-left:18px}
+  .note li{margin-bottom:6px}
+  .reco{background:var(--accent-soft);border:1px solid #bcdcda;border-radius:10px;padding:11px 13px;margin-top:14px}
+  .reco b{color:var(--accent)}
+</style>
+</head>
+<body>
+  <div class="page-h">
+    <h1>Le bouton « Classer »</h1>
+    <p>Six écritures de la même invitation. Chacune est montrée <b>répétée dans une vraie liste</b>, aux côtés d'une étiquette remplie — c'est le seul test honnête : ce bouton apparaîtra sur la majorité des cartes, puisqu'une idée naît libre. Survole-les, les états de survol sont réels.</p>
+  </div>
+
+  <div class="stage">
+
+    <!-- A -->
+    <div class="col">
+      <p class="col-label">A · Pointillé</p>
+      <p class="col-sub">L'actuel. Lit « emplacement vide » — honnête, mais un contour en pointillé signale plus une zone de dépôt qu'un bouton.</p>
+      <div class="panel">
+        <div class="card"><div class="tx">On nous paie pour livrer vite, pas pour la maintenabilité.</div>
+          <div class="meta"><button class="cl a"><svg class="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Classer</button></div></div>
+        <div class="card"><div class="tx">Le vrai coût d'une réunion, ce n'est pas l'heure passée.</div>
+          <div class="meta"><button class="cl a"><svg class="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Classer</button></div></div>
+        <div class="card"><div class="tx">Trois ans de code legacy m'ont appris une chose.</div>
+          <div class="meta"><button class="cl a"><svg class="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Classer</button><span class="versions">2 versions</span></div></div>
+        <div class="card"><div class="tx">Personne ne lit la documentation. Tout le monde lit le code.</div>
+          <div class="meta"><button class="badge"><span class="dot l2"></span> Maturation</button></div></div>
+      </div>
+    </div>
+
+    <!-- B -->
+    <div class="col">
+      <p class="col-label">B · Pastille creuse + chevron</p>
+      <p class="col-sub">Même géométrie que l'étiquette remplie : la pastille est creuse au lieu d'être pleine. Le chevron annonce qu'un menu s'ouvre.</p>
+      <div class="panel">
+        <div class="card"><div class="tx">On nous paie pour livrer vite, pas pour la maintenabilité.</div>
+          <div class="meta"><button class="cl b"><span class="hollow"></span> Classer <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button></div></div>
+        <div class="card"><div class="tx">Le vrai coût d'une réunion, ce n'est pas l'heure passée.</div>
+          <div class="meta"><button class="cl b"><span class="hollow"></span> Classer <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button></div></div>
+        <div class="card"><div class="tx">Trois ans de code legacy m'ont appris une chose.</div>
+          <div class="meta"><button class="cl b"><span class="hollow"></span> Classer <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button><span class="versions">2 versions</span></div></div>
+        <div class="card"><div class="tx">Personne ne lit la documentation. Tout le monde lit le code.</div>
+          <div class="meta"><button class="badge"><span class="dot l2"></span> Maturation</button></div></div>
+      </div>
+    </div>
+
+    <!-- C -->
+    <div class="col">
+      <p class="col-label">C · Accent pâle</p>
+      <p class="col-sub">La couleur d'action du produit, en fond très dilué. Le plus attirant — et le plus risqué en série : quinze taches vertes dans une liste.</p>
+      <div class="panel">
+        <div class="card"><div class="tx">On nous paie pour livrer vite, pas pour la maintenabilité.</div>
+          <div class="meta"><button class="cl c"><svg class="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Classer</button></div></div>
+        <div class="card"><div class="tx">Le vrai coût d'une réunion, ce n'est pas l'heure passée.</div>
+          <div class="meta"><button class="cl c"><svg class="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Classer</button></div></div>
+        <div class="card"><div class="tx">Trois ans de code legacy m'ont appris une chose.</div>
+          <div class="meta"><button class="cl c"><svg class="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Classer</button><span class="versions">2 versions</span></div></div>
+        <div class="card"><div class="tx">Personne ne lit la documentation. Tout le monde lit le code.</div>
+          <div class="meta"><button class="badge"><span class="dot l2"></span> Maturation</button></div></div>
+      </div>
+    </div>
+
+    <!-- D -->
+    <div class="col">
+      <p class="col-label">D · Texte souligné</p>
+      <p class="col-sub">Aucun fond, aucune bordure : un lien. Le plus léger en série, mais il ne remplit pas l'emplacement — la carte classée et la carte libre ne riment plus.</p>
+      <div class="panel">
+        <div class="card"><div class="tx">On nous paie pour livrer vite, pas pour la maintenabilité.</div>
+          <div class="meta"><button class="cl d"><span class="u">Classer</span> <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button></div></div>
+        <div class="card"><div class="tx">Le vrai coût d'une réunion, ce n'est pas l'heure passée.</div>
+          <div class="meta"><button class="cl d"><span class="u">Classer</span> <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button></div></div>
+        <div class="card"><div class="tx">Trois ans de code legacy m'ont appris une chose.</div>
+          <div class="meta"><button class="cl d"><span class="u">Classer</span> <svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button><span class="versions">2 versions</span></div></div>
+        <div class="card"><div class="tx">Personne ne lit la documentation. Tout le monde lit le code.</div>
+          <div class="meta"><button class="badge"><span class="dot l2"></span> Maturation</button></div></div>
+      </div>
+    </div>
+
+    <!-- E -->
+    <div class="col">
+      <p class="col-label">E · Bouton bordé</p>
+      <p class="col-sub">Bordure pleine sur fond clair : la convention du petit bouton secondaire. Se lit comme cliquable sans effort, mais tranche sur une carte déjà bordée.</p>
+      <div class="panel">
+        <div class="card"><div class="tx">On nous paie pour livrer vite, pas pour la maintenabilité.</div>
+          <div class="meta"><button class="cl e"><svg class="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Classer</button></div></div>
+        <div class="card"><div class="tx">Le vrai coût d'une réunion, ce n'est pas l'heure passée.</div>
+          <div class="meta"><button class="cl e"><svg class="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Classer</button></div></div>
+        <div class="card"><div class="tx">Trois ans de code legacy m'ont appris une chose.</div>
+          <div class="meta"><button class="cl e"><svg class="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> Classer</button><span class="versions">2 versions</span></div></div>
+        <div class="card"><div class="tx">Personne ne lit la documentation. Tout le monde lit le code.</div>
+          <div class="meta"><button class="badge"><span class="dot l2"></span> Maturation</button></div></div>
+      </div>
+    </div>
+
+    <!-- F -->
+    <div class="col">
+      <p class="col-label">F · Contour accent</p>
+      <p class="col-sub">Contour plein en vert, qui se remplit au survol. Le plus explicitement « appuie ici » — et le plus bruyant répété quinze fois.</p>
+      <div class="panel">
+        <div class="card"><div class="tx">On nous paie pour livrer vite, pas pour la maintenabilité.</div>
+          <div class="meta"><button class="cl f"><span class="hollow hollow-a"></span> Classer</button></div></div>
+        <div class="card"><div class="tx">Le vrai coût d'une réunion, ce n'est pas l'heure passée.</div>
+          <div class="meta"><button class="cl f"><span class="hollow hollow-a"></span> Classer</button></div></div>
+        <div class="card"><div class="tx">Trois ans de code legacy m'ont appris une chose.</div>
+          <div class="meta"><button class="cl f"><span class="hollow hollow-a"></span> Classer</button><span class="versions">2 versions</span></div></div>
+        <div class="card"><div class="tx">Personne ne lit la documentation. Tout le monde lit le code.</div>
+          <div class="meta"><button class="badge"><span class="dot l2"></span> Maturation</button></div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="note">
+    <h2>Ce qu'il faut regarder</h2>
+    <ul>
+      <li><b>La quatrième carte de chaque colonne est classée.</b> C'est la comparaison qui compte : l'invitation et l'étiquette remplie doivent se répondre, pas se concurrencer.</li>
+      <li><b>Regarde la colonne entière, pas le bouton.</b> Une variante qui séduit isolément peut saturer la liste. C'est le piège de C et F.</li>
+      <li><b>Le survol est réel</b> sur les six — passe la souris dessus.</li>
+      <li><b>Aucune ne décale la mise en page</b> quand elle se remplit : toutes tiennent la même hauteur que l'étiquette.</li>
+    </ul>
+
+    <div class="reco">
+      <b>Ma recommandation : B.</b> C'est la seule qui dit ce que le contrôle est vraiment. La pastille creuse est littéralement l'étiquette vide — même fond, même rayon, même pastille, simplement pas encore remplie ; classer une idée revient visuellement à <i>colorer le point</i>. Et le chevron annonce le menu, ce qu'aucun « + » ne fait : un « + » promet une création, alors qu'on choisit dans une liste existante.<br><br>
+      Elle donne envie d'être cliquée sans hausser la voix — et c'est ce qu'il faut à un contrôle qui se répète sur presque chaque ligne. Si tu la trouves trop discrète, <b>E</b> est le cran au-dessus sans virer à la couleur ; <b>C</b> et <b>F</b> ne tiennent que si les cartes libres restent minoritaires, ce qui n'est pas le cas.
+    </div>
+  </div>
+</body>
+</html>

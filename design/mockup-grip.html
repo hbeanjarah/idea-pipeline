@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La poignée de glissement</title>
+<style>
+  :root{
+    --sunken:#e2e8f2; --surface:#fcfdff; --panelbd:#dce4f0; --cardbd:#e4ebf4;
+    --ink:#323859; --muted:#5d667e; --faint:#aab2c4;
+    --accent:#038c8c; --tagbg:#e7eef8; --tagink:#5b6480;
+    --label-1:#a68776; --label-2:#4a3f73; --label-3:#038c8c;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#e8ebf1;color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;padding-block:34px;padding-inline:20px;line-height:1.5}
+  .page-h{max-width:1160px;margin:0 auto 24px}
+  .page-h h1{font-size:19px;font-weight:600;margin:0 0 5px;letter-spacing:-.01em}
+  .page-h p{font-size:13px;color:var(--muted);margin:0;max-width:74ch}
+  .stage{max-width:1160px;margin:0 auto;display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start;justify-content:center}
+  .col{width:344px;max-width:100%}
+  .col-label{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:0 0 3px 2px;font-weight:600}
+  .col-sub{font-size:11px;color:var(--muted);margin:0 0 9px 2px;line-height:1.45;min-height:46px}
+  .panel{background:var(--sunken);border:1px solid var(--panelbd);border-radius:14px;padding:13px}
+
+  .dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex:none}
+  .l1{background:var(--label-1)}.l2{background:var(--label-2)}.l3{background:var(--label-3)}
+
+  .step{display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--cardbd);
+    border-radius:10px;padding:8px 10px;font-size:13px}
+  .step + .step{margin-top:6px}
+  .step .nm{flex:1;user-select:none}
+  .arrows{display:flex;gap:1px;margin-left:auto}
+  .ab{background:none;border:0;padding:3px;line-height:0;color:var(--muted);cursor:pointer;border-radius:5px}
+  .ab svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+  .rm{background:none;border:0;padding:3px;line-height:0;color:var(--faint);cursor:pointer}
+  .rm svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round}
+
+  /* La poignée : zone de préhension confortable, glyphe discret. */
+  .grip{color:var(--faint);line-height:0;cursor:grab;touch-action:none;padding:3px;margin:-3px;
+    border-radius:5px;transition:color .12s ease,background .12s ease}
+  .grip:hover{color:var(--tagink);background:var(--tagbg)}
+  .grip svg{width:15px;height:15px;display:block}
+
+  .big{display:flex;align-items:center;gap:18px;background:var(--surface);border:1px solid var(--cardbd);
+    border-radius:10px;padding:14px;margin-top:11px;justify-content:center}
+  .big svg{width:60px;height:60px;color:var(--tagink)}
+  .big .cap{font-size:11px;color:var(--muted);font-family:ui-monospace,Menlo,monospace}
+
+  .who{font-size:11px;color:var(--muted);margin:9px 0 0 2px;line-height:1.5}
+  .who b{color:var(--ink)}
+
+  .note{max-width:1160px;margin:34px auto 0;font-size:12px;color:var(--muted);line-height:1.6}
+  .note h2{font-size:13px;color:var(--ink);margin:22px 0 6px}
+  .note b{color:var(--ink)}
+  .note ul{margin:6px 0 0;padding-left:18px}
+  .note li{margin-bottom:6px}
+  .reco{background:#e0f0ef;border:1px solid #bcdcda;border-radius:10px;padding:11px 13px;margin-top:14px}
+  .reco b{color:var(--accent)}
+</style>
+</head>
+<body>
+  <div class="page-h">
+    <h1>La poignée de glissement</h1>
+    <p>Six glyphes, chacun dans une vraie ligne à taille réelle, puis agrandi ×4 pour juger la forme. Tous sont dessinés avec des disques pleins plutôt qu'au trait — c'est ce qui manquait à ma poignée précédente, qui s'évaporait à 13 px. Survole une poignée : sa zone de préhension apparaît.</p>
+  </div>
+
+  <div class="stage">
+
+    <!-- A -->
+    <div class="col">
+      <p class="col-label">A · Six points (2×3)</p>
+      <p class="col-sub">La convention dominante. Material l'appelle <code>drag_indicator</code>. C'est ce qu'utilisent Notion, Linear et Jira.</p>
+      <div class="panel">
+        <div class="step"><span class="grip"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg></span><span class="dot l1"></span><span class="nm">Capturé</span><span class="arrows"><button class="ab"><svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg></button><button class="ab"><svg viewBox="0 0 24 24"><path d="M12 5v13"/><path d="M18 12l-6 6-6-6"/></svg></button></span><button class="rm"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+        <div class="step"><span class="grip"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg></span><span class="dot l2"></span><span class="nm">Maturation</span><span class="arrows"><button class="ab"><svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg></button><button class="ab"><svg viewBox="0 0 24 24"><path d="M12 5v13"/><path d="M18 12l-6 6-6-6"/></svg></button></span><button class="rm"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+        <div class="big"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.7"/><circle cx="15" cy="6" r="1.7"/><circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/><circle cx="9" cy="18" r="1.7"/><circle cx="15" cy="18" r="1.7"/></svg><span class="cap">×4</span></div>
+      </div>
+      <p class="who"><b>En usage</b> · Notion · Linear · Jira · Material Design</p>
+    </div>
+
+    <!-- B -->
+    <div class="col">
+      <p class="col-label">B · Huit points (2×4)</p>
+      <p class="col-sub">La même idée, une rangée de plus. Plus dense, plus visible à petite taille — mais la forme devient carrée et perd sa lecture verticale.</p>
+      <div class="panel">
+        <div class="step"><span class="grip"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="4.5" r="1.6"/><circle cx="15" cy="4.5" r="1.6"/><circle cx="9" cy="9.5" r="1.6"/><circle cx="15" cy="9.5" r="1.6"/><circle cx="9" cy="14.5" r="1.6"/><circle cx="15" cy="14.5" r="1.6"/><circle cx="9" cy="19.5" r="1.6"/><circle cx="15" cy="19.5" r="1.6"/></svg></span><span class="dot l1"></span><span class="nm">Capturé</span><span class="arrows"><button class="ab"><svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg></button><button class="ab"><svg viewBox="0 0 24 24"><path d="M12 5v13"/><path d="M18 12l-6 6-6-6"/></svg></button></span><button class="rm"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+        <div class="step"><span class="grip"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="4.5" r="1.6"/><circle cx="15" cy="4.5" r="1.6"/><circle cx="9" cy="9.5" r="1.6"/><circle cx="15" cy="9.5" r="1.6"/><circle cx="9" cy="14.5" r="1.6"/><circle cx="15" cy="14.5" r="1.6"/><circle cx="9" cy="19.5" r="1.6"/><circle cx="15" cy="19.5" r="1.6"/></svg></span><span class="dot l2"></span><span class="nm">Maturation</span><span class="arrows"><button class="ab"><svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg></button><button class="ab"><svg viewBox="0 0 24 24"><path d="M12 5v13"/><path d="M18 12l-6 6-6-6"/></svg></button></span><button class="rm"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+        <div class="big"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="4.5" r="1.6"/><circle cx="15" cy="4.5" r="1.6"/><circle cx="9" cy="9.5" r="1.6"/><circle cx="15" cy="9.5" r="1.6"/><circle cx="9" cy="14.5" r="1.6"/><circle cx="15" cy="14.5" r="1.6"/><circle cx="9" cy="19.5" r="1.6"/><circle cx="15" cy="19.5" r="1.6"/></svg><span class="cap">×4</span></div>
+      </div>
+      <p class="who"><b>En usage</b> · Figma (calques) · Airtable</p>
+    </div>
+
+    <!-- C -->
+    <div class="col">
+      <p class="col-label">C · Trois barres</p>
+      <p class="col-sub">La convention d'iOS, sur toutes ses listes réordonnables. Très lisible à petite taille — mais c'est aussi le glyphe du menu « hamburger », qui promet autre chose.</p>
+      <div class="panel">
+        <div class="step"><span class="grip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 7h14"/><path d="M5 12h14"/><path d="M5 17h14"/></svg></span><span class="dot l1"></span><span class="nm">Capturé</span><span class="arrows"><button class="ab"><svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg></button><button class="ab"><svg viewBox="0 0 24 24"><path d="M12 5v13"/><path d="M18 12l-6 6-6-6"/></svg></button></span><button class="rm"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+        <div class="step"><span class="grip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 7h14"/><path d="M5 12h14"/><path d="M5 17h14"/></svg></span><span class="dot l2"></span><span class="nm">Maturation</span><span class="arrows"><button class="ab"><svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg></button><button class="ab"><svg viewBox="0 0 24 24"><path d="M12 5v13"/><path d="M18 12l-6 6-6-6"/></svg></button></span><button class="rm"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+        <div class="big"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 7h14"/><path d="M5 12h14"/><path d="M5 17h14"/></svg><span class="cap">×4</span></div>
+      </div>
+      <p class="who"><b>En usage</b> · iOS · Android (listes système)</p>
+    </div>
+
+    <!-- D -->
+    <div class="col">
+      <p class="col-label">D · Deux barres courtes</p>
+      <p class="col-sub">Trois barres amputées d'une. Plus discret, moins confondable avec un menu — mais aussi moins reconnaissable : ce glyphe n'a pas de convention derrière lui.</p>
+      <div class="panel">
+        <div class="step"><span class="grip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M7 9.5h10"/><path d="M7 14.5h10"/></svg></span><span class="dot l1"></span><span class="nm">Capturé</span><span class="arrows"><button class="ab"><svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg></button><button class="ab"><svg viewBox="0 0 24 24"><path d="M12 5v13"/><path d="M18 12l-6 6-6-6"/></svg></button></span><button class="rm"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+        <div class="step"><span class="grip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M7 9.5h10"/><path d="M7 14.5h10"/></svg></span><span class="dot l2"></span><span class="nm">Maturation</span><span class="arrows"><button class="ab"><svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg></button><button class="ab"><svg viewBox="0 0 24 24"><path d="M12 5v13"/><path d="M18 12l-6 6-6-6"/></svg></button></span><button class="rm"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+        <div class="big"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M7 9.5h10"/><path d="M7 14.5h10"/></svg><span class="cap">×4</span></div>
+      </div>
+      <p class="who"><b>En usage</b> · peu répandu</p>
+    </div>
+
+    <!-- E -->
+    <div class="col">
+      <p class="col-label">E · Croix de déplacement</p>
+      <p class="col-sub">Quatre flèches — le curseur « move » historique. Le plus explicite sur l'action, mais il promet un déplacement dans <b>toutes</b> les directions alors qu'on ne bouge que verticalement.</p>
+      <div class="panel">
+        <div class="step"><span class="grip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/><path d="M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/></svg></span><span class="dot l1"></span><span class="nm">Capturé</span><span class="arrows"><button class="ab"><svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg></button><button class="ab"><svg viewBox="0 0 24 24"><path d="M12 5v13"/><path d="M18 12l-6 6-6-6"/></svg></button></span><button class="rm"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+        <div class="step"><span class="grip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/><path d="M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/></svg></span><span class="dot l2"></span><span class="nm">Maturation</span><span class="arrows"><button class="ab"><svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg></button><button class="ab"><svg viewBox="0 0 24 24"><path d="M12 5v13"/><path d="M18 12l-6 6-6-6"/></svg></button></span><button class="rm"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+        <div class="big"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/><path d="M9 6l3-3 3 3M9 18l3 3 3-3M6 9l-3 3 3 3M18 9l3 3-3 3"/></svg><span class="cap">×4</span></div>
+      </div>
+      <p class="who"><b>En usage</b> · éditeurs graphiques · curseur système</p>
+    </div>
+
+    <!-- F -->
+    <div class="col">
+      <p class="col-label">F · Six points serrés (2×3 compact)</p>
+      <p class="col-sub">A resserré : les points se rapprochent et forment un bloc dense qui accroche mieux l'œil à petite taille, sans changer de convention.</p>
+      <div class="panel">
+        <div class="step"><span class="grip"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="10" cy="7" r="1.8"/><circle cx="14" cy="7" r="1.8"/><circle cx="10" cy="12" r="1.8"/><circle cx="14" cy="12" r="1.8"/><circle cx="10" cy="17" r="1.8"/><circle cx="14" cy="17" r="1.8"/></svg></span><span class="dot l1"></span><span class="nm">Capturé</span><span class="arrows"><button class="ab"><svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg></button><button class="ab"><svg viewBox="0 0 24 24"><path d="M12 5v13"/><path d="M18 12l-6 6-6-6"/></svg></button></span><button class="rm"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+        <div class="step"><span class="grip"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="10" cy="7" r="1.8"/><circle cx="14" cy="7" r="1.8"/><circle cx="10" cy="12" r="1.8"/><circle cx="14" cy="12" r="1.8"/><circle cx="10" cy="17" r="1.8"/><circle cx="14" cy="17" r="1.8"/></svg></span><span class="dot l2"></span><span class="nm">Maturation</span><span class="arrows"><button class="ab"><svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg></button><button class="ab"><svg viewBox="0 0 24 24"><path d="M12 5v13"/><path d="M18 12l-6 6-6-6"/></svg></button></span><button class="rm"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+        <div class="big"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="10" cy="7" r="1.8"/><circle cx="14" cy="7" r="1.8"/><circle cx="10" cy="12" r="1.8"/><circle cx="14" cy="12" r="1.8"/><circle cx="10" cy="17" r="1.8"/><circle cx="14" cy="17" r="1.8"/></svg><span class="cap">×4</span></div>
+      </div>
+      <p class="who"><b>En usage</b> · variante répandue de A</p>
+    </div>
+
+  </div>
+
+  <div class="note">
+    <h2>Ce qui change indépendamment du glyphe</h2>
+    <ul>
+      <li><b>Les disques sont pleins, plus tracés au trait.</b> C'est ce qui tuait la poignée précédente : six points dessinés en <code>stroke</code> de 1,8 px, à 13 px de côté, ne font plus que du gris.</li>
+      <li><b>La zone de préhension est plus grande que le glyphe</b> — un <code>padding</code> de 3 px compensé par une marge négative, donc sans décaler la ligne. Au doigt, on attrape une cible de 21 px, pas de 15.</li>
+      <li><b>Elle se révèle au survol</b> : le glyphe passe de <code>--faint</code> à <code>--tagink</code> sur un fond <code>--tagbg</code>. Survole-les, c'est actif.</li>
+      <li><b>Les flèches ne bougent pas.</b> Elles ne signalent pas le glissement, elles sont le chemin sans glissement qu'impose WCAG 2.5.7. C'est la poignée, et elle seule, qui dit « ça s'attrape ».</li>
+    </ul>
+
+    <div class="reco">
+      <b>Ma recommandation : A</b>, ou <b>F</b> si tu la trouves encore trop légère.<br><br>
+      Les six points en 2×3 sont le glyphe que Notion, Linear et Jira utilisent tous les trois pour exactement ce geste. Tes utilisateurs viennent de ces outils — l'icône la plus explicite n'est pas la plus descriptive, c'est celle qu'ils ont déjà apprise ailleurs.<br><br>
+      <b>C</b> est aussi lisible mais porte une ambiguïté réelle : trois barres, c'est le menu. <b>E</b> décrit mieux l'action mais promet un déplacement libre alors qu'on ne monte et ne descend que d'un cran. <b>D</b> n'a aucune convention derrière lui.
+    </div>
+  </div>
+</body>
+</html>
