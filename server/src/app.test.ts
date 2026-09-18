@@ -36,7 +36,7 @@ describe('POST /ideas', () => {
 
     expect(res.status).toBe(201);
     const idea = (await res.json()) as Idea;
-    expect(idea.status).toBe('captured');
+    expect(idea.labelId).toBeNull();
     expect(idea.variations[0]?.text).toBe('une idée');
   });
 
@@ -69,15 +69,29 @@ describe('DELETE /ideas/:id', () => {
 });
 
 describe('PATCH /ideas/:id', () => {
-  it('answers 200 with the moved idea', async () => {
+  it('answers 200 with the classified idea', async () => {
     const idea = await createIdea();
+    const stage = (await (
+      await send('POST', '/labels', { name: 'Prêt' })
+    ).json()) as { id: string };
 
     const res = await send('PATCH', `/ideas/${idea.id}`, {
-      status: 'ready',
+      labelId: stage.id,
     });
 
     expect(res.status).toBe(200);
-    expect(((await res.json()) as Idea).status).toBe('ready');
+    expect(((await res.json()) as Idea).labelId).toBe(stage.id);
+  });
+
+  it('detaches with null', async () => {
+    const idea = await createIdea();
+
+    const res = await send('PATCH', `/ideas/${idea.id}`, {
+      labelId: null,
+    });
+
+    expect(res.status).toBe(200);
+    expect(((await res.json()) as Idea).labelId).toBeNull();
   });
 });
 
@@ -220,7 +234,7 @@ describe('GET /ideas ordering', () => {
     await tick();
     await createIdea('trois');
     await tick();
-    await send('PATCH', `/ideas/${first.id}`, { status: 'ready' });
+    await send('PATCH', `/ideas/${first.id}`, { labelId: null });
 
     const ideas = (await (await api('/ideas')).json()) as Idea[];
     const stamps = ideas.map((idea) => idea.updatedAt);

@@ -1,9 +1,9 @@
 import { z } from 'zod';
 
 import { ApiError } from '#config/api-error';
-import type { Idea, Status } from '#domain/types';
-import { STATUSES } from '#domain/types';
+import type { Idea } from '#domain/types';
 import * as store from '#store/ideas';
+import * as labelStore from '#store/labels';
 
 // strictObject is docs/openapi.yaml's `additionalProperties: false`. trim() is
 // a transform, so the trimmed value is the one that ends up stored.
@@ -11,12 +11,9 @@ const TextBody = z.strictObject({
   text: z.string().trim().min(1),
 });
 
-const StatusBody = z.strictObject({
-  status: z.enum(STATUSES),
+const LabelBody = z.strictObject({
+  labelId: z.string().nullable(),
 });
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null;
 
 const hasUnknownField = (error: z.ZodError): boolean =>
   error.issues.some((issue) => issue.code === 'unrecognized_keys');
@@ -36,24 +33,16 @@ function parseTextBody(body: unknown): string {
   );
 }
 
-function parseStatusBody(body: unknown): Status {
-  const result = StatusBody.safeParse(body);
+function parseLabelBody(body: unknown): string | null {
+  const result = LabelBody.safeParse(body);
 
-  if (result.success) return result.data.status;
-
-  if (hasUnknownField(result.error)) {
-    throw new ApiError(400, 'Champs non autorisés.');
-  }
-
-  // Zod reports an absent `status` and a value outside the enum with the same
-  // issue code, so presence has to be read off the input itself.
-  const absent = !isRecord(body) || !('status' in body);
+  if (result.success) return result.data.labelId;
 
   throw new ApiError(
     400,
-    absent
-      ? 'Le champ "status" est obligatoire.'
-      : 'Statut invalide.',
+    hasUnknownField(result.error)
+      ? 'Champs non autorisés.'
+      : 'Le champ "labelId" est obligatoire.',
   );
 }
 
@@ -82,14 +71,24 @@ export async function deleteIdea(
   }
 }
 
-export async function changeStatus(
+export async function setIdeaLabel(
   userId: string,
   ideaId: string,
   body: unknown,
 ): Promise<Idea> {
-  return requireIdea(
-    await store.changeStatus(userId, ideaId, parseStatusBody(body)),
-  );
+  const labelId = parseLabelBody(body);
+
+  // Checked before the write: left to the foreign key, an unknown id would
+  // raise a 500 instead of the 404 the contract owes, and the constraint
+  // cannot tell whose stage it is.
+  if (
+    labelId !== null &&
+    !(await labelStore.labelExists(userId, labelId))
+  ) {
+    throw new ApiError(404, 'Étape introuvable.');
+  }
+
+  return requireIdea(await store.setLabel(userId, ideaId, labelId));
 }
 
 export async function addVariation(

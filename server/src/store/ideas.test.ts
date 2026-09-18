@@ -39,10 +39,10 @@ describe('listIdeas', () => {
 });
 
 describe('createIdea', () => {
-  it('enters the pipeline as captured, with one initial variation', async () => {
+  it('is born free, with one initial variation', async () => {
     const idea = await store.createIdea(userId, 'une idée');
 
-    expect(idea.status).toBe('captured');
+    expect(idea.labelId).toBeNull();
     expect(idea.variations).toHaveLength(1);
     expect(idea.createdAt).toBe(idea.updatedAt);
   });
@@ -75,9 +75,7 @@ describe('unknown identifiers', () => {
   // these would raise a 500 where the contract owes a 404.
   it('treats a non-uuid id as not found', async () => {
     expect(await store.deleteIdea(userId, 'nope')).toBe(false);
-    expect(
-      await store.changeStatus(userId, 'nope', 'ready'),
-    ).toBeNull();
+    expect(await store.setLabel(userId, 'nope', null)).toBeNull();
     expect(
       await store.addVariation(userId, 'nope', 'suite'),
     ).toBeNull();
@@ -149,7 +147,7 @@ describe('listIdeas ordering', () => {
     expect((await store.listIdeas(userId))[0]?.id).toBe(last.id);
 
     // Touching the oldest idea stamps it with now() and moves it to the front.
-    await store.changeStatus(userId, first.id, 'ready');
+    await store.setLabel(userId, first.id, null);
 
     expect((await store.listIdeas(userId))[0]?.id).toBe(first.id);
   });

@@ -35,8 +35,7 @@ La liste est exhaustive : l'API n'en renvoie pas d'autres.
 | Code  | Message                                    | Quand                                                                                                                                             |
 | ----- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `400` | `Le champ "text" est obligatoire.`         | `text` absent, vide ou ne contenant que des espaces — y compris quand le corps n'a pas été lu du tout (`Content-Type: application/json` manquant) |
-| `400` | `Le champ "status" est obligatoire.`       | `status` absent du corps, corps vide inclus                                                                                                       |
-| `400` | `Statut invalide.`                         | `status` présent mais hors des valeurs autorisées                                                                                                 |
+| `400` | `Le champ "labelId" est obligatoire.`      | `labelId` absent du corps, ou d'un type autre qu'une chaîne ou `null` — corps vide inclus                                                         |
 | `400` | `Le nom de l'étape est obligatoire.`       | `name` absent, vide ou ne contenant que des espaces — corps non lu inclus                                                                         |
 | `400` | `Le nom de l'étape est trop long.`         | `name` de plus de 32 caractères                                                                                                                   |
 | `400` | `Cette étape existe déjà.`                 | le compte porte déjà ce nom — comparaison après `trim`, casse ignorée, accents **non** repliés (« Prêt » ≠ « Pret »)                              |
@@ -61,7 +60,7 @@ Le texte est repris **mot pour mot** côté serveur : le contrat fait foi.
 | delete        | `DELETE` | `/ideas/{id}`                          | `DELETE` supprime la ressource identifiée par `{id}`. L'URL cible directement l'idée concernée.                                                                                                                                                                                                                            |
 | addVariation  | `POST`   | `/ideas/{id}/variations`               | Une variation appartient à une idée. L'imbrication de l'URL exprime cette relation de possession. `POST` ajoute une nouvelle ressource à cette sous-collection.                                                                                                                                                            |
 | editVariation | `PATCH`  | `/ideas/{id}/variations/{variationId}` | `PATCH` est utilisé car seule une partie de la variation est modifiée. L'URL cible directement la variation appartenant à l'idée.                                                                                                                                                                                          |
-| changeStatus  | `PATCH`  | `/ideas/{id}`                          | Le statut est un attribut de l'idée. `PATCH` permet une modification partielle de la ressource sans remplacer l'ensemble de ses champs. Le changement de statut est traité comme une mise à jour de la ressource, et non comme une action dédiée (`/publish`, `/archive`, etc.).                                           |
+| setIdeaLabel  | `PATCH`  | `/ideas/{id}`                          | L'étape est un attribut de l'idée. `PATCH` permet une modification partielle sans remplacer l'ensemble des champs. Le classement est traité comme une mise à jour de la ressource, et non comme une action dédiée (`/publish`, `/archive`…). Détacher n'a pas d'endpoint propre : `null` est une valeur du champ.          |
 | listLabels    | `GET`    | `/labels`                              | `GET` récupère la collection des étapes du compte, sans la modifier.                                                                                                                                                                                                                                                       |
 | createLabel   | `POST`   | `/labels`                              | `POST` ajoute une ressource à la collection. Le serveur attribue l'identifiant, la position et la couleur.                                                                                                                                                                                                                 |
 | reorderLabels | `PATCH`  | `/labels`                              | Le `PATCH` porte sur la **collection**, pas sur un élément : déplacer une étape renumérote toutes les autres. Des `PATCH /labels/{id}` successifs s'entrelaceraient en ordres incohérents. `PUT /labels/order` a été écarté — ce chemin entre en collision avec `/labels/{id}`, où `order` serait lu comme un identifiant. |
@@ -97,7 +96,7 @@ Aucune donnée n'est envoyée à l'API : le client appelle simplement l'endpoint
   {
     "createdAt": "2026-07-08T02:45:30.790Z",
     "id": "5c6c75a2-9b9b-462a-983f-3ad74f664470",
-    "status": "captured",
+    "labelId": null,
     "updatedAt": "2026-07-08T02:45:30.790Z",
     "variations": [
       {
@@ -181,42 +180,42 @@ Aucune donnée n'est envoyée à l'API : le client appelle simplement l'endpoint
 Les deux causes sont distinguées : un seul message couvrant les deux ne
 permettrait pas de savoir laquelle des deux ressources manque.
 
-### Change status
+### Set idea label
 
-`PATCH /ideas/{id}` — Modifie le statut d'une idée.
+`PATCH /ideas/{id}` — Classe une idée à une étape, ou l'en détache.
 
 **Requête :**
 
 ```json
 {
-  "status": "captured"
+  "labelId": "8f3a1c60-4b2e-4d91-9a7f-0e5d2c8b1a34"
 }
 ```
+
+`null` détache l'idée. Il n'y a pas d'endpoint séparé pour ça : une idée sans
+étape est un état légal du modèle, pas une opération à part.
 
 **Réponse :**
 
 - `200` + l'idée mise à jour.
-- `400` si le corps est invalide — détail des trois cas ci-dessous.
-- `404` — `Idée introuvable.` si l'idée à modifier est introuvable.
+- `400` si le corps est invalide.
+- `404` — `Idée introuvable.` si l'idée n'existe pas ou appartient à un autre compte.
+- `404` — `Étape introuvable.` si `labelId` ne désigne aucune étape **de ce compte**.
 
-Le champ `status` accepte uniquement les valeurs suivantes :
+Le corps doit contenir uniquement le champ `labelId`.
 
-- `captured`
-- `maturing`
-- `ready`
-- `published`
-
-Le corps de la requête doit contenir uniquement le champ `status`.
-
-- `400` — `Le champ "status" est obligatoire.` si `status` est absent, corps vide inclus.
-- `400` — `Statut invalide.` si `status` est présent mais ne correspond à aucune des valeurs autorisées.
+- `400` — `Le champ "labelId" est obligatoire.` si `labelId` est absent, ou n'est ni une chaîne ni `null` — corps vide inclus.
 - `400` — `Champs non autorisés.` si un ou plusieurs champs hors schéma sont présents.
+
+L'appartenance de l'étape est vérifiée **avant** l'écriture. Laissée à la clé
+étrangère, une étape inconnue remonterait en `500`, et celle d'un autre compte
+serait acceptée en silence.
 
 ## Décision : `GET /ideas`
 
 **Décision : la collection complète est renvoyée, triée par le serveur.**
 
-L'endpoint `GET /ideas` renvoie l'ensemble des idées, sans filtrage ni pagination. Le volume attendu reste faible ; filtres et recherche sont réalisés côté client. Ajouter des paramètres de requête (`?status=`, `?search=`…) constituerait une complexité inutile à ce stade (principe **YAGNI**).
+L'endpoint `GET /ideas` renvoie l'ensemble des idées, sans filtrage ni pagination. Le volume attendu reste faible ; filtres et recherche sont réalisés côté client. Ajouter des paramètres de requête (`?labelId=`, `?search=`…) constituerait une complexité inutile à ce stade (principe **YAGNI**).
 
 **Le tri, lui, appartient au serveur** : `updated_at` décroissant, l'idée touchée le plus récemment en premier. C'est ce qu'attend la section « Récentes » de l'accueil. Le laisser au client obligerait chaque consommateur à réimplémenter la même règle, et à se tromper de la même façon.
 
