@@ -62,9 +62,8 @@ cette liste sans qu'on discute et l'autorise explicitement.
 - **Type d'app** : extension Chrome, Manifest V3 (service worker)
 - **Surface** : Chrome Side Panel API
 - **Stockage** : l'API, atteinte **via le service worker** — le panneau ne fait
-  aucun appel réseau et ne voit jamais le jeton. `chrome.storage.local` ne sert
-  plus qu'à la reprise des idées d'avant la bascule → voir
-  `.claude/rules/storage.md`
+  aucun appel réseau et ne voit jamais le jeton. `chrome.storage.local` ne porte
+  plus aucune idée → voir `.claude/rules/storage.md`
 - **Styles** : CSS pur, aucun framework UI (ni Tailwind, ni librairie de composants)
 
 **Back — l'API (`server/`)**
@@ -127,8 +126,6 @@ Claude Code de sa propre initiative.
   édition croisée, ni rôles, ni notion d'équipe.
 - **Pas d'IA** : aucune génération, reformulation ou suggestion automatique.
   La maturation d'une idée est 100 % manuelle.
-- **Changement de statut : dans la vue détail uniquement.** Pas de
-  changement depuis l'accueil ni la liste.
 - **Suppression = définitive.** Pas d'archivage, pas de corbeille,
   pas de restauration.
 - **Le panneau latéral ne s'ouvre que sur action explicite** de

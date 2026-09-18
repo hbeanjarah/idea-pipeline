@@ -11,8 +11,8 @@ Objectif : des composants **réutilisables et découplés**, sans sur-ingénieri
 ## Présentation vs données
 
 - Les composants réutilisables (`components/`) sont **présentationnels** : ils
-  reçoivent données et callbacks en **props**, et ne touchent **jamais** au
-  repository (`storage.ts`) ni à `chrome.*` directement.
+  reçoivent données et callbacks en **props**, et ne touchent **jamais** aux
+  repositories (`storage/remote.ts`) ni à `chrome.*` directement.
 - L'accès aux données et l'état vivent dans les **écrans** (`screens/`), qui
   passent données + callbacks aux composants.
 - Un composant ignore _d'où_ viennent ses données et _ce qui_ suit une action —
@@ -23,7 +23,7 @@ Objectif : des composants **réutilisables et découplés**, sans sur-ingénieri
 - Chaque composant a une interface `Props` explicite et typée (jamais `any`).
 - Props **minimales** : seulement ce dont le composant a besoin. Pas de prop
   « au cas où ».
-- Callbacks nommés par l'intention (`onSubmit`, `onSelect`, `onStatusChange`),
+- Callbacks nommés par l'intention (`onSubmit`, `onSelect`, `onLabelChange`),
   pas par l'implémentation.
 - Pas de booléen fourre-tout encodant plusieurs modes : préférer des composants
   distincts ou une prop `variant` explicite.
@@ -47,6 +47,9 @@ Objectif : des composants **réutilisables et découplés**, sans sur-ingénieri
   (`role="status"`), sans il est `aria-hidden`, parce qu'un bouton qui dit déjà
   « Connexion en cours… » ne doit pas l'être deux fois. Sa **taille** reste chez
   l'appelant via `className`, comme le glyphe d'`ActionMenu`.
+- Et `LabelDot`, le jour où le sélecteur d'étape et le filtre ont eu besoin de
+  la même pastille. Ce qu'il absorbe : la traduction du `color` — un rang de 1 à
+  8 — en variable CSS. Les appelants ne connaissent aucune couleur.
 
 ## État
 
@@ -65,13 +68,18 @@ devient la norme.
   encore enregistré : si l'échec remontait à l'écran, un « Réessayer » réussi ne
   pourrait pas vider le champ, et l'utilisateur verrait son texte deux fois.
   L'état reste donc là où se trouve la chose à protéger.
-- **`ListScreen` lit deux contextes** (`useIdeas` et `useSession`). C'est un
-  écran, donc il en a le droit — mais il est le seul, et l'identité ne s'affiche
-  que là.
-- **`IdeasProvider` fabrique une idée que le serveur n'a pas encore vue.** Le
-  statut initial et les dates sont devinés côté panneau : une règle serveur
-  dupliquée, le temps d'un aller-retour. Sans elle, la promesse de rapidité du
-  produit ne tient pas sur une API distante.
+- **`ListScreen` lit trois contextes** (`useIdeas`, `useLabels` et
+  `useSession`). C'est un écran, donc il en a le droit — mais il est le seul à
+  en lire autant : la liste est la surface où tout converge, les idées, leurs
+  étapes et l'identité.
+- **`IdeasProvider` fabrique une idée que le serveur n'a pas encore vue.** Les
+  dates sont devinées côté panneau, le temps d'un aller-retour. Sans ça, la
+  promesse de rapidité du produit ne tient pas sur une API distante. L'étape,
+  elle, n'est plus devinée : une idée naît libre, `labelId: null`.
+- **`IdeasProvider` expose une action purement locale, `forgetLabel`.** Toutes
+  les autres écrivent au serveur. Celle-ci ne fait que rattraper un effet qu'il
+  a déjà produit : supprimer une étape libère ses idées côté base, et sans ça le
+  panneau continuerait d'afficher des cartes pointant vers une étape disparue.
 
 ## À éviter
 

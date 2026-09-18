@@ -1,5 +1,5 @@
 ---
-description: Modèle de données canonique (Idea, Variation, Status) et couche repository. Référence unique pour toute lecture/écriture du stockage.
+description: Modèle de données canonique (Idea, Variation, Label) et couche repository. Référence unique pour toute lecture/écriture du stockage.
 paths:
   - "src/**/*.ts"
   - "src/**/*.tsx"
@@ -33,8 +33,14 @@ français vivent côté UI uniquement.
 ## Modèle
 
 ```typescript
-// Les 4 étapes du pipeline.
-type Status = "captured" | "maturing" | "ready" | "published";
+// Une étape du pipeline, écrite par l'utilisateur. Le nom est du contenu, pas
+// une valeur du domaine : rien dans le code ne connaît « Maturation ».
+interface Label {
+  id: string;
+  name: string;
+  color: number; // un rang dans la palette, 1 à 8 — jamais une couleur
+  position: number; // 1..n, l'ordre choisi par l'utilisateur
+}
 
 // Un état du texte à un instant T.
 // APPEND-ONLY : on n'édite ni ne supprime jamais une variation existante ;
@@ -45,10 +51,10 @@ interface Variation {
   createdAt: string; // ISO 8601
 }
 
-// Une idée vivante = une suite de variations + une étape.
+// Une idée vivante = une suite de variations, et au plus une étape.
 interface Idea {
   id: string;
-  status: Status;
+  labelId: string | null; // null = libre, sans étape
   variations: Variation[]; // toujours >= 1 (la capture initiale)
   createdAt: string; // ISO 8601
   updatedAt: string; // ISO 8601, rafraîchi à chaque mutation
@@ -70,10 +76,22 @@ interface IdeaRepository {
     variationId: string,
     text: string,
   ): Promise<Idea>;
-  changeStatus(ideaId: string, status: Status): Promise<Idea>;
+  setLabel(ideaId: string, labelId: string | null): Promise<Idea>; // null détache
   delete(ideaId: string): Promise<void>; // suppression définitive
 }
+
+interface LabelRepository {
+  list(): Promise<Label[]>;
+  create(name: string): Promise<Label>;
+  rename(labelId: string, name: string): Promise<Label>;
+  delete(labelId: string): Promise<void>; // ses idées redeviennent libres
+  reorder(ids: string[]): Promise<Label[]>; // la liste ordonnée entière
+}
 ```
+
+`reorder` prend **toute** la liste, pas une position par étape : N appels dont
+l'entrelacement produit des ordres incohérents, contre un seul qui ne peut pas
+se contredire.
 
 L'implémentation vivante est `src/storage/remote.ts` : elle **ne touche à rien**
 elle-même, elle envoie un message au service worker. Le panneau ne fait aucun
@@ -87,29 +105,38 @@ appel réseau et ne voit jamais le jeton de session.
   réordonnancement, `id` + `createdAt` immuables. Le `text`, lui, reste
   corrigible via `editVariation` — pour réparer une erreur, pas pour marquer
   une étape ; l'`updatedAt` de l'idée est rafraîchi.
-- Les mutateurs (`create`, `addVariation`, `changeStatus`) renvoient l'`Idea`
+- Les mutateurs (`create`, `addVariation`, `setLabel`) renvoient l'`Idea`
   à jour — l'appelant ne relit pas via `list()`.
 - `updatedAt` est rafraîchi à chaque mutation ; `createdAt` ne bouge jamais.
 - Dates en chaînes **ISO 8601** (lisibles, triables, heure incluse).
 - **Une seule source de vérité : PostgreSQL**, derrière
-  `server/src/store/ideas.ts`. Le front l'atteint par son service worker.
-  `src/storage/storage.ts`, l'ancienne implémentation `chrome.storage.local`,
-  ne sert plus qu'à la reprise des idées d'avant la bascule.
-- **Une idée appartient à un compte.** Les six opérations du store prennent un
-  `userId` en premier argument, qui devient un `WHERE user_id = $1` ; une idée
-  d'autrui répond `404`, jamais `403` — on ne divulgue pas son existence.
+  `server/src/store/ideas.ts` et `server/src/store/labels.ts`. Le front
+  l'atteint par son service worker. `chrome.storage.local` ne porte plus aucune
+  idée : l'ancienne implémentation a été supprimée avec la bascule.
+- **Une idée porte au plus une étape**, et la table de liaison
+  `idea_labels` le tient par la contrainte nommée `idea_labels_one_per_idea`.
+  Sa clé primaire, elle, en autorise déjà plusieurs — voir
+  `docs/labels-design.md`.
+- **Supprimer une étape libère ses idées**, elle ne les supprime pas : c'est le
+  `ON DELETE CASCADE` de `idea_labels.label_id` qui le fait.
+- **Une idée et une étape appartiennent à un compte.** Chaque opération des
+  deux stores prend un `userId` en premier argument, qui devient un
+  `WHERE user_id = $1` ; ce qui appartient à autrui répond `404`, jamais `403`
+  — on ne divulgue pas son existence.
 - Côté serveur, « `variations` n'est jamais vide » est tenu par la **transaction**
   de `createIdea`, pas par une contrainte SQL — le relationnel ne sait pas
   l'exprimer. Un `INSERT` manuel peut donc le violer.
 
 ## Chiffrement au repos
 
-`variations.text` **ne contient jamais de texte lisible**. La couche `store/`
-chiffre à l'écriture et déchiffre à la lecture (`store/notes.ts`, AES-256-GCM) ;
-rien au-dessus ne le sait, et c'est voulu : le chiffrement est un détail de
-persistance, pas une règle de domaine.
+`variations.text` et `labels.name` **ne contiennent jamais de texte lisible**.
+Le nom d'une étape est du contenu utilisateur au même titre qu'une note : il
+dit sur quoi la personne travaille. La couche `store/` chiffre à l'écriture et
+déchiffre à la lecture (`store/notes.ts`, AES-256-GCM) ; rien au-dessus ne le
+sait, et c'est voulu : le chiffrement est un détail de persistance, pas une
+règle de domaine.
 
-Trois conséquences à connaître avant de toucher au store :
+Cinq conséquences à connaître avant de toucher au store :
 
 - **Le service valide le clair, avant** que le store ne chiffre. L'ordre des
   couches ne change pas : Zod voit toujours le texte de l'utilisateur.
@@ -118,19 +145,30 @@ Trois conséquences à connaître avant de toucher au store :
   qui tient la règle « une note n'est pas vide ».
 - **Tout nouveau chemin d'écriture doit chiffrer.** `sealed-at-rest.test.ts` lit
   les lignes en SQL brut et échoue si l'un d'eux l'oublie.
+- **Aucune contrainte SQL ne peut porter sur une colonne scellée.** Chaque
+  scellement tire un IV neuf, donc deux étapes nommées « Prêt » écrivent deux
+  valeurs différentes : un index `UNIQUE` ne verrait rien. Les doublons se
+  refusent dans `services/labels.ts`, à la casse et aux espaces près.
+- **Le serveur ne peut pas compter les idées par étape.** Trier ou grouper sur
+  un nom scellé n'a pas de sens ; ces comptes se font côté panneau.
 
-L'identifiant de l'idée est mêlé à la signature : une ligne recopiée dans l'idée
-d'un autre compte ne s'ouvre plus. Détail dans `docs/security-design.md`.
+Un identifiant est mêlé à la signature : celui de l'idée pour une variation,
+celui du compte pour une étape. Une ligne recopiée ailleurs ne s'ouvre plus.
+Détail dans `docs/security-design.md`.
 
-## Étapes <-> libellés UI
+## Les étapes n'ont pas de libellé à traduire
 
-Le code manipule les valeurs anglaises ; l'UI affiche le français. Le mapping
-vit **à un seul endroit**, `src/lib/statusLabels.ts`, avec l'ordre du pipeline.
+Il n'y a plus de mapping valeur anglaise → libellé français : **le nom d'une
+étape est écrit par l'utilisateur**, dans sa langue, et le code ne le connaît
+pas. `src/lib/statusLabels.ts` a disparu avec la table qu'il portait.
 
-Il n'est pas recopié ici. Cette page a longtemps porté « En maturation » quand
-les trois copies du code disaient « Maturation » — c'est ce que coûte un
-libellé écrit à deux endroits. `Record<Status, string>` garantit qu'aucune
-étape n'y manque : en ajouter une au domaine casse la compilation.
+Un compte neuf n'arrive pas vide pour autant : `seedDefaultLabels` lui pose
+quatre étapes à la création — c'est le **seul** endroit du code où ces mots
+français existent, et ils y sont une proposition, pas une valeur du domaine.
+
+Le `color` d'une étape est un **rang**, jamais une couleur : les huit valeurs
+vivent dans `src/styles/tokens.css`. Un `#rrggbb` en base rendrait le thème
+impossible à changer sans réécrire les lignes des utilisateurs.
 
 ## Hors-périmètre (pour l'instant)
 

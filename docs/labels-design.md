@@ -17,21 +17,21 @@ devenir celui de l'utilisateur, pas le mécanisme.
 
 ## Décisions actées
 
-| Sujet               | Décision                                                                   |
-| ------------------- | -------------------------------------------------------------------------- |
-| Cardinalité         | **une seule** étape par idée — pas des tags multiples                      |
-| Vocabulaire         | **écrit par l'utilisateur**, propre à son compte                           |
-| Ordre               | **modifiable**, mais c'est un ordre d'affichage, pas une progression       |
-| Obligatoire ?       | **non** — une idée naît libre et peut le rester                            |
-| Amorçage            | un écran propose les 4 étapes historiques, renommables dès le premier jour |
-| Création par défaut | les 4 étapes sont posées **côté serveur**, à la création du compte         |
-| Suppression         | les idées deviennent libres · `ON DELETE CASCADE` · confirmation chiffrée  |
-| Stockage            | **table de liaison** contrainte à une seule ligne par idée                 |
-| Chiffrement         | `labels.name` scellé par `store/notes.ts`, AAD = `user_id`                 |
-| Couleurs            | attribuées automatiquement dans une palette de 8, jamais demandées         |
-| Filtre              | **une seule rangée** + un débordement « +N » · aucun plafond d'étapes      |
-| Réordonner          | glissement au pointeur **et** flèches — les deux, jamais l'un sans l'autre |
-| Nom                 | 32 caractères au plus · doublons refusés                                   |
+| Sujet               | Décision                                                                    |
+| ------------------- | --------------------------------------------------------------------------- |
+| Cardinalité         | **une seule** étape par idée — pas des tags multiples                       |
+| Vocabulaire         | **écrit par l'utilisateur**, propre à son compte                            |
+| Ordre               | **modifiable**, mais c'est un ordre d'affichage, pas une progression        |
+| Obligatoire ?       | **non** — une idée naît libre et peut le rester                             |
+| Amorçage            | **reporté** — le serveur pose les 4 étapes, l'écran qui les propose viendra |
+| Création par défaut | les 4 étapes sont posées **côté serveur**, à la création du compte          |
+| Suppression         | les idées deviennent libres · `ON DELETE CASCADE` · confirmation chiffrée   |
+| Stockage            | **table de liaison** contrainte à une seule ligne par idée                  |
+| Chiffrement         | `labels.name` scellé par `store/notes.ts`, AAD = `user_id`                  |
+| Couleurs            | attribuées automatiquement dans une palette de 8, jamais demandées          |
+| Filtre              | **une seule rangée** + un débordement « +N » · aucun plafond d'étapes       |
+| Réordonner          | glissement au pointeur **et** flèches — les deux, jamais l'un sans l'autre  |
+| Nom                 | 32 caractères au plus · doublons refusés                                    |
 
 ## Ce que c'est, et ce que ce n'est pas
 
@@ -352,25 +352,28 @@ justesse de la mesure elle-même. Celle-là se vérifie à la main.
   chiffrement tant que les noms restent scellés.
 - **Le glisser-déposer entre étapes** depuis la liste — on classe par le menu.
 
-## Points encore ouverts
+## Points tranchés en fin de brique
 
-Aucun ne bloque l'implémentation ; ils portent sur des détails de surface.
-
-1. **L'amorçage vient-il après la connexion, ou après la première capture ?** La
-   décision actée est « après la connexion ». La recherche sur l'onboarding
-   pousse vers la seconde option — ne rien demander avant une première action
-   qui compte — au moment où l'utilisateur a enfin une idée à ranger.
-2. **Sauter l'amorçage** : vider la liste puis « Commencer » donne zéro étape.
-   Suffisant, ou faut-il une sortie explicite ?
-3. **« Gérer les étapes… » en pied du sélecteur** — seconde porte d'entrée vers
-   l'écran de gestion, en plus du menu de compte. À garder ou à retirer.
-4. **Les quatre couleurs nouvelles** (bleu, vert, prune, bronze) sont une
-   proposition.
+1. **L'amorçage sort de cette brique**, et il aura lieu **après la première
+   capture**. Le compte neuf reçoit ses quatre étapes en silence, à la création
+   du compte : rien ne casse, elles sont là, renommables depuis « Gérer les
+   étapes ». Ce qui manque, c'est le moment où on les lui **présente** — parce
+   que la liste posée est l'opinion du produit, et qu'elle s'installe sinon sans
+   qu'il sache qu'il peut la changer. Ce moment est la première capture, pas la
+   connexion : on ne fait pas trier des cases vides à quelqu'un qui n'a encore
+   rien à ranger. Brique à part, à ouvrir une fois celle-ci close.
+2. **Sauter l'amorçage** — question suspendue avec l'amorçage lui-même.
+3. **« Gérer les étapes… » en pied du sélecteur** : **gardé**. C'est la seule
+   porte qui s'ouvre au moment où le besoin apparaît — on classe une idée, on
+   s'aperçoit que l'étape manque. Le menu de compte reste la seconde.
+4. **Les quatre couleurs nouvelles** (bleu, vert, prune, bronze) : **gardées**
+   telles quelles.
 
 ## Definition of Done
 
-- Un compte neuf reçoit ses quatre étapes ; l'écran d'amorçage les propose et
-  les laisse renommer, retirer, réordonner, compléter.
+- Un compte neuf reçoit ses quatre étapes, et peut les renommer, retirer,
+  réordonner, compléter. **L'écran qui les lui propose est hors brique** (point
+  ① ci-dessus).
 - Une idée naît libre et se classe **depuis la carte** comme depuis le détail.
 - Supprimer une étape libère ses idées après une confirmation qui **annonce leur
   nombre** ; aucune idée n'est supprimée.
@@ -386,6 +389,6 @@ Aucun ne bloque l'implémentation ; ils portent sur des détails de surface.
   dépôt.
 - `lint`, `typecheck`, `test`, `build` verts ; `docs/openapi.yaml`,
   `docs/api-design.md` — dont la table exhaustive des messages,
-  `.claude/rules/storage.md`, `react.md`, `structure.md`, `css.md` et
-  `CLAUDE.md` à jour — dont le hors-scope, d'où « changement de statut : dans la
-  vue détail uniquement » est retiré.
+  `.claude/rules/storage.md`, `react.md`, `structure.md`, `css.md`, `README.md`
+  et `CLAUDE.md` à jour — dont le hors-scope, d'où « changement de statut : dans
+  la vue détail uniquement » est retiré.

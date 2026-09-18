@@ -1093,9 +1093,14 @@ fausse est pire qu'une règle absente.
       contextes… mais il est le seul » — il en lira **trois**.
 - [ ] `.claude/rules/css.md` : la palette `--label-1..8` remplace `--status-*`.
 - [ ] `README.md` : `db:labels` dans les commandes.
+- [ ] `README.md` : `docs/labels-design.md` dans la table de documentation.
 - [ ] **`CLAUDE.md`** : retirer du hors-scope « Changement de statut : dans la
       vue détail uniquement. Pas de changement depuis l'accueil ni la liste. »
-      — **décision PO, à acter explicitement avant que je touche au fichier.**
+      — **acté par le PO.** Corriger aussi, dans la pile, « `chrome.storage.local`
+      ne sert plus qu'à la reprise des idées d'avant la bascule » : `storage.ts`
+      n'existe plus.
+- [ ] `docs/labels-design.md` : acter les quatre points ouverts, et sortir
+      l'écran d'amorçage de la Definition of Done.
 
 **Vérification**
 
@@ -1191,12 +1196,11 @@ sudo systemctl start idea-pipeline && sudo systemctl status idea-pipeline --no-p
 
 ## Notes / Blocage
 
-- **Quatre points de surface restent ouverts** (voir la conception) : le moment
-  de l'amorçage, la sortie explicite de l'amorçage, la seconde porte d'entrée
-  « Gérer les étapes… », et les quatre couleurs nouvelles. Aucun ne bloque ; ils
-  se tranchent au plus tard à la tâche 13.
-- **La tâche 14 demande une modification de `CLAUDE.md`.** Je ne touche pas au
-  hors-scope de ma propre initiative : il faut l'acter.
+- **Les quatre points de surface sont tranchés** (voir la conception). Le seul
+  qui emporte du travail : **l'amorçage sort de la brique** et fera l'objet
+  d'une brique à part, déclenchée **après la première capture**.
+- **`CLAUDE.md` a été acté par le PO** : la ligne « Changement de statut : dans
+  la vue détail uniquement » est retirée du hors-scope.
 - **Le message « Le nom de l'étape est trop long. » est nouveau au contrat.**
   S'il ne te convient pas, c'est le moment — il part dans `api-design.md` à la
   tâche 4 et devient la référence.
