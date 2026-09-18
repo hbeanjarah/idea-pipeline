@@ -1,43 +1,12 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import type { AddressInfo } from 'node:net';
-import type { Server } from 'node:http';
+import { describe, expect, it } from 'vitest';
 
-import { app } from '#app';
 import type { Idea } from '#domain/types';
-import { createUserWithSession } from '#test/factories';
+import { httpHarness } from '#test/http';
 
 // The layer tests below this one never touch app.ts, routes/ or controllers/:
 // a route mounted on the wrong path, or wired to the wrong controller, passes
 // them all. These tests exercise the wiring over real HTTP instead.
-let server: Server;
-let base: string;
-let token: string;
-
-beforeEach(async () => {
-  server = app.listen(0);
-  await new Promise<void>((resolve) =>
-    server.once('listening', resolve),
-  );
-  base = `http://localhost:${(server.address() as AddressInfo).port}`;
-  ({ token } = await createUserWithSession());
-});
-
-afterEach(
-  () => new Promise<void>((resolve) => server.close(() => resolve())),
-);
-
-const api = (path: string, init?: RequestInit) =>
-  fetch(`${base}${path}`, {
-    ...init,
-    headers: { Authorization: `Bearer ${token}`, ...init?.headers },
-  });
-
-const send = (method: string, path: string, body: unknown) =>
-  api(path, {
-    method,
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
+const { api, send } = httpHarness();
 
 const createIdea = async (text = 'une idée'): Promise<Idea> => {
   const res = await send('POST', '/ideas', { text });

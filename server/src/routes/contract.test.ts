@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { SPEC_PATH } from '#config/spec';
 import { authRouter } from '#routes/auth';
 import { ideasRouter } from '#routes/ideas';
+import { labelsRouter } from '#routes/labels';
 
 const HTTP_METHODS = new Set([
   'get',
@@ -16,6 +17,7 @@ const HTTP_METHODS = new Set([
 // Where each router is mounted in app.ts — their own paths don't carry it.
 const MOUNTED = [
   { router: ideasRouter, mount: '/ideas' },
+  { router: labelsRouter, mount: '/labels' },
   { router: authRouter, mount: '/auth' },
 ];
 

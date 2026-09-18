@@ -6,6 +6,7 @@ import { notFound } from '#middleware/not-found';
 import { authRouter } from '#routes/auth';
 import { docsRouter } from '#routes/docs';
 import { ideasRouter } from '#routes/ideas';
+import { labelsRouter } from '#routes/labels';
 
 export const app = express();
 
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use(docsRouter);
 app.use('/auth', authRouter);
 app.use('/ideas', requireSession, ideasRouter);
+app.use('/labels', requireSession, labelsRouter);
 
 // Order matters: the fallbacks only make sense below every business route.
 app.use(notFound);
