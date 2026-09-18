@@ -4,13 +4,17 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { db } from '#store/db';
 import * as store from '#store/ideas';
 import * as labels from '#store/labels';
-import { createUserWithSession } from '#test/factories';
+import { clearStages, createUserWithSession } from '#test/factories';
 
 let userId: string;
 
 beforeEach(async () => {
   ({ userId } = await createUserWithSession());
 });
+
+// Cleared where a test asserts on an exact list; the seeding has its own case
+// below.
+const blank = async (): Promise<void> => clearStages(userId);
 
 // Raw SQL on purpose: going through the store would call toVariation, which
 // decrypts. The whole point is to see what Postgres really holds.
@@ -87,6 +91,7 @@ describe('what the database holds of a note', () => {
 
 describe('what the database holds of a stage name', () => {
   it('not the name a stage was created with', async () => {
+    await blank();
     await labels.createLabel(userId, MARKER);
 
     const rows = await storedNames(userId);
@@ -95,6 +100,7 @@ describe('what the database holds of a stage name', () => {
   });
 
   it('not the name a stage was renamed to', async () => {
+    await blank();
     const label = await labels.createLabel(userId, 'Maturation');
 
     await labels.renameLabel(userId, label.id, MARKER);
@@ -104,7 +110,18 @@ describe('what the database holds of a stage name', () => {
     expect(rows[0]).not.toContain(MARKER);
   });
 
+  it('not the names an account is born with', async () => {
+    // Seeding is a write path of its own: it reaches the column without going
+    // through createLabel.
+    const rows = await storedNames(userId);
+
+    expect(rows).toHaveLength(4);
+    expect(rows.every((row) => row.startsWith('v1.'))).toBe(true);
+    expect(rows.join()).not.toContain('Maturation');
+  });
+
   it('and gives them back intact', async () => {
+    await blank();
     await labels.createLabel(userId, `${MARKER} — un`);
     await labels.createLabel(userId, `${MARKER} — deux`);
 
@@ -116,6 +133,7 @@ describe('what the database holds of a stage name', () => {
   it('nor the name in any other column of the row', async () => {
     // Fails the day a user-written column is added to this table without
     // being sealed.
+    await blank();
     await labels.createLabel(userId, MARKER);
 
     const result = await sql<{ row: string }>`

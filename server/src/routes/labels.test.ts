@@ -1,10 +1,13 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 
+import { clearStages } from '#test/factories';
 import { httpHarness } from '#test/http';
 
 // Same reason as app.test.ts: the service tests never touch routes/ or
 // controllers/, so a handler wired to the wrong verb passes all of them.
-const { api, send } = httpHarness();
+const { userId, api, send } = httpHarness();
+
+beforeEach(() => clearStages(userId()));
 
 describe('labels', () => {
   const createLabel = async (name: string) => {

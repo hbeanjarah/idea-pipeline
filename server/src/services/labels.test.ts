@@ -1,13 +1,21 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import * as service from '#services/labels';
-import { createUserWithSession } from '#test/factories';
+import { clearStages, createUserWithSession } from '#test/factories';
 
 let userId: string;
 
 beforeEach(async () => {
   ({ userId } = await createUserWithSession());
+  await clearStages(userId);
 });
+
+const anotherAccount = async () => {
+  const other = await createUserWithSession('autre@example.test');
+  await clearStages(other.userId);
+
+  return other;
+};
 
 const REQUIRED_NAME = {
   status: 400,
@@ -105,7 +113,7 @@ describe('duplicate names', () => {
   });
 
   it('lets another account use the same name', async () => {
-    const other = await createUserWithSession('autre@example.test');
+    const other = await anotherAccount();
     await service.createLabel(other.userId, { name: 'Prêt' });
 
     expect(
@@ -156,7 +164,7 @@ describe('renameLabel and deleteLabel', () => {
   });
 
   it("delete answers 404 on another account's stage", async () => {
-    const other = await createUserWithSession('autre@example.test');
+    const other = await anotherAccount();
     const theirs = await service.createLabel(other.userId, {
       name: 'Chez lui',
     });
@@ -192,7 +200,7 @@ describe('reorderLabels validation', () => {
   });
 
   it('rejects a list carrying a stranger id', async () => {
-    const other = await createUserWithSession('autre@example.test');
+    const other = await anotherAccount();
     const theirs = await service.createLabel(other.userId, {
       name: 'Chez lui',
     });

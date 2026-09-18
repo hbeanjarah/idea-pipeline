@@ -3,14 +3,22 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { db } from '#store/db';
 import * as ideas from '#store/ideas';
 import * as store from '#store/labels';
-import { createUserWithSession } from '#test/factories';
+import { clearStages, createUserWithSession } from '#test/factories';
 
 // Every operation is scoped to an account, so the tests need one to exist.
 let userId: string;
 
 beforeEach(async () => {
   ({ userId } = await createUserWithSession());
+  await clearStages(userId);
 });
+
+const anotherAccount = async () => {
+  const other = await createUserWithSession('autre@example.test');
+  await clearStages(other.userId);
+
+  return other;
+};
 
 const names = async (id = userId): Promise<string[]> =>
   (await store.listLabels(id)).map((label) => label.name);
@@ -37,7 +45,7 @@ describe('listLabels', () => {
   });
 
   it("never returns another account's", async () => {
-    const other = await createUserWithSession('autre@example.test');
+    const other = await anotherAccount();
     await store.createLabel(other.userId, 'Chez lui');
 
     expect(await store.listLabels(userId)).toEqual([]);
@@ -132,7 +140,7 @@ describe('renameLabel', () => {
   });
 
   it("refuses another account's stage", async () => {
-    const other = await createUserWithSession('autre@example.test');
+    const other = await anotherAccount();
     const theirs = await store.createLabel(other.userId, 'Chez lui');
 
     expect(
@@ -165,7 +173,7 @@ describe('deleteLabel', () => {
   });
 
   it("refuses another account's stage", async () => {
-    const other = await createUserWithSession('autre@example.test');
+    const other = await anotherAccount();
     const theirs = await store.createLabel(other.userId, 'Chez lui');
 
     expect(await store.deleteLabel(userId, theirs.id)).toBe(false);
@@ -211,7 +219,7 @@ describe('reorderLabels', () => {
   });
 
   it('ignores an id belonging to another account', async () => {
-    const other = await createUserWithSession('autre@example.test');
+    const other = await anotherAccount();
     const theirs = await store.createLabel(other.userId, 'Chez lui');
     const mine = await store.createLabel(userId, 'Chez moi');
 

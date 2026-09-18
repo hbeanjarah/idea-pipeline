@@ -114,8 +114,10 @@ describe('deleteIdea', () => {
 });
 
 describe('setIdeaLabel', () => {
-  const aStage = async (name = 'Maturation') =>
-    labelService.createLabel(userId, { name });
+  // The account is born with its four stages: taking one is closer to what
+  // actually happens than inventing a fifth.
+  const aStage = async () =>
+    (await labelService.listLabels(userId))[0]!;
 
   it('rejects an unknown idea', async () => {
     await expect(

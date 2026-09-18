@@ -71,16 +71,17 @@ describe('DELETE /ideas/:id', () => {
 describe('PATCH /ideas/:id', () => {
   it('answers 200 with the classified idea', async () => {
     const idea = await createIdea();
-    const stage = (await (
-      await send('POST', '/labels', { name: 'Prêt' })
-    ).json()) as { id: string };
+    // The account is born with its stages; no need to invent one.
+    const [stage] = (await (await api('/labels')).json()) as {
+      id: string;
+    }[];
 
     const res = await send('PATCH', `/ideas/${idea.id}`, {
-      labelId: stage.id,
+      labelId: stage!.id,
     });
 
     expect(res.status).toBe(200);
-    expect(((await res.json()) as Idea).labelId).toBe(stage.id);
+    expect(((await res.json()) as Idea).labelId).toBe(stage!.id);
   });
 
   it('detaches with null', async () => {
