@@ -1,0 +1,38 @@
+.dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+/* The empty slot an unclassified idea shows: same geometry as a filled one, so
+ * nothing moves when it fills. */
+.hollow {
+  background: none;
+  border: 1.5px solid var(--faint);
+}
+
+.l1 {
+  background: var(--label-1);
+}
+.l2 {
+  background: var(--label-2);
+}
+.l3 {
+  background: var(--label-3);
+}
+.l4 {
+  background: var(--label-4);
+}
+.l5 {
+  background: var(--label-5);
+}
+.l6 {
+  background: var(--label-6);
+}
+.l7 {
+  background: var(--label-7);
+}
+.l8 {
+  background: var(--label-8);
+}

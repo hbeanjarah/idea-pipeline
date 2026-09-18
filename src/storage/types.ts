@@ -1,29 +1,24 @@
-// Domain model — canonical reference: .claude/rules/storage.md.
-// English everywhere; French lives only in the UI layer.
+export interface Label {
+  id: string;
+  name: string;
+  color: number;
+  position: number;
+}
 
-// The four pipeline stages.
-export type Status = 'captured' | 'maturing' | 'ready' | 'published';
-
-// Mirrors server/src/domain/types.ts and docs/openapi.yaml — the three move
-// together. The email comes from Google and can change; the id cannot.
 export interface User {
   id: string;
   email: string;
 }
 
-// A snapshot of the text at a point in time.
-// APPEND-ONLY: an existing variation is never edited nor removed;
-// evolving an idea means appending a new one.
 export interface Variation {
   id: string;
   text: string;
   createdAt: string; // ISO 8601
 }
 
-// A living idea = a sequence of variations + a pipeline stage.
 export interface Idea {
   id: string;
-  status: Status;
+  labelId: string | null;
   variations: Variation[]; // always >= 1 (the initial capture)
   createdAt: string; // ISO 8601
   updatedAt: string; // ISO 8601, refreshed on every mutation

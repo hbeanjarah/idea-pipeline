@@ -2,15 +2,12 @@ import type { Idea } from '@/storage/types';
 
 export interface OptimisticState {
   ideas: Idea[];
-  // Les idées affichées que le serveur n'a pas encore confirmées. Tenues avec
-  // les idées dans un seul état : deux useState séparés se désynchronisent dès
-  // qu'une réponse arrive pendant qu'une autre part.
+  // Shown, but not confirmed by the server yet.
   pendingIds: ReadonlySet<string>;
 }
 
-// Le panneau fabrique ici ce que le serveur produira : statut initial et dates.
-// C'est une duplication assumée d'une règle serveur (voir interface-design.md),
-// qui ne vit que le temps d'un aller-retour.
+// Duplicates a server rule for the length of one round trip — see
+// interface-design.md before changing what it guesses.
 export function provisionalIdea(
   text: string,
   id: string,
@@ -18,7 +15,7 @@ export function provisionalIdea(
 ): Idea {
   return {
     id,
-    status: 'captured',
+    labelId: null,
     createdAt: now,
     updatedAt: now,
     variations: [{ id: `${id}-v1`, text, createdAt: now }],
@@ -59,8 +56,7 @@ export function confirmProvisional(
   };
 }
 
-// Ne retire que ce qui est en attente : une idée confirmée n'est jamais la
-// victime d'un identifiant erroné.
+// Pending only: a confirmed idea is never the victim of a wrong id.
 export function dropProvisional(
   state: OptimisticState,
   provisionalId: string,
@@ -73,8 +69,8 @@ export function dropProvisional(
   };
 }
 
-// Une suppression annulée doit revenir à sa place : la liste est triée par le
-// consommateur, mais un retour en fin de tableau se verrait le temps d'un rendu.
+// Not a push: the caller sorts the list, but a return to the bottom would
+// still be seen for a render.
 export function restoreAt(
   ideas: Idea[],
   index: number,

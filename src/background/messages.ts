@@ -94,13 +94,31 @@ export async function handle(request: Request): Promise<AnyReply> {
           request.text,
         ),
       );
-    case 'ideas/changeStatus':
+    case 'ideas/setLabel':
       return withToken((token) =>
-        api.changeStatus(token, request.ideaId, request.status),
+        api.setIdeaLabel(token, request.ideaId, request.labelId),
       );
     case 'ideas/delete':
       return withToken((token) =>
         api.deleteIdea(token, request.ideaId),
+      );
+    case 'labels/list':
+      return withToken((token) => api.listLabels(token));
+    case 'labels/create':
+      return withToken((token) =>
+        api.createLabel(token, request.name),
+      );
+    case 'labels/rename':
+      return withToken((token) =>
+        api.renameLabel(token, request.labelId, request.name),
+      );
+    case 'labels/delete':
+      return withToken((token) =>
+        api.deleteLabel(token, request.labelId),
+      );
+    case 'labels/reorder':
+      return withToken((token) =>
+        api.reorderLabels(token, request.ids),
       );
   }
 }

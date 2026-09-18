@@ -1,34 +1,33 @@
-import type { Idea, Status } from '@/storage/types';
+import type { Idea } from '@/storage/types';
 
-// 'all' = no status filtering (explicit, preferred over an optional status).
-export type FilterStatus = Status | 'all';
+// Sentinels beside the stage ids, which are uuids: they cannot collide.
+export const ALL = 'all';
+export const UNCLASSIFIED = 'none';
 
-// Full signature laid out now so the Search ticket fills `query` without
-// re-signing: only `status` is wired here; `query` is accepted but ignored.
+export type FilterLabel = string;
+
 export interface FilterCriteria {
-  status: FilterStatus;
+  label: FilterLabel;
   query?: string;
 }
 
-// Pure, in-memory filtering — no React, no repository. Preserves input order,
-// so the caller keeps owning the sort. Status and query combine (intersection).
 export function filterIdeas(
   ideas: Idea[],
   criteria: FilterCriteria,
 ): Idea[] {
-  const { status, query } = criteria;
+  const { label, query } = criteria;
 
-  const byStatus =
-    status === 'all'
+  const byLabel =
+    label === ALL
       ? ideas
-      : ideas.filter((idea) => idea.status === status);
+      : label === UNCLASSIFIED
+        ? ideas.filter((idea) => idea.labelId === null)
+        : ideas.filter((idea) => idea.labelId === label);
 
-  // Empty / blank query is a no-op. Case-insensitive substring match, no accent
-  // normalization (MVP: é ≠ e). Scans every variation, not just the latest.
   const term = query?.trim().toLowerCase();
-  if (!term) return byStatus;
+  if (!term) return byLabel;
 
-  return byStatus.filter((idea) =>
+  return byLabel.filter((idea) =>
     idea.variations.some((variation) =>
       variation.text.toLowerCase().includes(term),
     ),
