@@ -1,0 +1,121 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--surface);
+  border: 1px solid var(--cardbd);
+  border-radius: var(--radius-md);
+  padding: 7px var(--space-2);
+  font-size: var(--text-body);
+  color: var(--ink);
+}
+
+/* Lifted out of the flow while dragged, so it passes over its neighbours
+ * instead of pushing them. */
+.lifted {
+  position: relative;
+  z-index: 2;
+  box-shadow: var(--shadow-popover);
+  border-color: var(--capbd);
+}
+
+/* touch-action: none, or the browser turns the first finger move into a scroll
+ * and the pointermove never arrives. The padding is given back as a negative
+ * margin: a 21px target for a 15px glyph, without moving the row. */
+.grip {
+  flex: none;
+  line-height: 0;
+  padding: 3px;
+  margin: -3px;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: none;
+  color: var(--faint);
+  touch-action: none;
+  cursor: grab;
+}
+
+.grip:hover {
+  background: var(--tagbg);
+  color: var(--tagink);
+}
+
+.grip:active {
+  cursor: grabbing;
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  color: inherit;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: text;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  color: var(--ink);
+  outline: none;
+}
+
+.row:focus-within {
+  border-color: var(--accent);
+  outline: var(--focus-outline);
+  outline-offset: 0;
+}
+
+.arrows {
+  display: flex;
+  gap: 1px;
+  margin-left: auto;
+}
+
+.icon {
+  line-height: 0;
+  padding: 3px;
+  border: 0;
+  border-radius: var(--radius-xs);
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.icon:hover:not(:disabled) {
+  background: var(--tagbg);
+  color: var(--ink);
+}
+
+.icon:disabled {
+  color: #c9cfdb;
+  cursor: default;
+}
+
+.remove {
+  color: var(--faint);
+}
+
+.remove:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.grip:focus-visible,
+.icon:focus-visible,
+.name:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
+}

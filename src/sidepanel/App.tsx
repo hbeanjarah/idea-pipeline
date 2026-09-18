@@ -3,6 +3,7 @@ import type { Route } from '@/routes/routes';
 import { IdeasProvider } from '@/hooks/IdeasProvider';
 import { LabelsProvider } from '@/hooks/LabelsProvider';
 import { useSession } from '@/hooks/useSession';
+import LabelsScreen from '@/screens/LabelsScreen';
 import ListScreen from '@/screens/ListScreen';
 import DetailScreen from '@/screens/DetailScreen';
 import SignInScreen from '@/screens/SignInScreen';
@@ -10,7 +11,10 @@ import Spinner from '@/components/Spinner/Spinner';
 import styles from './App.module.css';
 
 export default function App() {
-  const [route, setRoute] = useState<Route>({ selectedId: null });
+  const [route, setRoute] = useState<Route>({
+    screen: 'ideas',
+    selectedId: null,
+  });
   const { connected, checking } = useSession();
 
   const [slow, setSlow] = useState(false);
@@ -36,10 +40,17 @@ export default function App() {
   return (
     <LabelsProvider>
       <IdeasProvider>
+        {route.screen === 'labels' && (
+          <LabelsScreen
+            onClose={() => setRoute({ ...route, screen: 'ideas' })}
+          />
+        )}
         <div
-          className={`${styles.shell} ${
-            route.selectedId === null ? '' : styles.selected
-          }`}
+          className={[
+            styles.shell,
+            route.selectedId === null ? '' : styles.selected,
+            route.screen === 'labels' ? styles.behind : '',
+          ].join(' ')}
         >
           <div className={styles.master}>
             <ListScreen

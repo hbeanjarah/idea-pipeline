@@ -8,7 +8,7 @@ import type { Idea } from '@/storage/types';
 
 const ideaWith = (...texts: string[]): Idea => ({
   id: 'i1',
-  status: 'captured',
+  labelId: null,
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
   variations: texts.map((text, index) => ({

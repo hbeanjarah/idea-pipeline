@@ -4,12 +4,17 @@ import styles from './AccountMenu.module.css';
 
 interface Props {
   email: string | null;
+  onManageLabels: () => void;
   onSignOut: () => void;
 }
 
 // Presentational: it shows who is connected and offers to leave. Revoking the
 // session is the screen's business.
-export default function AccountMenu({ email, onSignOut }: Props) {
+export default function AccountMenu({
+  email,
+  onManageLabels,
+  onSignOut,
+}: Props) {
   return (
     <Popover
       align="end"
@@ -28,6 +33,17 @@ export default function AccountMenu({ email, onSignOut }: Props) {
               </span>
             </span>
           </div>
+          <div className={styles.separator} />
+          <button
+            type="button"
+            className={styles.entry}
+            onClick={() => {
+              close();
+              onManageLabels();
+            }}
+          >
+            Gérer les étapes
+          </button>
           <div className={styles.separator} />
           <button
             type="button"

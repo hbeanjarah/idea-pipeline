@@ -1,55 +1,62 @@
 import { useState } from 'react';
 import type { Navigate } from '@/routes/routes';
 import { useIdeas } from '@/hooks/useIdeas';
+import { useLabels } from '@/hooks/useLabels';
 import { useSession } from '@/hooks/useSession';
-import { filterIdeas } from '@/lib/filterIdeas';
-import type { FilterStatus } from '@/lib/filterIdeas';
+import { ALL, UNCLASSIFIED, filterIdeas } from '@/lib/filterIdeas';
+import type { FilterLabel } from '@/lib/filterIdeas';
 import AccountMenu from '@/components/AccountMenu/AccountMenu';
 import Alert from '@/components/Alert/Alert';
 import CardSkeleton from '@/components/CardSkeleton/CardSkeleton';
 import Composer from '@/components/Composer/Composer';
 import IdeaCard from '@/components/IdeaCard/IdeaCard';
-import StatusFilter from '@/components/StatusFilter/StatusFilter';
+import LabelFilter from '@/components/LabelFilter/LabelFilter';
 import SearchInput from '@/components/SearchInput/SearchInput';
 import { failureText } from '@/lib/failureText';
 import styles from './ListScreen.module.css';
 
 interface Props {
   navigate: Navigate;
-  // Which idea the detail pane is showing, so the list can mark it. Only
-  // meaningful when both panes are on screen.
   selectedId: string | null;
 }
 
-// The master column: capture at the top, everything captured below. It absorbed
-// the home screen, which held the same composer and a bounded preview of the
-// same list — an entry hall in front of the room it opened onto.
-//
-// Reads two contexts, which a screen is allowed to do (react.md); the identity
-// is only shown here.
 export default function ListScreen({ navigate, selectedId }: Props) {
-  const { ideas, pendingIds, loading, failure, retry, create } =
-    useIdeas();
+  const {
+    ideas,
+    pendingIds,
+    loading,
+    failure,
+    retry,
+    create,
+    setLabel,
+  } = useIdeas();
+  const { labels } = useLabels();
   const { user, signOut } = useSession();
+
+  const manageLabels = () =>
+    navigate({ screen: 'labels', selectedId });
 
   // A 404 is not shown here: the list has already been reloaded.
   const shown = failure && failure.reason !== 'gone' ? failure : null;
-  const [status, setStatus] = useState<FilterStatus>('all');
+  const [label, setLabelFilter] = useState<FilterLabel>(ALL);
   const [query, setQuery] = useState('');
 
   // Counts run on the full list, independent of the active filter — otherwise
   // every non-active counter would drop to 0.
-  const counts: Record<FilterStatus, number> = {
-    all: ideas.length,
-    captured: 0,
-    maturing: 0,
-    ready: 0,
-    published: 0,
+  const counts: Record<string, number> = {
+    [ALL]: ideas.length,
+    [UNCLASSIFIED]: 0,
   };
-  for (const idea of ideas) counts[idea.status]++;
+  for (const stage of labels) counts[stage.id] = 0;
+  for (const idea of ideas) {
+    const key = idea.labelId ?? UNCLASSIFIED;
+    // ?? 0 and not ++: an idea can still point at a stage deleted on another
+    // device, until the next load.
+    counts[key] = (counts[key] ?? 0) + 1;
+  }
 
-  // Filter (status + query) first, then sort: most recently active first.
-  const visible = [...filterIdeas(ideas, { status, query })].sort(
+  // Filter (stage + query) first, then sort: most recently active first.
+  const visible = [...filterIdeas(ideas, { label, query })].sort(
     (a, b) => b.updatedAt.localeCompare(a.updatedAt),
   );
 
@@ -62,6 +69,7 @@ export default function ListScreen({ navigate, selectedId }: Props) {
         <p className={styles.title}>Mes idées</p>
         <AccountMenu
           email={user?.email ?? null}
+          onManageLabels={manageLabels}
           onSignOut={() => void signOut()}
         />
       </div>
@@ -83,10 +91,11 @@ export default function ListScreen({ navigate, selectedId }: Props) {
       {!loading && hasIdeas && (
         <>
           <SearchInput value={query} onChange={setQuery} />
-          <StatusFilter
-            active={status}
+          <LabelFilter
+            labels={labels}
+            active={label}
             counts={counts}
-            onChange={setStatus}
+            onChange={setLabelFilter}
           />
         </>
       )}
@@ -135,9 +144,14 @@ export default function ListScreen({ navigate, selectedId }: Props) {
             <IdeaCard
               key={idea.id}
               idea={idea}
+              labels={labels}
               pending={pendingIds.has(idea.id)}
               selected={idea.id === selectedId}
-              onClick={() => navigate({ selectedId: idea.id })}
+              onClick={() =>
+                navigate({ screen: 'ideas', selectedId: idea.id })
+              }
+              onLabelChange={(next) => void setLabel(idea.id, next)}
+              onManageLabels={manageLabels}
             />
           ))
         )}

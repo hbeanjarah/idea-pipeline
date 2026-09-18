@@ -81,11 +81,20 @@ describe('the idea requests', () => {
       text: 'x',
     });
     await handle({
-      kind: 'ideas/changeStatus',
+      kind: 'ideas/setLabel',
       ideaId: 'i',
-      status: 'ready',
+      labelId: 'l',
     });
     await handle({ kind: 'ideas/delete', ideaId: 'i' });
+    await handle({ kind: 'labels/list' });
+    await handle({ kind: 'labels/create', name: 'Prêt' });
+    await handle({ kind: 'labels/reorder', ids: ['l'] });
+    await handle({
+      kind: 'labels/rename',
+      labelId: 'l',
+      name: 'Publié',
+    });
+    await handle({ kind: 'labels/delete', labelId: 'l' });
 
     // A mis-wired switch branch would still answer ok, on the wrong endpoint.
     // Path only: the host comes from VITE_API_URL, and asserting it would tie
@@ -102,6 +111,11 @@ describe('the idea requests', () => {
       'PATCH /ideas/i/variations/v',
       'PATCH /ideas/i',
       'DELETE /ideas/i',
+      'GET /labels',
+      'POST /labels',
+      'PATCH /labels',
+      'PATCH /labels/l',
+      'DELETE /labels/l',
     ]);
   });
 

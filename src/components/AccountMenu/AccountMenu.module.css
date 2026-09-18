@@ -37,6 +37,31 @@
   background: var(--cardbd);
 }
 
+.entry {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  padding: var(--space-2);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  color: var(--ink);
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.entry:hover {
+  background: var(--ring);
+}
+
+.entry:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
+}
+
 .sign-out {
   display: flex;
   align-items: center;

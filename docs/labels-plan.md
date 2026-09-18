@@ -1143,20 +1143,19 @@ ssh <ton-vps> "cd /srv/idea-pipeline && docker compose exec -T db \
 > capturer. Les notes de ce fichier sont chiffrées — mais les `status`, eux,
 > sont en clair, et c'est justement ce qu'on s'apprête à convertir.
 
-#### C. Migrer, convertir, supprimer — dans cet ordre
+#### C. Migrer, puis convertir — dans cet ordre
 
 ```bash
 cd /srv/idea-pipeline/server && pnpm run db:migrate   # 003
 cd /srv/idea-pipeline/server && pnpm run db:labels    # la conversion
-cd /srv/idea-pipeline/server && pnpm run db:migrate   # 004
 ```
 
 - [ ] Le nombre de comptes traités par `db:labels` doit **égaler** le nombre de
       comptes noté en A.
 
-> **Ne lance pas le second `db:migrate` si le premier compte ne colle pas.**
-> Tant que `004` n'est pas passée, la colonne `status` est encore là et tout se
-> rejoue. Après, non.
+> **La colonne `status` n'est pas supprimée ici.** `004` n'existe pas encore :
+> elle est écrite à la tâche 16, une fois la production convertie. Tant qu'elle
+> n'est pas passée, la conversion se rejoue autant de fois qu'il le faut.
 
 #### D. Vérifier avant de reprendre le service
 
