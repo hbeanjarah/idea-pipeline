@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Réordonner les étapes</title>
+<style>
+  :root{
+    --sunken:#e2e8f2; --surface:#fcfdff; --panelbd:#dce4f0; --cardbd:#e4ebf4; --capbd:#cdddf0;
+    --ink:#323859; --muted:#5d667e; --faint:#aab2c4;
+    --accent:#038c8c; --hl:#bdd9f2; --tagbg:#e7eef8; --tagink:#5b6480;
+    --label-1:#a68776; --label-2:#4a3f73; --label-3:#038c8c; --label-4:#323859; --label-5:#4b7ca8;
+    --shadow-popover:0 6px 20px rgba(50,56,89,.16);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#e8ebf1;color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;padding-block:34px;padding-inline:20px;line-height:1.5}
+  .page-h{max-width:1160px;margin:0 auto 24px}
+  .page-h h1{font-size:19px;font-weight:600;margin:0 0 5px;letter-spacing:-.01em}
+  .page-h p{font-size:13px;color:var(--muted);margin:0;max-width:74ch}
+  .stage{max-width:1160px;margin:0 auto;display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start;justify-content:center}
+  .col{width:344px;max-width:100%}
+  .col-label{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:0 0 3px 2px;font-weight:600}
+  .col-sub{font-size:11px;color:var(--muted);margin:0 0 9px 2px;line-height:1.45;min-height:46px}
+  .panel{background:var(--sunken);border:1px solid var(--panelbd);border-radius:14px;padding:13px}
+  .ttl{font-size:16px;font-weight:600;margin:0 0 11px}
+
+  .dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex:none}
+  .l1{background:var(--label-1)}.l2{background:var(--label-2)}.l3{background:var(--label-3)}
+  .l4{background:var(--label-4)}.l5{background:var(--label-5)}
+
+  .steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+  .step{display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--cardbd);
+    border-radius:10px;padding:8px 10px;font-size:13px;position:relative;
+    transition:box-shadow .12s ease,border-color .12s ease}
+  .step .nm{flex:1;user-select:none}
+  .arrows{display:flex;gap:1px;margin-left:auto}
+  .ab{background:none;border:0;padding:3px;line-height:0;color:var(--muted);cursor:pointer;border-radius:5px;font-family:inherit}
+  .ab:hover{background:var(--tagbg);color:var(--ink)}
+  .ab:disabled{color:#c9cfdb;cursor:default;background:none}
+  .ab:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+  .ab svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+  .rm{background:none;border:0;padding:3px;line-height:0;color:var(--faint);cursor:pointer}
+  .rm svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round}
+
+  /* B — les flèches ne se montrent qu'au survol ou au focus clavier */
+  .mode-b .arrows{opacity:0;transition:opacity .12s ease}
+  .mode-b .step:hover .arrows,
+  .mode-b .step:focus-within .arrows{opacity:1}
+
+  .grip{color:var(--faint);line-height:0;cursor:grab;touch-action:none;padding:2px;margin:-2px}
+  .grip:active{cursor:grabbing}
+  .grip svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round}
+
+  .step.ghost{opacity:.35}
+  .step.lifting{box-shadow:var(--shadow-popover);border-color:var(--capbd);z-index:3}
+  .step.over{border-color:var(--accent)}
+
+  .order{margin-top:11px;font-size:11px;color:var(--muted);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    background:var(--tagbg);border-radius:8px;padding:7px 9px;line-height:1.5;overflow-wrap:anywhere}
+  .order b{color:var(--tagink);font-weight:600}
+
+  .cost{font-size:11px;color:var(--muted);margin:9px 0 0 2px;line-height:1.5}
+  .cost b{color:var(--ink)}
+  .ok{color:var(--accent);font-weight:600}
+  .ko{color:#c0453b;font-weight:600}
+
+  .note{max-width:1160px;margin:34px auto 0;font-size:12px;color:var(--muted);line-height:1.6}
+  .note h2{font-size:13px;color:var(--ink);margin:22px 0 6px}
+  .note b{color:var(--ink)}
+  .note ul{margin:6px 0 0;padding-left:18px}
+  .note li{margin-bottom:6px}
+</style>
+</head>
+<body>
+  <div class="page-h">
+    <h1>Réordonner les étapes</h1>
+    <p>Quatre gestes, tous fonctionnels — déplace vraiment les lignes. L'ordre courant s'affiche sous chaque liste. Teste <b>à la souris et au doigt</b>, et essaie aussi <b>au clavier</b> (Tab puis Entrée) : c'est là que les glissements décrochent.</p>
+  </div>
+
+  <div class="stage">
+
+    <!-- A -->
+    <div class="col">
+      <p class="col-label">A · Flèches toujours visibles</p>
+      <p class="col-sub">Deux boutons par ligne, désactivés aux extrémités. Rien à découvrir, rien à deviner. Marche au clavier sans une ligne de plus.</p>
+      <div class="panel">
+        <p class="ttl">Étapes</p>
+        <ul class="steps mode-a" data-reorder="arrows"></ul>
+        <p class="order"></p>
+      </div>
+      <p class="cost"><b>Coût</b> · une paire de boutons dans la ligne. <span class="ok">WCAG 2.5.7 : conforme.</span></p>
+    </div>
+
+    <!-- B -->
+    <div class="col">
+      <p class="col-label">B · Flèches au survol</p>
+      <p class="col-sub">Mêmes boutons, invisibles au repos. La liste reste nette. Au focus clavier ils réapparaissent — mais au doigt il n'y a pas de survol.</p>
+      <div class="panel">
+        <p class="ttl">Étapes</p>
+        <ul class="steps mode-b" data-reorder="arrows"></ul>
+        <p class="order"></p>
+      </div>
+      <p class="cost"><b>Coût</b> · identique à A, plus une règle CSS. <span class="ko">Invisible au doigt.</span></p>
+    </div>
+
+    <!-- C -->
+    <div class="col">
+      <p class="col-label">C · Glisser natif (HTML5)</p>
+      <p class="col-sub">L'attribut <code>draggable</code> du navigateur. Le moins cher des glissements — et il ne répond pas du tout au toucher, où rien ne se passera.</p>
+      <div class="panel">
+        <p class="ttl">Étapes</p>
+        <ul class="steps mode-c" data-reorder="html5"></ul>
+        <p class="order"></p>
+      </div>
+      <p class="cost"><b>Coût</b> · ~25 lignes. <span class="ko">Muet au doigt et au clavier — non conforme seul.</span></p>
+    </div>
+
+    <!-- D -->
+    <div class="col">
+      <p class="col-label">D · Glisser au pointeur + flèches</p>
+      <p class="col-sub">La ligne suit le doigt, souris et tactile. C'est le geste le plus fluide — et il embarque quand même les flèches, sans quoi il ne serait pas conforme.</p>
+      <div class="panel">
+        <p class="ttl">Étapes</p>
+        <ul class="steps mode-d" data-reorder="pointer"></ul>
+        <p class="order"></p>
+      </div>
+      <p class="cost"><b>Coût</b> · ~70 lignes <b>plus</b> tout A. <span class="ok">Conforme, grâce aux flèches.</span></p>
+    </div>
+
+  </div>
+
+  <div class="note">
+    <h2>Ce que le banc d'essai doit te faire sentir</h2>
+    <ul>
+      <li><b>Essaie au clavier.</b> Tab jusqu'à une flèche, Entrée. A, B et D répondent ; C est muet — un glissement ne s'opère pas au clavier.</li>
+      <li><b>Essaie au doigt</b> si tu peux (ou les outils de développement en mode tactile). B devient invisible, C ne réagit pas du tout.</li>
+      <li><b>D contient A.</b> Le glissement ne remplace jamais les flèches, il s'ajoute par-dessus : WCAG 2.2 (critère 2.5.7) exige qu'une fonction opérable par glissement le soit aussi sans glisser. La vraie question n'est donc pas « flèches ou glissement » mais « faut-il ajouter le glissement aux flèches ».</li>
+      <li><b>Combien de fois dans une vie ?</b> Une liste d'étapes se réordonne à l'amorçage, puis presque plus jamais. C'est le critère qui devrait trancher, pas la sensation sur dix essais d'affilée.</li>
+    </ul>
+  </div>
+
+<script>
+const NAMES = [
+  ['Capturé','l1'], ['Maturation','l2'], ['Prêt','l3'], ['Publié','l4'], ['Archivé','l5'],
+];
+const ARROW_UP   = '<svg viewBox="0 0 24 24"><path d="M12 19V6"/><path d="M6 12l6-6 6 6"/></svg>';
+const ARROW_DOWN = '<svg viewBox="0 0 24 24"><path d="M12 5v13"/><path d="M18 12l-6 6-6-6"/></svg>';
+const GRIP = '<svg viewBox="0 0 24 24"><path d="M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01"/></svg>';
+const CROSS = '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+
+function build(ul) {
+  const mode = ul.dataset.reorder;
+  ul.innerHTML = NAMES.map(([name, cls]) => `
+    <li class="step"${mode === 'html5' ? ' draggable="true"' : ''}>
+      ${mode === 'arrows' ? '' : `<span class="grip" aria-hidden="true">${GRIP}</span>`}
+      <span class="dot ${cls}"></span>
+      <span class="nm">${name}</span>
+      ${mode === 'html5' ? '' : `<span class="arrows">
+        <button class="ab" data-dir="-1" type="button" aria-label="Monter ${name}">${ARROW_UP}</button>
+        <button class="ab" data-dir="1" type="button" aria-label="Descendre ${name}">${ARROW_DOWN}</button>
+      </span>`}
+      <button class="rm" type="button" aria-label="Supprimer ${name}">${CROSS}</button>
+    </li>`).join('');
+  refresh(ul);
+}
+
+function refresh(ul) {
+  const rows = [...ul.children];
+  rows.forEach((row, i) => {
+    const up = row.querySelector('[data-dir="-1"]');
+    const down = row.querySelector('[data-dir="1"]');
+    if (up) up.disabled = i === 0;
+    if (down) down.disabled = i === rows.length - 1;
+  });
+  const out = ul.parentElement.querySelector('.order');
+  out.innerHTML = '<b>Ordre : </b>' + rows.map(r => r.querySelector('.nm').textContent).join(' · ');
+}
+
+// --- flèches (A, B, D) ---
+document.addEventListener('click', (e) => {
+  const button = e.target.closest('.ab');
+  if (!button || button.disabled) return;
+  const row = button.closest('.step');
+  const ul = row.parentElement;
+  const dir = Number(button.dataset.dir);
+  const sibling = dir < 0 ? row.previousElementSibling : row.nextElementSibling;
+  if (!sibling) return;
+  if (dir < 0) ul.insertBefore(row, sibling); else ul.insertBefore(sibling, row);
+  refresh(ul);
+  button.focus();
+});
+
+// place la ligne déplacée par rapport à celle qu'on survole, selon le milieu
+function placeBy(ul, row, clientY) {
+  for (const other of ul.children) {
+    if (other === row) continue;
+    const box = other.getBoundingClientRect();
+    if (clientY > box.top && clientY < box.bottom) {
+      const after = clientY > box.top + box.height / 2;
+      ul.insertBefore(row, after ? other.nextSibling : other);
+      return true;
+    }
+  }
+  return false;
+}
+
+// --- C : glisser natif ---
+let dragged = null;
+document.addEventListener('dragstart', (e) => {
+  const row = e.target.closest('.step[draggable]');
+  if (!row) return;
+  dragged = row;
+  row.classList.add('ghost');
+  e.dataTransfer.effectAllowed = 'move';
+});
+document.addEventListener('dragover', (e) => {
+  if (!dragged) return;
+  e.preventDefault();
+  placeBy(dragged.parentElement, dragged, e.clientY);
+});
+document.addEventListener('dragend', () => {
+  if (!dragged) return;
+  dragged.classList.remove('ghost');
+  refresh(dragged.parentElement);
+  dragged = null;
+});
+
+// --- D : glisser au pointeur (souris + tactile) ---
+document.addEventListener('pointerdown', (e) => {
+  const grip = e.target.closest('.grip');
+  if (!grip) return;
+  const row = grip.closest('.step');
+  const ul = row.parentElement;
+  if (ul.dataset.reorder !== 'pointer') return;
+  e.preventDefault();
+
+  let origin = e.clientY;
+  row.classList.add('lifting');
+  grip.setPointerCapture(e.pointerId);
+
+  const onMove = (ev) => {
+    row.style.transform = `translateY(${ev.clientY - origin}px)`;
+    if (placeBy(ul, row, ev.clientY)) {
+      origin = ev.clientY;
+      row.style.transform = '';
+    }
+  };
+  const onUp = () => {
+    row.classList.remove('lifting');
+    row.style.transform = '';
+    refresh(ul);
+    grip.removeEventListener('pointermove', onMove);
+    grip.removeEventListener('pointerup', onUp);
+    grip.removeEventListener('pointercancel', onUp);
+  };
+  grip.addEventListener('pointermove', onMove);
+  grip.addEventListener('pointerup', onUp);
+  grip.addEventListener('pointercancel', onUp);
+});
+
+document.querySelectorAll('.steps').forEach(build);
+</script>
+</body>
+</html>
