@@ -287,33 +287,147 @@ pour chaque ligne de variations :
 
 > À faire **avant** la tâche 8 de l'hébergement (les sauvegardes).
 
+Trois règles commandent l'ordre des étapes. Les enfreindre est ce qui rend
+l'opération dangereuse, pas la cryptographie elle-même.
+
+| Règle                                               | Pourquoi                                                                                                    |
+| --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **Le service est arrêté** pendant toute l'opération | sinon l'ancien code rend du base64 à l'écran, ou le nouveau lève sur du clair                               |
+| **Le clair ne touche jamais le disque du VPS**      | la sauvegarde OVH de la machine tourne déjà et peut capturer le fichier ; un `rm` n'atteint pas un snapshot |
+| **Le dump se détruit en dernier**                   | un `SELECT` montrant des `v1.` ne prouve pas que l'application sait les relire                              |
+
+#### A. Avant de toucher à la machine
+
 - [ ] Engendrer une clé **distincte** de celle de développement :
 
 ```bash
 openssl rand -base64 32
 ```
 
-- [ ] La sauvegarder **hors du VPS** — gestionnaire de mots de passe ou support
-      hors ligne. **Jamais dans la même sauvegarde que la base :** une fuite qui
-      emporterait les deux annulerait tout le bénéfice.
-- [ ] L'ajouter à `server/.env` sur la machine, `chmod 600` inchangé.
-- [ ] Sauvegarder la base **avant** la reprise :
+- [ ] La ranger dans le gestionnaire de mots de passe, puis **le fermer, le
+      rouvrir et relire la clé**. Une clé mal enregistrée ne se découvre qu'au
+      moment où elle manque, c'est-à-dire trop tard.
+- [ ] **Jamais dans la même sauvegarde que la base :** une fuite qui emporterait
+      les deux annulerait tout le bénéfice.
+
+#### B. Arrêter, puis sauvegarder sans rien écrire en clair sur le VPS
 
 ```bash
-pg_dump ... > avant-chiffrement.sql
+sudo systemctl stop idea-pipeline
 ```
 
-- [ ] Déployer, lancer `db:seal`, vérifier par un `SELECT`.
-- [ ] **Détruire `avant-chiffrement.sql`** — c'est la dernière copie en clair et
-      la seule dont l'existence est justifiée.
-- [ ] Redémarrer l'API, ouvrir le panneau, vérifier que les idées s'affichent.
+- [ ] Le dump transite par le tunnel SSH et atterrit **chez toi** :
 
-**Vérification finale**
+```bash
+ssh <vps> 'cd /srv/idea-pipeline && docker compose exec -T db \
+  pg_dump -U idea --clean --if-exists idea_pipeline' > avant-chiffrement.sql
+grep -c 'INSERT\|COPY' avant-chiffrement.sql
+```
 
-- [ ] `SELECT text FROM variations LIMIT 10;` ⇒ que des `v1.…`.
-- [ ] Créer une idée depuis l'extension, la relire en base ⇒ chiffrée.
-- [ ] Retirer `NOTE_KEY_V1` du `.env` ⇒ l'API refuse de démarrer, avec un
-      message clair. La remettre.
+- [ ] Relever les compteurs d'avant, pour pouvoir les comparer :
+
+```bash
+cd /srv/idea-pipeline && docker compose exec -T db psql -U idea -d idea_pipeline -c "
+SELECT (SELECT count(*) FROM ideas) AS idees,
+       (SELECT count(*) FROM variations) AS variations;"
+```
+
+#### C. La clé, puis le déploiement
+
+- [ ] Ajouter `NOTE_KEY_V1` à `server/.env` sur la machine, `chmod 600`
+      inchangé.
+- [ ] **Comparer ses premiers caractères avec l'entrée du gestionnaire.**
+      Pas après : maintenant.
+
+> La reprise n'a aucun moyen de refuser une clé. Lors de la toute première
+> passe, aucune ligne ne porte le préfixe, donc le garde-fou à trois issues ne
+> se déclenche jamais : **la clé présente dans `.env` à cet instant devient, par
+> définition, la bonne**. Le danger n'est pas une clé « fausse », c'est la clé
+> de **développement** collée ici — la base de production serait alors chiffrée
+> avec un secret qui traîne aussi sur ton portable.
+
+- [ ] Déployer :
+
+```bash
+git pull
+pnpm install && pnpm --dir server install
+pnpm --dir server db:migrate    # aucune nouvelle migration ici, la chaîne reste la même
+pnpm --dir server db:types
+pnpm --dir server build
+```
+
+> **L'extension n'a pas besoin d'être reconstruite ni republiée :** le front n'a
+> pas changé d'une ligne dans cette brique.
+
+- [ ] _(facultatif — ici, pendant que le service est déjà arrêté, jamais à la
+      fin)_ vérifier le refus au démarrage :
+
+```bash
+cd server && env -u NOTE_KEY_V1 node dist/index.js   # Error: NOTE_KEY_V1 is required
+```
+
+#### D. La reprise
+
+```bash
+pnpm --dir server db:seal
+```
+
+- [ ] Attendu : `Sealed: N. Already sealed: 0.` — avec `N` égal au nombre de
+      variations relevé en B.
+- [ ] La base ne montre plus que du chiffré :
+
+```bash
+cd /srv/idea-pipeline && docker compose exec -T db psql -U idea -d idea_pipeline -c \
+  "SELECT text FROM variations LIMIT 10;"
+```
+
+- [ ] Les compteurs n'ont pas bougé :
+
+```bash
+cd /srv/idea-pipeline && docker compose exec -T db psql -U idea -d idea_pipeline -c "
+SELECT (SELECT count(*) FROM ideas) AS idees,
+       (SELECT count(*) FROM variations) AS variations;"
+```
+
+> Le nombre de **caractères**, lui, a augmenté : le base64 et l'en-tête pèsent
+> plus que le texte. C'est attendu, ce n'est pas un signe de duplication.
+
+#### E. La vérification qui compte
+
+```bash
+sudo systemctl start idea-pipeline
+sudo systemctl status idea-pipeline --no-pager
+```
+
+Dans le panneau, les trois gestes — aucun ne peut être sauté, ils couvrent les
+trois chemins d'écriture et la lecture :
+
+- [ ] **Ouvrir une idée d'avant la reprise** → prouve le déchiffrement.
+- [ ] **Capturer une idée** → prouve `createIdea`.
+- [ ] **Reformuler**, puis **corriger** une idée → prouvent `addVariation` et
+      `editVariation`.
+- [ ] Relancer la reprise : `pnpm --dir server db:seal` ⇒ `Sealed: 0.`
+
+#### F. Seulement maintenant
+
+- [ ] Détruire ta copie locale de `avant-chiffrement.sql`. C'est la dernière
+      copie en clair, et la seule dont l'existence était justifiée.
+
+#### Si l'étape E tourne mal
+
+Possible **tant que le dump existe** — c'est toute la raison pour laquelle F
+vient après E.
+
+```bash
+sudo systemctl stop idea-pipeline
+ssh <vps> 'cd /srv/idea-pipeline && docker compose exec -T db \
+  psql -U idea -d idea_pipeline' < avant-chiffrement.sql
+git checkout <le commit d'avant la brique>
+pnpm --dir server build && sudo systemctl start idea-pipeline
+```
+
+La base revient en clair, le code revient à celui qui sait la lire. On
+recommence en A.
 
 ---
 
@@ -330,6 +444,12 @@ pg_dump ... > avant-chiffrement.sql
 
 - `server/test/setup.ts` recevra une clé de test en clair. C'est volontaire et
   ça doit être commenté : un secret de test n'est pas un secret.
+- **Le garde-fou de la reprise ne protège pas la première passe.** Il refuse de
+  continuer sur une ligne préfixée `v1.` qui ne s'ouvre pas — mais lors de la
+  toute première reprise aucune ligne ne porte le préfixe, donc il ne se
+  déclenche jamais. La clé présente dans `.env` à cet instant devient la bonne,
+  quelle qu'elle soit. La seule parade est humaine, et elle est dans la tâche 7 :
+  comparer la clé avec le gestionnaire **avant** de lancer `db:seal`.
 - La rotation (`NOTE_KEY_V2`) est **prévue par le format** mais n'est pas
   implémentée ici. Le jour où elle servira, `open` devra choisir la clé d'après
   le préfixe. Hors périmètre de cette brique.

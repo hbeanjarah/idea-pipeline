@@ -115,6 +115,12 @@ Puis dans Chrome :
 Le panneau s'ouvre par un clic sur l'icône ou par `Ctrl+Shift+Y`
 (`Cmd+Shift+Y` sur macOS).
 
+**Il se redimensionne**, en tirant sur son bord, d'environ 320 à 1000 px — et
+l'interface s'adapte. Au-delà de **720 px**, la liste et le détail s'affichent
+côte à côte ; en dessous, un seul volet à la fois, celui que la sélection
+désigne. C'est la première chose qu'un nouvel arrivant ne devine pas : ouvert
+étroit, l'outil paraît deux fois plus pauvre qu'il ne l'est.
+
 `VITE_GOOGLE_CLIENT_ID` est substitué **à la compilation** : après l'avoir
 changé, il faut relancer `pnpm build` et recharger l'extension. Le serveur, lui,
 lit son `.env` **au démarrage** — le redémarrer suffit, `tsx watch` ne recharge

@@ -37,11 +37,12 @@ idea-pipeline/
 │   │   ├── index.html      # point d'entrée HTML du panneau
 │   │   ├── main.tsx        # bootstrap React
 │   │   └── App.tsx         # racine + navigation entre surfaces
-│   ├── screens/            # les 3 surfaces du pipeline
-│   │   ├── HomeScreen.tsx      # accueil borné
-│   │   ├── ListScreen.tsx      # liste complète scrollable
-│   │   └── DetailScreen.tsx    # détail d'une idée
+│   ├── screens/            # les surfaces du pipeline
+│   │   ├── ListScreen.tsx      # capture + liste — la colonne maître
+│   │   ├── DetailScreen.tsx    # détail d'une idée
+│   │   └── SignInScreen.tsx    # connexion Google
 │   ├── components/         # briques réutilisables (IdeaCard, Composer,
+│   │                       #   CurrentVersion, CardSkeleton, Spinner,
 │   │                       #   Avatar, AccountMenu, ActionMenu, Popover…)
 │   ├── hooks/              # IdeasProvider, SessionProvider et leurs hooks
 │   │   └── useFailureRetry.ts  # ce qui a échoué + comment le rejouer

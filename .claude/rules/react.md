@@ -38,6 +38,15 @@ Objectif : des composants **réutilisables et découplés**, sans sur-ingénieri
   menu « ⋮ » identique est apparu. Il ne factorise pas que le balisage — il
   absorbe le `close()` avant l'action, que les deux appelants devaient penser à
   faire eux-mêmes.
+- Même règle pour `CurrentVersion` : il naît le jour où la bascule
+  lecture/édition existe à **deux** endroits distincts — la version courante et
+  les versions précédentes de `VariationThread`.
+- Et `Spinner`, le jour où le bouton de connexion et le contrôle de session en
+  ont voulu un chacun. Même bénéfice qu'`ActionMenu` : il absorbe une décision
+  que les deux appelants auraient dû reprendre — avec `label` il s'annonce
+  (`role="status"`), sans il est `aria-hidden`, parce qu'un bouton qui dit déjà
+  « Connexion en cours… » ne doit pas l'être deux fois. Sa **taille** reste chez
+  l'appelant via `className`, comme le glyphe d'`ActionMenu`.
 
 ## État
 
@@ -56,9 +65,13 @@ devient la norme.
   encore enregistré : si l'échec remontait à l'écran, un « Réessayer » réussi ne
   pourrait pas vider le champ, et l'utilisateur verrait son texte deux fois.
   L'état reste donc là où se trouve la chose à protéger.
-- **`HomeScreen` lit deux contextes** (`useIdeas` et `useSession`). C'est un
+- **`ListScreen` lit deux contextes** (`useIdeas` et `useSession`). C'est un
   écran, donc il en a le droit — mais il est le seul, et l'identité ne s'affiche
   que là.
+- **`IdeasProvider` fabrique une idée que le serveur n'a pas encore vue.** Le
+  statut initial et les dates sont devinés côté panneau : une règle serveur
+  dupliquée, le temps d'un aller-retour. Sans elle, la promesse de rapidité du
+  produit ne tient pas sur une API distante.
 
 ## À éviter
 
