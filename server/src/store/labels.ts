@@ -42,6 +42,24 @@ export async function listLabels(userId: string): Promise<Label[]> {
   return rows.map(toLabel);
 }
 
+// Cheaper than listLabels for the one thing setIdeaLabel needs: existence.
+// Going through listLabels would decrypt every name to answer a yes or no.
+export async function labelExists(
+  userId: string,
+  id: string,
+): Promise<boolean> {
+  if (!isUuid(id)) return false;
+
+  const row = await db()
+    .selectFrom('labels')
+    .select('id')
+    .where('id', '=', id)
+    .where('user_id', '=', userId)
+    .executeTakeFirst();
+
+  return row !== undefined;
+}
+
 export async function createLabel(
   userId: string,
   name: string,

@@ -1,7 +1,7 @@
 import { sql } from 'kysely';
-import type { Selectable } from 'kysely';
+import type { Kysely, Selectable } from 'kysely';
 
-import type { Idea, Status, Variation } from '#domain/types';
+import type { Idea, Variation } from '#domain/types';
 import { db } from '#store/db';
 import { open, seal } from '#store/notes';
 import type { DB } from '#store/schema.generated';
@@ -18,27 +18,32 @@ const toVariation = (row: VariationRow): Variation => ({
   createdAt: row.created_at.toISOString(),
 });
 
-// status is `text` + CHECK, so the generated type is a plain string; the cast
-// is kept honest by status-constraint.test.ts.
-const toIdea = (row: IdeaRow, variations: VariationRow[]): Idea => ({
+const toIdea = (
+  row: IdeaRow,
+  variations: VariationRow[],
+  labelId: string | null,
+): Idea => ({
   id: row.id,
-  status: row.status as Status,
+  labelId,
   createdAt: row.created_at.toISOString(),
   updatedAt: row.updated_at.toISOString(),
   variations: variations.map(toVariation),
 });
 
-// Only ever called once the idea has been proved to belong to the caller.
-async function readVariations(
+// Takes the executor so a transaction can ask without leaving it: reading
+// through db() would not see its own uncommitted writes.
+const labelOf = async (
+  executor: Kysely<DB>,
   ideaId: string,
-): Promise<VariationRow[]> {
-  return db()
-    .selectFrom('variations')
-    .selectAll()
+): Promise<string | null> => {
+  const row = await executor
+    .selectFrom('idea_labels')
+    .select('label_id')
     .where('idea_id', '=', ideaId)
-    .orderBy('position')
-    .execute();
-}
+    .executeTakeFirst();
+
+  return row?.label_id ?? null;
+};
 
 export async function listIdeas(userId: string): Promise<Idea[]> {
   const rows = await db()
@@ -65,6 +70,20 @@ export async function listIdeas(userId: string): Promise<Idea[]> {
     .orderBy('position')
     .execute();
 
+  const links = await db()
+    .selectFrom('idea_labels')
+    .selectAll()
+    .where(
+      'idea_id',
+      'in',
+      rows.map((row) => row.id),
+    )
+    .execute();
+
+  const labelOfIdea = new Map(
+    links.map((link) => [link.idea_id, link.label_id]),
+  );
+
   const grouped = new Map<string, VariationRow[]>();
   for (const variation of variations) {
     const bucket = grouped.get(variation.idea_id) ?? [];
@@ -72,7 +91,13 @@ export async function listIdeas(userId: string): Promise<Idea[]> {
     grouped.set(variation.idea_id, bucket);
   }
 
-  return rows.map((row) => toIdea(row, grouped.get(row.id) ?? []));
+  return rows.map((row) =>
+    toIdea(
+      row,
+      grouped.get(row.id) ?? [],
+      labelOfIdea.get(row.id) ?? null,
+    ),
+  );
 }
 
 export async function createIdea(
@@ -98,7 +123,7 @@ export async function createIdea(
         .returningAll()
         .executeTakeFirstOrThrow();
 
-      return toIdea(idea, [variation]);
+      return toIdea(idea, [variation], null);
     });
 }
 
@@ -117,24 +142,50 @@ export async function deleteIdea(
   return result.numDeletedRows > 0n;
 }
 
-export async function changeStatus(
+export async function setLabel(
   userId: string,
   id: string,
-  status: Status,
+  labelId: string | null,
 ): Promise<Idea | null> {
   if (!isUuid(id)) return null;
 
-  const idea = await db()
-    .updateTable('ideas')
-    .set({ status, updated_at: touch() })
-    .where('id', '=', id)
-    .where('user_id', '=', userId)
-    .returningAll()
-    .executeTakeFirst();
+  return db()
+    .transaction()
+    .execute(async (trx) => {
+      const idea = await trx
+        .updateTable('ideas')
+        .set({ updated_at: touch() })
+        .where('id', '=', id)
+        .where('user_id', '=', userId)
+        .returningAll()
+        .executeTakeFirst();
 
-  if (!idea) return null;
+      if (!idea) return null;
 
-  return toIdea(idea, await readVariations(id));
+      // Delete then insert, never an upsert: idea_labels_one_per_idea would
+      // refuse a second row, and naming the constraint in an onConflict ties
+      // this query to it.
+      await trx
+        .deleteFrom('idea_labels')
+        .where('idea_id', '=', id)
+        .execute();
+
+      if (labelId !== null) {
+        await trx
+          .insertInto('idea_labels')
+          .values({ idea_id: id, label_id: labelId })
+          .execute();
+      }
+
+      const variations = await trx
+        .selectFrom('variations')
+        .selectAll()
+        .where('idea_id', '=', id)
+        .orderBy('position')
+        .execute();
+
+      return toIdea(idea, variations, labelId);
+    });
 }
 
 export async function addVariation(
@@ -183,7 +234,7 @@ export async function addVariation(
         .orderBy('position')
         .execute();
 
-      return toIdea(idea, variations);
+      return toIdea(idea, variations, await labelOf(trx, id));
     });
 }
 
@@ -239,6 +290,6 @@ export async function editVariation(
         .orderBy('position')
         .execute();
 
-      return toIdea(idea, variations);
+      return toIdea(idea, variations, await labelOf(trx, id));
     });
 }

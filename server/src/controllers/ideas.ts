@@ -24,14 +24,14 @@ export const remove: RequestHandler<IdeaParams> = async (
   res.status(204).end();
 };
 
-export const changeStatus: RequestHandler<IdeaParams> = async (
+export const setLabel: RequestHandler<IdeaParams> = async (
   req,
   res,
 ) => {
   res
     .status(200)
     .json(
-      await ideaService.changeStatus(
+      await ideaService.setIdeaLabel(
         userIdOf(req),
         req.params.id,
         req.body,

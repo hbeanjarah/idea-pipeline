@@ -10,7 +10,7 @@ ideasRouter.post('/', ideasController.create);
 
 ideasRouter.delete('/:id', ideasController.remove);
 
-ideasRouter.patch('/:id', ideasController.changeStatus);
+ideasRouter.patch('/:id', ideasController.setLabel);
 
 ideasRouter.post('/:id/variations', ideasController.addVariation);
 

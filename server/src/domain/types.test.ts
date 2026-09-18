@@ -5,8 +5,6 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-import { STATUSES } from '#domain/types';
-
 const SERVER_ROOT = join(
   dirname(fileURLToPath(import.meta.url)),
   '..',
@@ -46,15 +44,4 @@ describe('api.generated.ts', () => {
       rmSync(dir, { recursive: true, force: true });
     }
   }, 30_000);
-});
-
-describe('the domain façade', () => {
-  it('exposes the statuses as a runtime value', () => {
-    expect([...STATUSES]).toEqual([
-      'captured',
-      'maturing',
-      'ready',
-      'published',
-    ]);
-  });
 });

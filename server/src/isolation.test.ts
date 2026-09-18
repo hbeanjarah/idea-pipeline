@@ -72,7 +72,7 @@ describe('two accounts', () => {
       [
         'PATCH',
         `/ideas/${idea.id}`,
-        JSON.stringify({ status: 'ready' }),
+        JSON.stringify({ labelId: null }),
       ],
       [
         'POST',
@@ -98,7 +98,7 @@ describe('two accounts', () => {
     expect(still).toHaveLength(1);
     expect(still[0]?.variations).toHaveLength(1);
     expect(still[0]?.variations[0]?.text).toBe('idée de alice');
-    expect(still[0]?.status).toBe('captured');
+    expect(still[0]?.labelId).toBeNull();
   });
 
   it('keep their ideas when the other account is deleted', async () => {

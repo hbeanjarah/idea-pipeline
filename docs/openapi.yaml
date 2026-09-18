@@ -117,15 +117,19 @@ paths:
                 $ref: '#/components/schemas/Error'
 
     patch:
-      operationId: changeIdeaStatus
-      summary: Modifie le statut d'une idée
-      description: Met à jour le statut de l'idée.
+      operationId: setIdeaLabel
+      summary: Classe une idée à une étape
+      description: |
+        Rattache l'idée à une étape, ou l'en détache avec `null`.
+
+        L'étape doit appartenir au compte appelant : celle d'un autre répond
+        `404`, jamais `403`.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ChangeStatusRequest'
+              $ref: '#/components/schemas/SetIdeaLabelRequest'
       responses:
         '200':
           description: Idée mise à jour.
@@ -136,8 +140,7 @@ paths:
         '400':
           description: |
             Requête invalide. Messages possibles :
-            - `Le champ "status" est obligatoire.` — champ absent, corps vide inclus.
-            - `Statut invalide.` — valeur présente mais hors de l'énumération.
+            - `Le champ "labelId" est obligatoire.` — champ absent, ou d'un type autre qu'une chaîne ou `null` ; corps vide inclus.
             - `Champs non autorisés.` — au moins un champ hors du schéma est présent.
             - `Corps de requête JSON invalide.` — JSON malformé.
           content:
@@ -146,7 +149,9 @@ paths:
                 $ref: '#/components/schemas/Error'
         '404':
           description: |
-            `Idée introuvable.`
+            Messages possibles :
+            - `Idée introuvable.` — l'`id` ne correspond à aucune idée du compte.
+            - `Étape introuvable.` — le `labelId` ne correspond à aucune étape du compte.
           content:
             application/json:
               schema:
@@ -655,14 +660,6 @@ components:
             l'ordre voulu. Un ensemble différent — incomplet, ou portant un
             identifiant inconnu — répond `400`.
 
-    Status:
-      type: string
-      enum:
-        - captured
-        - maturing
-        - ready
-        - published
-
     Variation:
       type: object
       required:
@@ -686,7 +683,7 @@ components:
       type: object
       required:
         - id
-        - status
+        - labelId
         - createdAt
         - updatedAt
         - variations
@@ -695,8 +692,14 @@ components:
           type: string
           format: uuid
           description: Identifiant unique de l'idée généré par le serveur.
-        status:
-          $ref: '#/components/schemas/Status'
+        labelId:
+          type: string
+          format: uuid
+          nullable: true
+          description: |
+            L'étape où se trouve l'idée, ou `null` : une idée naît **libre** et
+            peut le rester. Toujours présent, jamais absent — le front lit
+            `null`, pas `undefined`.
         createdAt:
           type: string
           format: date-time
@@ -797,11 +800,17 @@ components:
           minLength: 1
           description: Nouveau texte de la variation.
 
-    ChangeStatusRequest:
+    SetIdeaLabelRequest:
       type: object
       additionalProperties: false
       required:
-        - status
+        - labelId
       properties:
-        status:
-          $ref: '#/components/schemas/Status'
+        labelId:
+          type: string
+          format: uuid
+          nullable: true
+          description: |
+            L'étape visée, ou `null` pour détacher l'idée. `null` est une
+            valeur comme une autre : il n'y a pas d'endpoint séparé pour
+            détacher.
