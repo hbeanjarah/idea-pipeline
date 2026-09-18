@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import type { PointerEvent } from 'react';
 
 import Alert from '@/components/Alert/Alert';
+import BackButton from '@/components/BackButton/BackButton';
 import LabelRow from '@/components/LabelRow/LabelRow';
 import { useIdeas } from '@/hooks/useIdeas';
 import { useLabels } from '@/hooks/useLabels';
@@ -111,25 +112,8 @@ export default function LabelsScreen({ onClose }: Props) {
   return (
     <main className={styles.screen}>
       <div className={styles.bar}>
+        <BackButton onClick={onClose} />
         <p className={styles.title}>Étapes</p>
-        <button
-          type="button"
-          className={styles.close}
-          aria-label="Fermer"
-          onClick={onClose}
-        >
-          <svg
-            viewBox="0 0 24 24"
-            width="16"
-            height="16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.9"
-            strokeLinecap="round"
-          >
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
-        </button>
       </div>
 
       <p className={styles.lead}>

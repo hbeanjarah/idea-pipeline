@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import ActionMenu from '@/components/ActionMenu/ActionMenu';
+import BackButton from '@/components/BackButton/BackButton';
 import styles from './IdeaHeader.module.css';
 
 interface Props {
@@ -16,26 +17,7 @@ export default function IdeaHeader({ onBack, onDelete }: Props) {
   return (
     <>
       <div className={styles.bar}>
-        <button
-          type="button"
-          className={styles.back}
-          onClick={onBack}
-          aria-label="Retour à la liste"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            width="18"
-            height="18"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.7"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M19 12H5" />
-            <path d="M11 19l-7-7 7-7" />
-          </svg>
-        </button>
+        <BackButton className={styles.back} onClick={onBack} />
 
         {onDelete && (
           <ActionMenu

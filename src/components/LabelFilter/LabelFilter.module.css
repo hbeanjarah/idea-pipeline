@@ -93,6 +93,13 @@
   background: var(--ring);
 }
 
+/* Only ever seen when the strip is too narrow for two pills, so the active one
+ * could not be pulled into it. */
+.picked {
+  background: var(--hl);
+  font-weight: 600;
+}
+
 .entry:focus-visible {
   outline: var(--focus-outline);
   outline-offset: var(--focus-offset);

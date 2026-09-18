@@ -2,8 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 import LabelDot from '@/components/LabelDot/LabelDot';
 import Popover from '@/components/Popover/Popover';
-import { ALL, UNCLASSIFIED } from '@/lib/filterIdeas';
 import type { FilterLabel } from '@/lib/filterIdeas';
+import { orderSegments } from '@/lib/filterSegments';
 import { visibleCount } from '@/lib/rowOverflow';
 import type { Label } from '@/storage/types';
 import styles from './LabelFilter.module.css';
@@ -15,36 +15,16 @@ interface Props {
   onChange: (value: FilterLabel) => void;
 }
 
-interface Segment {
-  value: FilterLabel;
-  label: string;
-  color: number | null;
-}
-
 export default function LabelFilter({
   labels,
   active,
   counts,
   onChange,
 }: Props) {
-  // The active stage is pulled in front of the others: left in the overflow,
-  // the strip would not say what it filters.
-  const segments = useMemo<Segment[]>(() => {
-    const stages: Segment[] = labels.map((label) => ({
-      value: label.id,
-      label: label.name,
-      color: label.color,
-    }));
-
-    const at = stages.findIndex((stage) => stage.value === active);
-    if (at > 0) stages.unshift(...stages.splice(at, 1));
-
-    return [
-      { value: ALL, label: 'Tous', color: null },
-      { value: UNCLASSIFIED, label: 'Sans étape', color: null },
-      ...stages,
-    ];
-  }, [labels, active]);
+  const segments = useMemo(
+    () => orderSegments(labels, active),
+    [labels, active],
+  );
 
   const stripRef = useRef<HTMLDivElement>(null);
   const [shown, setShown] = useState(segments.length);
@@ -120,7 +100,9 @@ export default function LabelFilter({
                 <button
                   key={value}
                   type="button"
-                  className={styles.entry}
+                  className={`${styles.entry} ${
+                    active === value ? styles.picked : ''
+                  }`}
                   onClick={() => {
                     onChange(value);
                     close();

@@ -11,28 +11,20 @@
 }
 
 .back {
-  display: flex;
   margin-right: auto;
-  border: none;
-  background: none;
-  padding: 0;
-  color: var(--muted);
-  cursor: pointer;
 }
 
 /* Above the threshold the list is on screen next to this pane, so there is
  * nothing to go back to. Hidden in CSS rather than unmounted in JS: the
  * threshold then lives in stylesheets only — it must stay in step with the one
  * in sidepanel/App.module.css. display:none also takes it out of the tab
- * order, which visibility:hidden would not. */
-@media (min-width: 720px) {
-  .back {
+ * order, which visibility:hidden would not.
+ * Doubled on purpose: BackButton sets display:flex on a class of its own, and a
+ * single class here would only tie with it. */
+@media (min-width: 750px) {
+  .back.back {
     display: none;
   }
-}
-
-.back:hover {
-  color: var(--ink);
 }
 
 .menu-icon {
