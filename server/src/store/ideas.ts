@@ -5,14 +5,10 @@ import type { Idea, Status, Variation } from '#domain/types';
 import { db } from '#store/db';
 import { open, seal } from '#store/notes';
 import type { DB } from '#store/schema.generated';
+import { isUuid } from '#store/uuid';
 
 type IdeaRow = Selectable<DB['ideas']>;
 type VariationRow = Selectable<DB['variations']>;
-
-// Postgres raises on a malformed uuid instead of returning no row, so an
-// unknown id would surface as a 500 where the contract owes a 404.
-const UUID =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const touch = () => sql<Date>`now()`;
 
@@ -110,7 +106,7 @@ export async function deleteIdea(
   userId: string,
   id: string,
 ): Promise<boolean> {
-  if (!UUID.test(id)) return false;
+  if (!isUuid(id)) return false;
 
   const result = await db()
     .deleteFrom('ideas')
@@ -126,7 +122,7 @@ export async function changeStatus(
   id: string,
   status: Status,
 ): Promise<Idea | null> {
-  if (!UUID.test(id)) return null;
+  if (!isUuid(id)) return null;
 
   const idea = await db()
     .updateTable('ideas')
@@ -146,7 +142,7 @@ export async function addVariation(
   id: string,
   text: string,
 ): Promise<Idea | null> {
-  if (!UUID.test(id)) return null;
+  if (!isUuid(id)) return null;
 
   return db()
     .transaction()
@@ -203,8 +199,8 @@ export async function editVariation(
   variationId: string,
   text: string,
 ): Promise<Idea | EditVariationFailure> {
-  if (!UUID.test(id)) return 'idea-not-found';
-  if (!UUID.test(variationId)) return 'variation-not-found';
+  if (!isUuid(id)) return 'idea-not-found';
+  if (!isUuid(variationId)) return 'variation-not-found';
 
   return db()
     .transaction()

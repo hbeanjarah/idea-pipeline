@@ -1,5 +1,6 @@
 export type {
   Idea,
+  Label,
   Variation,
   Status,
   User,

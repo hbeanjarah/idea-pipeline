@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 
 import { db } from '#store/db';
 import * as store from '#store/ideas';
+import * as labels from '#store/labels';
 import { createUserWithSession } from '#test/factories';
 
 let userId: string;
@@ -21,12 +22,23 @@ const stored = async (ideaId: string): Promise<string[]> => {
   return result.rows.map((row) => row.text);
 };
 
+// Same reason, other table: toLabel decrypts, so the store cannot be asked
+// what the column contains.
+const storedNames = async (owner: string): Promise<string[]> => {
+  const result = await sql<{ name: string }>`
+    SELECT name FROM labels WHERE user_id = ${owner} ORDER BY position
+  `.execute(db());
+
+  return result.rows.map((row) => row.name);
+};
+
 const MARKER = 'CONFIDENTIEL-marqueur-unique-42';
 
 // The unit tests prove the sealing works; these prove it is wired to every way
-// a note can reach the database. One missed path would leave plaintext rows
-// that no other test would notice.
-describe('what the database actually holds', () => {
+// user-written text can reach the database — note content and stage names
+// alike. One missed path would leave plaintext rows that no other test would
+// notice.
+describe('what the database holds of a note', () => {
   it('not the text a capture was made of', async () => {
     const idea = await store.createIdea(userId, MARKER);
 
@@ -70,5 +82,46 @@ describe('what the database actually holds', () => {
       `${MARKER} — un`,
       `${MARKER} — deux`,
     ]);
+  });
+});
+
+describe('what the database holds of a stage name', () => {
+  it('not the name a stage was created with', async () => {
+    await labels.createLabel(userId, MARKER);
+
+    const rows = await storedNames(userId);
+    expect(rows[0]).toMatch(/^v1\./);
+    expect(rows[0]).not.toContain(MARKER);
+  });
+
+  it('not the name a stage was renamed to', async () => {
+    const label = await labels.createLabel(userId, 'Maturation');
+
+    await labels.renameLabel(userId, label.id, MARKER);
+
+    const rows = await storedNames(userId);
+    expect(rows[0]).toMatch(/^v1\./);
+    expect(rows[0]).not.toContain(MARKER);
+  });
+
+  it('and gives them back intact', async () => {
+    await labels.createLabel(userId, `${MARKER} — un`);
+    await labels.createLabel(userId, `${MARKER} — deux`);
+
+    expect(
+      (await labels.listLabels(userId)).map((label) => label.name),
+    ).toEqual([`${MARKER} — un`, `${MARKER} — deux`]);
+  });
+
+  it('nor the name in any other column of the row', async () => {
+    // Fails the day a user-written column is added to this table without
+    // being sealed.
+    await labels.createLabel(userId, MARKER);
+
+    const result = await sql<{ row: string }>`
+      SELECT labels::text AS row FROM labels WHERE user_id = ${userId}
+    `.execute(db());
+
+    expect(result.rows[0]?.row).not.toContain(MARKER);
   });
 });

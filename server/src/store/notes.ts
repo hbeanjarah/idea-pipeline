@@ -13,13 +13,16 @@ export const SEALED_PREFIX = 'v1.';
 const IV_BYTES = 12;
 const TAG_BYTES = 16;
 
-// The idea's id is mixed into the signature, so a sealed row copied into
-// another account's idea no longer opens. Without it, a write straight to the
-// database could move a note from one user to another.
-export function seal(text: string, ideaId: string): string {
+// The row's context is mixed into the signature, so a sealed value copied
+// somewhere else no longer opens. Without it, a write straight to the database
+// could move a note from one user to another.
+//
+// Callers pass what the value belongs to and cannot be detached from: the
+// idea's id for a variation, the account's id for a stage name.
+export function seal(text: string, context: string): string {
   const iv = randomBytes(IV_BYTES);
   const cipher = createCipheriv('aes-256-gcm', noteKey(), iv);
-  cipher.setAAD(Buffer.from(ideaId));
+  cipher.setAAD(Buffer.from(context));
 
   // final() before getAuthTag(): the tag does not exist until the last block
   // has gone through.
@@ -34,7 +37,7 @@ export function seal(text: string, ideaId: string): string {
   );
 }
 
-export function open(stored: string, ideaId: string): string {
+export function open(stored: string, context: string): string {
   if (!stored.startsWith(SEALED_PREFIX)) {
     throw new Error('Unknown note encoding');
   }
@@ -55,7 +58,7 @@ export function open(stored: string, ideaId: string): string {
     noteKey(),
     packed.subarray(0, IV_BYTES),
   );
-  decipher.setAAD(Buffer.from(ideaId));
+  decipher.setAAD(Buffer.from(context));
   decipher.setAuthTag(
     packed.subarray(IV_BYTES, IV_BYTES + TAG_BYTES),
   );
