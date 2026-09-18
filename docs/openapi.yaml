@@ -262,6 +262,200 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /labels:
+    get:
+      operationId: listLabels
+      summary: Liste des étapes
+      description: |
+        Retourne les étapes **du compte appelant**, triées par `position`.
+
+        Un compte sans étape répond `200` avec un tableau vide : c'est un état
+        légal, pas une erreur.
+      responses:
+        '200':
+          description: Liste des étapes du compte.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Label'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '500':
+          description: |
+            `Erreur inattendue côté serveur.`
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      operationId: createLabel
+      summary: Crée une étape
+      description: |
+        Ajoute une étape en fin de liste. Le serveur attribue `position` et
+        `color` : ni l'une ni l'autre ne se demandent.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLabelRequest'
+      responses:
+        '201':
+          description: Étape créée.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Label'
+        '400':
+          description: |
+            Requête invalide. Messages possibles :
+            - `Le nom de l'étape est obligatoire.` — nom absent, vide ou uniquement des espaces, corps non lu inclus.
+            - `Le nom de l'étape est trop long.` — plus de 32 caractères.
+            - `Cette étape existe déjà.` — ce compte porte déjà ce nom, casse ignorée.
+            - `Champs non autorisés.` — au moins un champ hors du schéma est présent.
+            - `Corps de requête JSON invalide.` — JSON malformé.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '500':
+          description: |
+            `Erreur inattendue côté serveur.`
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    patch:
+      operationId: reorderLabels
+      summary: Réordonne les étapes
+      description: |
+        Renumérote les étapes du compte dans l'ordre donné.
+
+        Le corps porte la liste **complète**, et non un déplacement : bouger une
+        étape change la position de toutes les autres. Des appels par étape
+        s'entrelaceraient en ordres incohérents.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReorderLabelsRequest'
+      responses:
+        '200':
+          description: Étapes renumérotées, dans leur nouvel ordre.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Label'
+        '400':
+          description: |
+            Requête invalide. Messages possibles :
+            - `La liste des étapes est incomplète.` — l'ensemble donné n'est pas exactement celui du compte.
+            - `Champs non autorisés.` — au moins un champ hors du schéma est présent.
+            - `Corps de requête JSON invalide.` — JSON malformé.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '500':
+          description: |
+            `Erreur inattendue côté serveur.`
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /labels/{id}:
+    parameters:
+      - $ref: '#/components/parameters/LabelId'
+
+    patch:
+      operationId: renameLabel
+      summary: Renomme une étape
+      description: |
+        Seul le nom change. La `position` se modifie par `PATCH /labels`, et la
+        `color` ne se choisit pas.
+
+        Aucune idée n'est détachée : elles pointent vers l'identifiant, pas vers
+        le nom.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RenameLabelRequest'
+      responses:
+        '200':
+          description: Étape renommée.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Label'
+        '400':
+          description: |
+            Requête invalide. Messages possibles :
+            - `Le nom de l'étape est obligatoire.` — nom absent, vide ou uniquement des espaces.
+            - `Le nom de l'étape est trop long.` — plus de 32 caractères.
+            - `Cette étape existe déjà.` — une autre étape du compte porte ce nom, casse ignorée.
+            - `Champs non autorisés.` — au moins un champ hors du schéma est présent.
+            - `Corps de requête JSON invalide.` — JSON malformé.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: |
+            `Étape introuvable.`
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '500':
+          description: |
+            `Erreur inattendue côté serveur.`
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      operationId: deleteLabel
+      summary: Supprime une étape
+      description: |
+        Les idées qui la portaient deviennent libres. **Aucune idée n'est
+        supprimée** : seul le rattachement disparaît.
+      responses:
+        '204':
+          description: Étape supprimée.
+        '404':
+          description: |
+            `Étape introuvable.`
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '500':
+          description: |
+            `Erreur inattendue côté serveur.`
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /auth/google:
     post:
       operationId: signInWithGoogle
@@ -377,7 +571,90 @@ components:
         type: string
         format: uuid
 
+    LabelId:
+      name: id
+      in: path
+      required: true
+      description: Identifiant de l'étape.
+      schema:
+        type: string
+        format: uuid
+
   schemas:
+    Label:
+      type: object
+      required:
+        - id
+        - name
+        - color
+        - position
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Identifiant unique de l'étape généré par le serveur.
+        name:
+          type: string
+          minLength: 1
+          maxLength: 32
+          description: |
+            Nom de l'étape, écrit par l'utilisateur. Stocké chiffré : la base
+            n'en contient jamais le texte lisible.
+        color:
+          type: integer
+          minimum: 1
+          maximum: 8
+          description: |
+            Rang dans une palette de huit, et non une couleur : les valeurs
+            vivent dans `src/styles/tokens.css`, seul endroit du dépôt où une
+            couleur s'écrit. Attribué par le serveur, jamais choisi.
+        position:
+          type: integer
+          minimum: 1
+          description: |
+            Rang d'affichage, arrangé par l'utilisateur. Ce n'est pas une
+            progression que le produit comprend : toute étape reste atteignable
+            depuis toute autre.
+
+    CreateLabelRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 32
+
+    RenameLabelRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 32
+
+    ReorderLabelsRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - ids
+      properties:
+        ids:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            format: uuid
+          description: |
+            L'ensemble **complet** des identifiants d'étape du compte, dans
+            l'ordre voulu. Un ensemble différent — incomplet, ou portant un
+            identifiant inconnu — répond `400`.
+
     Status:
       type: string
       enum:
