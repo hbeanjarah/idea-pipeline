@@ -41,6 +41,7 @@ export default function IdeaCard({
 
       <div className={styles.meta}>
         <LabelPicker
+          className={styles.stage}
           labels={labels}
           labelId={idea.labelId}
           onChange={onLabelChange}

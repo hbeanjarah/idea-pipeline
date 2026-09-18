@@ -1,0 +1,294 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>États d'une carte — à essayer</title>
+<style>
+  :root {
+    --sunken: #e2e8f2;
+    --surface: #fcfdff;
+    --cardbd: #e4ebf4;
+    --panelbd: #dce4f0;
+    --ink: #323859;
+    --muted: #5d667e;
+    --faint: #aab2c4;
+    --accent: #038c8c;
+    --tagbg: #e7eef8;
+    --tagink: #5b6480;
+    --label-1: #a68776;
+    --label-2: #4a3f73;
+    --label-3: #038c8c;
+    --focus-outline: 2px solid var(--accent);
+    --focus-offset: 2px;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+    --selw: 3px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 26px;
+    background: #f4f6fa;
+    font-family: var(--font-sans);
+    color: var(--ink);
+  }
+  h1 { font-size: 18px; margin: 0 0 6px; }
+  .sub { font-size: 12.5px; color: var(--muted); margin: 0 0 18px; max-width: 900px; line-height: 1.6; }
+  .sub b { color: var(--ink); }
+
+  /* ---------------- controls ---------------- */
+  .panel {
+    background: #fff;
+    border: 1px solid #dce3ed;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin: 0 0 22px;
+    max-width: 900px;
+  }
+  .panel h3 { font-size: 12px; margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+  .ctl { display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center; }
+  label.sw { display: flex; align-items: center; gap: 7px; font-size: 13px; cursor: pointer; }
+  label.sw input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+  label.sw small { color: var(--muted); font-size: 11.5px; }
+  .sep { width: 100%; height: 1px; background: #e8edf4; margin: 4px 0; }
+  .radios { display: flex; gap: 14px; align-items: center; font-size: 13px; }
+
+  /* ---------------- panes ---------------- */
+  .panes { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; }
+  .pane { width: 344px; }
+  .ptitle { font-size: 13px; font-weight: 700; margin: 0 0 3px; }
+  .pnote { font-size: 11.5px; color: var(--muted); margin: 0 0 10px; line-height: 1.5; min-height: 32px; }
+  .col { background: var(--sunken); border-radius: 12px; padding: 12px; }
+  .rows { display: flex; flex-direction: column; gap: 8px; }
+
+  /* ---------------- the card ---------------- */
+  .card {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--cardbd);
+    border-radius: 10px;
+    padding: 8px 12px;
+  }
+  .open {
+    display: block;
+    width: 100%;
+    border: 0;
+    border-radius: 4px;
+    background: none;
+    padding: 0;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .text { display: block; font-size: 13px; line-height: 1.4; color: var(--ink); }
+  .meta { display: flex; align-items: center; gap: 6px; margin-top: 5px; font-size: 11px; color: var(--muted); }
+  .picker {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--tagbg);
+    color: var(--tagink);
+    padding: 2px 8px;
+    font-family: inherit;
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .picker:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; background: var(--label-1); }
+  .d2 { background: var(--label-2); }
+  .d3 { background: var(--label-3); }
+  .versions { margin-left: auto; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  /* ======== LEFT PANE — what is built today ======== */
+  .today .card:hover { border-color: var(--panelbd); }
+  .today .card.sel { border-color: var(--accent); box-shadow: 0 0 0 2px rgb(3 140 140 / 0.13); }
+  .today .open:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
+
+  /* ======== RIGHT PANE — proposed ======== */
+  /* the whole card becomes the hit area */
+  .next .open::after { content: ''; position: absolute; inset: 0; }
+  .next .picker { position: relative; z-index: 1; }
+  .next .card { cursor: pointer; }
+  .next .card:hover { border-color: var(--faint); }
+  .next .card.sel {
+    background: #f2f9f9;
+    border-color: #cfe0e6;
+    border-left: var(--selw) solid var(--accent);
+    padding-left: calc(12px - (var(--selw) - 1px));
+  }
+
+  /* focus ring — off by default, switched on by body class */
+  .next .open:focus-visible { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
+  body.fx-focus .next .open:focus-visible { outline: none; }
+  body.fx-focus .next .card:has(.open:focus-visible) {
+    outline: var(--focus-outline);
+    outline-offset: var(--focus-offset);
+  }
+  /* the WRONG way, kept switchable so the difference can be felt */
+  body.fx-within .next .open:focus-visible { outline: none; }
+  body.fx-within .next .card:focus-within {
+    outline: var(--focus-outline);
+    outline-offset: var(--focus-offset);
+  }
+
+  /* pressed */
+  body.fx-press .next .card:has(.open:active) { background: #e9f3f3; }
+  body.fx-press .next .card.sel:has(.open:active) { background: #e2f0f0; }
+
+  /* transition */
+  @media (prefers-reduced-motion: no-preference) {
+    body.fx-trans .next .card {
+      transition:
+        border-color 120ms ease-out,
+        background-color 120ms ease-out;
+    }
+  }
+
+  .legend { font-size: 11.5px; color: var(--muted); margin: 14px 0 0; max-width: 900px; line-height: 1.6; }
+  .legend code { background: #eef2f8; padding: 1px 4px; border-radius: 3px; }
+  kbd {
+    background: #fff; border: 1px solid #cfd8e5; border-bottom-width: 2px;
+    border-radius: 4px; padding: 0 5px; font-family: var(--font-mono); font-size: 11px;
+  }
+</style>
+
+<h1>Les états d'une carte — à essayer, pas à regarder</h1>
+<p class="sub">
+  Les deux listes sont <b>vivantes</b> : survole, clique, et surtout parcours-les
+  à la <kbd>Tab</kbd>. À gauche ce qui est construit aujourd'hui, à droite la
+  proposition. Les interrupteurs n'agissent que sur la colonne de droite — tu
+  peux allumer et éteindre pendant que tu cliques.
+</p>
+
+<div class="panel">
+  <h3>Effets — colonne de droite</h3>
+  <div class="ctl">
+    <label class="sw">
+      <input type="checkbox" id="fx-focus" checked />
+      Anneau de focus sur la carte <small>(via <code>:has()</code>)</small>
+    </label>
+    <label class="sw">
+      <input type="checkbox" id="fx-press" />
+      État pressé au clic
+    </label>
+    <label class="sw">
+      <input type="checkbox" id="fx-trans" checked />
+      Transition 120 ms
+    </label>
+  </div>
+  <div class="sep"></div>
+  <div class="ctl">
+    <label class="sw">
+      <input type="checkbox" id="fx-within" />
+      <span style="color:#c0453b">Version fautive : <code>:focus-within</code></span>
+      <small>— Tab jusqu'à une pastille « Capturé » pour voir le défaut</small>
+    </label>
+  </div>
+  <div class="sep"></div>
+  <div class="ctl">
+    <div class="radios">
+      <span style="color: var(--muted); font-size: 12px">Épaisseur de la bordure :</span>
+      <label class="sw"><input type="radio" name="w" value="2" /> 2 px</label>
+      <label class="sw"><input type="radio" name="w" value="3" checked /> 3 px</label>
+      <label class="sw"><input type="radio" name="w" value="4" /> 4 px</label>
+    </div>
+  </div>
+</div>
+
+<div class="panes">
+  <div class="pane">
+    <p class="ptitle">Aujourd'hui</p>
+    <p class="pnote">
+      Seul le texte reçoit le clic. Le survol change la bordure de 1,03:1 —
+      essaie, tu ne verras rien.
+    </p>
+    <div class="col today" id="today"><div class="rows"></div></div>
+  </div>
+
+  <div class="pane">
+    <p class="ptitle">Proposé</p>
+    <p class="pnote">
+      Toute la carte reçoit le clic — sauf la pastille d'étape, qui garde le
+      sien. Sélection : bordure gauche turquoise + fond teinté.
+    </p>
+    <div class="col next" id="next"><div class="rows"></div></div>
+  </div>
+</div>
+
+<p class="legend">
+  <b>Ce qu'il faut essayer :</b> clique n'importe où sur une carte de droite —
+  puis clique sur sa pastille « Capturé », elle ne doit <b>pas</b> ouvrir l'idée.
+  Parcours ensuite les deux colonnes à la <kbd>Tab</kbd> : à gauche l'anneau
+  serre le texte, à droite il entoure la carte entière. Enfin, coche
+  <code>:focus-within</code> et retourne à la <kbd>Tab</kbd> : la carte
+  s'entoure aussi quand le focus est sur la <b>pastille</b> — c'est le défaut
+  que <code>:has()</code> évite.
+</p>
+
+<script>
+  const IDEAS = [
+    { t: 'verbatimModuleSyntax sur tsconfig ça fait quoi', s: 'Prêt', d: 'd3', v: 0 },
+    { t: 'module nodenext vs moduleResolution', s: 'Capturé', d: '', v: 0 },
+    { t: 'OutDir/rootDir', s: 'Capturé', d: '', v: 3 },
+    { t: 'Git work tree', s: 'Maturation', d: 'd2', v: 2 },
+  ];
+
+  function build(host) {
+    const rows = host.querySelector('.rows');
+    IDEAS.forEach((idea, i) => {
+      const card = document.createElement('div');
+      card.className = 'card' + (i === 2 ? ' sel' : '');
+
+      const open = document.createElement('button');
+      open.type = 'button';
+      open.className = 'open';
+      open.innerHTML = '<span class="text"></span>';
+      open.querySelector('.text').textContent = idea.t;
+      open.addEventListener('click', () => {
+        rows.querySelectorAll('.card').forEach((c) => c.classList.remove('sel'));
+        card.classList.add('sel');
+      });
+
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+
+      const picker = document.createElement('button');
+      picker.type = 'button';
+      picker.className = 'picker';
+      picker.innerHTML = '<span class="dot ' + idea.d + '"></span>';
+      picker.append(idea.s);
+      picker.addEventListener('click', (e) => {
+        e.stopPropagation();
+        picker.style.background = picker.style.background === 'rgb(189, 217, 242)' ? '' : '#bdd9f2';
+      });
+      meta.append(picker);
+
+      if (idea.v > 1) {
+        const v = document.createElement('span');
+        v.className = 'versions';
+        v.textContent = idea.v + ' versions';
+        meta.append(v);
+      }
+
+      card.append(open, meta);
+      rows.append(card);
+    });
+  }
+
+  build(document.getElementById('today'));
+  build(document.getElementById('next'));
+
+  const bind = (id) => {
+    const box = document.getElementById(id);
+    const apply = () => document.body.classList.toggle(id, box.checked);
+    box.addEventListener('change', apply);
+    apply();
+  };
+  ['fx-focus', 'fx-press', 'fx-trans', 'fx-within'].forEach(bind);
+
+  document.querySelectorAll('input[name="w"]').forEach((r) =>
+    r.addEventListener('change', () => {
+      if (r.checked) document.documentElement.style.setProperty('--selw', r.value + 'px');
+    }),
+  );
+</script>

@@ -47,6 +47,7 @@ idea-pipeline/
 │   ├── components/         # briques réutilisables (IdeaCard, Composer,
 │   │                       #   CurrentVersion, CardSkeleton, Spinner,
 │   │                       #   Avatar, AccountMenu, ActionMenu, Popover…)
+│   │                       #   BackButton (la flèche retour, partagée),
 │   │                       # les étapes : LabelDot (la pastille de couleur),
 │   │                       #   LabelPicker (classer), LabelFilter (filtrer),
 │   │                       #   LabelRow (une ligne de l'écran de gestion)
@@ -56,6 +57,7 @@ idea-pipeline/
 │   ├── lib/                # protocol.ts (contrat panneau ↔ worker), config, failures
 │   │                       #   variations.ts    la variation courante
 │   │                       #   filterIdeas.ts   étape + recherche
+│   │                       #   filterSegments.ts l'ordre des puces du filtre
 │   │                       #   rowOverflow.ts   ce qui tient sur une rangée
 │   │                       #   optimistic.ts    affichage avant confirmation
 │   ├── storage/

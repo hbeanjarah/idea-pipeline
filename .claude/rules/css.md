@@ -39,15 +39,17 @@ L'ambiance est **froide** (gris-bleu), rehaussée de turquoise. Aucun ton chaud.
 
 **Surfaces & fonds — deux niveaux, pas trois**
 
-| Token       | Valeur    | Usage                                       |
-| ----------- | --------- | ------------------------------------------- |
-| `--sunken`  | `#e2e8f2` | le fond, et toute colonne qui ne porte rien |
-| `--surface` | `#fcfdff` | cartes, champs, volet détail, popovers      |
-| `--panelbd` | `#dce4f0` | bordure de panneau                          |
-| `--cardbd`  | `#e4ebf4` | bordure de carte                            |
-| `--capbd`   | `#cdddf0` | bordure du champ de saisie                  |
-| `--ring`    | `#e3edf9` | fond de survol discret                      |
-| `--spine`   | `#dce4f0` | filet vertical de l'historique              |
+| Token       | Valeur    | Usage                                        |
+| ----------- | --------- | -------------------------------------------- |
+| `--sunken`  | `#e2e8f2` | le fond, et toute colonne qui ne porte rien  |
+| `--surface` | `#fcfdff` | cartes, champs, volet détail, popovers       |
+| `--panelbd` | `#dce4f0` | bordure de panneau                           |
+| `--cardbd`  | `#e4ebf4` | bordure de carte                             |
+| `--capbd`   | `#cdddf0` | bordure du champ de saisie                   |
+| `--ring`    | `#e3edf9` | fond de survol discret                       |
+| `--spine`   | `#dce4f0` | filet vertical de l'historique               |
+| `--selbg`   | `#f2f9f9` | fond de la carte ouverte — **pas** un signal |
+| `--selbd`   | `#cfe0e6` | sa bordure                                   |
 
 Le palier entre les deux vaut **1,210:1**. Il en existait trois auparavant,
 séparés de 1,085:1 et 1,101:1 — sous le seuil où l'œil les distingue seul, si
@@ -59,6 +61,19 @@ détacher un élément, on emploie la bordure, le halo ou l'ombre — pas un
 quatrième gris. La teinte froide (~218°) se tient sur **toutes** les valeurs
 neutres, y compris `--surface` : l'ancien `--card` était du blanc pur, seule
 valeur neutre d'une série froide.
+
+`--ring` est le fond de survol des **menus et popovers**, tous posés sur
+`--surface`. Il ne convient pas à une carte : il vaut `#e3edf9` quand le fond du
+panneau vaut `#e2e8f2`, et la carte survolée se dissoudrait dans son propre
+fond. Sur une carte, le survol se joue à la **bordure**.
+
+**Et un état ne s'exprime pas par un fond, pour la même raison.** `--selbg` le
+montre par l'absurde : poussé assez loin pour se détacher de `--surface`
+(1,21:1, le palier ci-dessus), il arrive à **1,01:1 de `--sunken`** — la carte
+sélectionnée se dissoudrait dans le panneau. Il n'y a pas de place entre les
+deux. `--selbg` reste donc à 1,05:1 : de l'atmosphère, jamais le signal. **Le
+signal est la bordure gauche de 3 px en `--accent`** — 3,84:1 sur ce fond, au-delà
+des 3:1 que WCAG 2.2 demande à un repère non textuel.
 
 **Texte — deux niveaux, et un seuil**
 

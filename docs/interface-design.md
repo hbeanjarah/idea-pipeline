@@ -36,24 +36,25 @@ aujourd'hui aussi cher que capturer une idée neuve.**
 
 ## Décisions actées
 
-| Sujet             | Décision                                                                       |
-| ----------------- | ------------------------------------------------------------------------------ |
-| Mise en page      | **Maître-détail** au-delà de 720 px, **colonne unique** en deçà                |
-| Écrans            | `home` et `list` **fusionnent** — il en reste deux, plus un état vide          |
-| Liste             | **Cartes**, variante « confort » : le statut garde sa ligne et son nom         |
-| Statut            | Pastille + libellé sur la carte. **Pas** de rail coloré                        |
-| Suppression       | Confirmation en deux temps, bouton **rouge plein** — seul aplat rouge de l'app |
-| Corriger          | Affordance **sur le texte**, au survol — répare sans créer de version          |
-| Reformuler        | Bouton permanent, brouillon **pré-rempli** de la version courante              |
-| Écriture          | **Affichage optimiste**, retrait et restitution du texte en cas d'échec        |
-| Couleurs de texte | Toute couleur portant du texte atteint **4,5:1** (WCAG AA)                     |
-| Longueur de ligne | Le corps de texte est borné à **58ch** (~66 caractères visés)                  |
-| Surfaces          | **Deux** au lieu de trois — un creux, une surface. Teinte froide tenue partout |
-| Typographie       | Cinq **jetons** de taille, échelle contrastée `20 / 16 / 13 / 12 / 11`         |
-| Chargement        | **Squelettes** à l'ouverture du panneau — jamais d'écran vide                  |
-| Filtres           | **Retour à la ligne** au lieu du défilement horizontal à barre masquée         |
-| Connexion         | Bloc **centré et borné** à 380 px, quelle que soit la largeur                  |
-| Focus clavier     | `--focus-ring` sur **tout** élément focalisable                                |
+| Sujet              | Décision                                                                       |
+| ------------------ | ------------------------------------------------------------------------------ |
+| Mise en page       | **Maître-détail** au-delà de 750 px, **colonne unique** en deçà                |
+| Écrans             | `home` et `list` **fusionnent** — il en reste deux, plus un état vide          |
+| Liste              | **Cartes**, variante « confort » : le statut garde sa ligne et son nom         |
+| Statut             | Pastille + libellé sur la carte. **Pas** de rail coloré                        |
+| Carte sélectionnée | Bordure gauche turquoise de 3 px. Le rail dit « ouverte », jamais l'étape      |
+| Suppression        | Confirmation en deux temps, bouton **rouge plein** — seul aplat rouge de l'app |
+| Corriger           | Affordance **sur le texte**, au survol — répare sans créer de version          |
+| Reformuler         | Bouton permanent, brouillon **pré-rempli** de la version courante              |
+| Écriture           | **Affichage optimiste**, retrait et restitution du texte en cas d'échec        |
+| Couleurs de texte  | Toute couleur portant du texte atteint **4,5:1** (WCAG AA)                     |
+| Longueur de ligne  | Le corps de texte est borné à **58ch** (~66 caractères visés)                  |
+| Surfaces           | **Deux** au lieu de trois — un creux, une surface. Teinte froide tenue partout |
+| Typographie        | Cinq **jetons** de taille, échelle contrastée `20 / 16 / 13 / 12 / 11`         |
+| Chargement         | **Squelettes** à l'ouverture du panneau — jamais d'écran vide                  |
+| Filtres            | **Retour à la ligne** au lieu du défilement horizontal à barre masquée         |
+| Connexion          | Bloc **centré et borné** à 380 px, quelle que soit la largeur                  |
+| Focus clavier      | `--focus-ring` sur **tout** élément focalisable                                |
 
 Rien de tout cela ne touche l'API. **Aucun endpoint, aucun schéma, aucune
 migration.** `editVariation` et `addVariation` existent déjà et portent
@@ -65,11 +66,16 @@ Le panneau latéral est un document à lui seul : **sa fenêtre _est_ le panneau
 Les `@media` y répondent donc à la largeur du panneau, sans recourir aux
 requêtes de conteneur.
 
-Le seuil est **720 px** : 306 px pour la liste, ~380 px minimum pour que le texte
+Le seuil est **750 px** : 344 px pour la liste, ~380 px minimum pour que le texte
 d'une idée garde une longueur de ligne lisible, plus les gouttières.
 
+Les deux nombres sont une somme, pas deux réglages : élargir la liste déplace le
+seuil d'autant. La liste est passée de 306 à 344 px — la largeur de la maquette
+d'origine — sur retour d'usage, les cartes étant jugées trop étroites ; le seuil
+a suivi, de 720 à 750.
+
 ```
-≥ 720 px                              < 720 px
+≥ 750 px                              < 750 px
 ┌────────────┬──────────────────┐     ┌──────────────┐
 │ composeur  │  statut  ⋮       │     │ composeur    │
 │ recherche  │                  │     │ recherche    │

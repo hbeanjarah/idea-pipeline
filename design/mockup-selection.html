@@ -1,0 +1,373 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Sélection & survol d'une carte</title>
+<style>
+  :root {
+    --sunken: #e2e8f2;
+    --surface: #fcfdff;
+    --panelbd: #dce4f0;
+    --cardbd: #e4ebf4;
+    --ring: #e3edf9;
+    --ink: #323859;
+    --muted: #5d667e;
+    --faint: #aab2c4;
+    --accent: #038c8c;
+    --hl: #bdd9f2;
+    --tagbg: #e7eef8;
+    --tagink: #5b6480;
+    --label-1: #a68776;
+    --label-2: #4a3f73;
+    --label-3: #038c8c;
+    --text-body: 13px;
+    --text-xs: 11px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --radius-xs: 4px;
+    --radius-md: 10px;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  }
+
+  body {
+    margin: 0;
+    padding: 24px;
+    background: #f4f6fa;
+    font-family: var(--font-sans);
+    color: var(--ink);
+  }
+
+  h1 {
+    font-size: 17px;
+    margin: 0 0 4px;
+  }
+  .sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin: 0 0 24px;
+    max-width: 760px;
+    line-height: 1.5;
+  }
+
+  .grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  /* The real master column at its current width. */
+  .col {
+    width: 306px;
+    background: var(--sunken);
+    border-radius: 12px;
+    padding: 12px;
+  }
+
+  .name {
+    font-size: 12px;
+    font-weight: 700;
+    margin: 0 0 2px;
+  }
+  .why {
+    font-size: 11px;
+    color: var(--muted);
+    margin: 0 0 10px;
+    line-height: 1.45;
+    min-height: 48px;
+  }
+
+  .rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  /* ---- the card, as built today ---- */
+  .card {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--cardbd);
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-3);
+    transition:
+      border-color 120ms ease,
+      background-color 120ms ease,
+      box-shadow 120ms ease,
+      transform 120ms ease;
+  }
+  .text {
+    color: var(--ink);
+    font-size: var(--text-body);
+    line-height: 1.4;
+  }
+  .meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 5px;
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .stage {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--tagbg);
+    color: var(--tagink);
+    border-radius: 999px;
+    padding: 2px 8px;
+  }
+  .versions {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ================= A — built today ================= */
+  .a .card.hover {
+    border-color: var(--panelbd);
+  }
+  .a .card.sel {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgb(3 140 140 / 0.13);
+  }
+
+  /* ================= B — left accent bar ================= */
+  .b .card.hover {
+    border-color: var(--faint);
+  }
+  .b .card.sel {
+    border-color: var(--cardbd);
+  }
+  .b .card.sel::before {
+    content: '';
+    position: absolute;
+    left: -1px;
+    top: 8px;
+    bottom: 8px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--accent);
+  }
+
+  /* ================= C — bar + tint ================= */
+  .c .card.hover {
+    border-color: var(--faint);
+  }
+  .c .card.sel {
+    border-color: #cfe0e6;
+    background: #f2f9f9;
+  }
+  .c .card.sel::before {
+    content: '';
+    position: absolute;
+    left: -1px;
+    top: -1px;
+    bottom: -1px;
+    width: 3px;
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+    background: var(--accent);
+  }
+
+  /* ================= D — tint only ================= */
+  .d .card.hover {
+    border-color: var(--faint);
+  }
+  .d .card.sel {
+    background: #eaf4fb;
+    border-color: var(--hl);
+  }
+
+  /* ================= E — accent border, no halo ================= */
+  .e .card.hover {
+    background: #f7fafd;
+    border-color: var(--panelbd);
+  }
+  .e .card.sel {
+    border: 1.5px solid var(--accent);
+    padding: calc(var(--space-2) - 0.5px) calc(var(--space-3) - 0.5px);
+  }
+
+  /* ================= F — elevation ================= */
+  .f .card.hover {
+    border-color: var(--panelbd);
+    box-shadow: 0 1px 3px rgb(50 56 89 / 0.07);
+  }
+  .f .card.sel {
+    border-color: var(--accent);
+    box-shadow: 0 3px 10px rgb(50 56 89 / 0.13);
+    transform: translateY(-1px);
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+</style>
+
+<h1>Comment une carte dit qu'elle est sélectionnée</h1>
+<p class="sub">
+  Chaque colonne fait 306 px — la largeur réelle de la liste. Dans chacune : une
+  carte au repos, une <b>au survol</b>, une <b>sélectionnée</b>. Rien n'est
+  interactif : les trois états sont posés côte à côte pour être comparés d'un
+  coup d'œil, ce qu'un vrai survol ne permet pas.
+</p>
+
+<div class="grid">
+  <div class="col a">
+    <p class="name">A — ce qui est construit</p>
+    <p class="why">
+      Bordure turquoise + halo de 2 px à 13 %. Le survol change la bordure de
+      <code>#e4ebf4</code> à <code>#dce4f0</code> : un écart de 1,03:1,
+      invisible.
+    </p>
+    <div class="rows">
+      <div class="card">
+        <div class="text">verbatimModuleSyntax sur tsconfig ça fait quoi</div>
+        <div class="meta"><span class="stage"><span class="dot" style="background: var(--label-3)"></span>Prêt</span></div>
+      </div>
+      <div class="card hover">
+        <span class="tag">survol</span>
+        <div class="text">module nodenext vs moduleResolution</div>
+        <div class="meta"><span class="stage"><span class="dot" style="background: var(--label-1)"></span>Capturé</span></div>
+      </div>
+      <div class="card sel">
+        <span class="tag">sélectionnée</span>
+        <div class="text">OutDir/rootDir</div>
+        <div class="meta"><span class="stage"><span class="dot" style="background: var(--label-1)"></span>Capturé</span><span class="versions">3 versions</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col b">
+    <p class="name">B — barre d'accent à gauche</p>
+    <p class="why">
+      Le repère de Linear, Things, Superhuman. Il ne touche ni au fond ni à la
+      bordure : il <b>ajoute</b> une marque que rien d'autre ne porte, donc
+      aucune confusion avec le survol.
+    </p>
+    <div class="rows">
+      <div class="card">
+        <div class="text">verbatimModuleSyntax sur tsconfig ça fait quoi</div>
+        <div class="meta"><span class="stage"><span class="dot" style="background: var(--label-3)"></span>Prêt</span></div>
+      </div>
+      <div class="card hover">
+        <span class="tag">survol</span>
+        <div class="text">module nodenext vs moduleResolution</div>
+        <div class="meta"><span class="stage"><span class="dot" style="background: var(--label-1)"></span>Capturé</span></div>
+      </div>
+      <div class="card sel">
+        <span class="tag">sélectionnée</span>
+        <div class="text">OutDir/rootDir</div>
+        <div class="meta"><span class="stage"><span class="dot" style="background: var(--label-1)"></span>Capturé</span><span class="versions">3 versions</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col c">
+    <p class="name">C — barre pleine hauteur + fond teinté</p>
+    <p class="why">
+      La barre épouse le rayon du coin et le fond prend une teinte turquoise très
+      pâle. Deux signaux qui vont dans le même sens — le plus lisible de loin.
+    </p>
+    <div class="rows">
+      <div class="card">
+        <div class="text">verbatimModuleSyntax sur tsconfig ça fait quoi</div>
+        <div class="meta"><span class="stage"><span class="dot" style="background: var(--label-3)"></span>Prêt</span></div>
+      </div>
+      <div class="card hover">
+        <span class="tag">survol</span>
+        <div class="text">module nodenext vs moduleResolution</div>
+        <div class="meta"><span class="stage"><span class="dot" style="background: var(--label-1)"></span>Capturé</span></div>
+      </div>
+      <div class="card sel">
+        <span class="tag">sélectionnée</span>
+        <div class="text">OutDir/rootDir</div>
+        <div class="meta"><span class="stage"><span class="dot" style="background: var(--label-1)"></span>Capturé</span><span class="versions">3 versions</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col d">
+    <p class="name">D — fond teinté seul</p>
+    <p class="why">
+      Le repère du Finder et de Gmail. Très lisible, mais il introduit une
+      <b>troisième surface</b> — ce que <code>css.md</code> refuse explicitement.
+    </p>
+    <div class="rows">
+      <div class="card">
+        <div class="text">verbatimModuleSyntax sur tsconfig ça fait quoi</div>
+        <div class="meta"><span class="stage"><span class="dot" style="background: var(--label-3)"></span>Prêt</span></div>
+      </div>
+      <div class="card hover">
+        <span class="tag">survol</span>
+        <div class="text">module nodenext vs moduleResolution</div>
+        <div class="meta"><span class="stage"><span class="dot" style="background: var(--label-1)"></span>Capturé</span></div>
+      </div>
+      <div class="card sel">
+        <span class="tag">sélectionnée</span>
+        <div class="text">OutDir/rootDir</div>
+        <div class="meta"><span class="stage"><span class="dot" style="background: var(--label-1)"></span>Capturé</span><span class="versions">3 versions</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col e">
+    <p class="name">E — bordure turquoise épaissie, sans halo</p>
+    <p class="why">
+      A, dépouillé de son halo et passé à 1,5 px. Le survol prend un fond très
+      léger pour ne pas se disputer la bordure avec la sélection.
+    </p>
+    <div class="rows">
+      <div class="card">
+        <div class="text">verbatimModuleSyntax sur tsconfig ça fait quoi</div>
+        <div class="meta"><span class="stage"><span class="dot" style="background: var(--label-3)"></span>Prêt</span></div>
+      </div>
+      <div class="card hover">
+        <span class="tag">survol</span>
+        <div class="text">module nodenext vs moduleResolution</div>
+        <div class="meta"><span class="stage"><span class="dot" style="background: var(--label-1)"></span>Capturé</span></div>
+      </div>
+      <div class="card sel">
+        <span class="tag">sélectionnée</span>
+        <div class="text">OutDir/rootDir</div>
+        <div class="meta"><span class="stage"><span class="dot" style="background: var(--label-1)"></span>Capturé</span><span class="versions">3 versions</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col f">
+    <p class="name">F — élévation</p>
+    <p class="why">
+      La carte sélectionnée se soulève d'1 px avec une ombre. Joli, mais
+      l'élévation dit « flottant », pas « choisi » — et elle entre en concurrence
+      avec l'ombre du popover.
+    </p>
+    <div class="rows">
+      <div class="card">
+        <div class="text">verbatimModuleSyntax sur tsconfig ça fait quoi</div>
+        <div class="meta"><span class="stage"><span class="dot" style="background: var(--label-3)"></span>Prêt</span></div>
+      </div>
+      <div class="card hover">
+        <span class="tag">survol</span>
+        <div class="text">module nodenext vs moduleResolution</div>
+        <div class="meta"><span class="stage"><span class="dot" style="background: var(--label-1)"></span>Capturé</span></div>
+      </div>
+      <div class="card sel">
+        <span class="tag">sélectionnée</span>
+        <div class="text">OutDir/rootDir</div>
+        <div class="meta"><span class="stage"><span class="dot" style="background: var(--label-1)"></span>Capturé</span><span class="versions">3 versions</span></div>
+      </div>
+    </div>
+  </div>
+</div>

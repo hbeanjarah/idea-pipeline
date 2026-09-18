@@ -1,0 +1,192 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>La bordure de sélection</title>
+<style>
+  :root {
+    --sunken: #e2e8f2;
+    --surface: #fcfdff;
+    --cardbd: #e4ebf4;
+    --panelbd: #dce4f0;
+    --ink: #323859;
+    --muted: #5d667e;
+    --faint: #aab2c4;
+    --accent: #038c8c;
+    --tagbg: #e7eef8;
+    --tagink: #5b6480;
+    --label-1: #a68776;
+    --label-2: #4a3f73;
+    --label-3: #038c8c;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  }
+  body {
+    margin: 0;
+    padding: 28px;
+    background: #f4f6fa;
+    font-family: var(--font-sans);
+    color: var(--ink);
+  }
+  h1 { font-size: 18px; margin: 0 0 6px; }
+  h2 { font-size: 14px; margin: 34px 0 4px; }
+  .sub { font-size: 12px; color: var(--muted); margin: 0 0 6px; max-width: 820px; line-height: 1.55; }
+  .rule { height: 1px; background: #dde3ec; border: 0; margin: 10px 0 18px; }
+
+  /* ---------- the real card ---------- */
+  .col { width: 344px; background: var(--sunken); border-radius: 12px; padding: 12px; }
+  .rows { display: flex; flex-direction: column; gap: 8px; }
+  .card {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--cardbd);
+    border-radius: 10px;
+    padding: 8px 12px;
+  }
+  .text { font-size: 13px; line-height: 1.4; }
+  .meta { display: flex; align-items: center; gap: 6px; margin-top: 5px; font-size: 11px; color: var(--muted); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; background: var(--label-1); }
+  .d2 { background: var(--label-2); }
+  .d3 { background: var(--label-3); }
+  .stage { display: inline-flex; align-items: center; gap: 5px; background: var(--tagbg); color: var(--tagink); border-radius: 999px; padding: 2px 8px; }
+  .versions { margin-left: auto; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .hover { border-color: var(--faint); }
+
+  /* selected — the two techniques */
+  .tint { background: #f2f9f9; border-color: #cfe0e6; }
+  .pseudo::before {
+    content: '';
+    position: absolute;
+    left: -1px; top: -1px; bottom: -1px;
+    width: 3px;
+    border-radius: 10px 0 0 10px;
+    background: var(--accent);
+  }
+  .bord2 { border-left: 2px solid var(--accent); padding-left: 11px; }
+  .bord3 { border-left: 3px solid var(--accent); padding-left: 10px; }
+  .bord4 { border-left: 4px solid var(--accent); padding-left: 9px; }
+
+  /* ---------- magnifier ---------- */
+  .zoomrow { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start; }
+  .zcell { }
+  .zlabel { font-size: 12px; font-weight: 700; margin: 0 0 7px; }
+  .zlabel span { font-weight: 400; color: var(--muted); }
+  .zoom {
+    overflow: hidden;
+    background: var(--sunken);
+    border: 1px solid #d3dae6;
+    border-radius: 8px;
+  }
+  /* shows a 52 x 34 px crop of the card's top-left corner, at x8 */
+  .z8 { width: 416px; height: 272px; }
+  .z8 > .inner { transform: scale(8); transform-origin: 0 0; width: 52px; padding: 5px 0 0 5px; }
+  .z8 .card { width: 120px; }
+  .z8 .text { font-size: 7px; }
+
+  .caption { font-size: 11px; color: var(--muted); margin: 8px 0 0; max-width: 416px; line-height: 1.5; }
+  .verdict { font-size: 11px; font-weight: 700; margin: 6px 0 0; }
+  .ko { color: #c0453b; }
+  .ok { color: #1f7a5a; }
+</style>
+
+<h1>La bordure de sélection — validation</h1>
+<p class="sub">
+  Trois sections. D'abord <b>en contexte</b>, une vraie liste à 344 px. Ensuite
+  le <b>coin haut-gauche grossi ×8</b>, où se joue toute la différence entre les
+  deux techniques. Enfin <b>l'épaisseur</b>, pour trancher entre 2, 3 et 4 px.
+</p>
+<hr class="rule" />
+
+<h2>1 · En contexte — une liste réelle, la 3ᵉ carte sélectionnée</h2>
+<p class="sub">Bordure gauche de 3 px + fond teinté. Les autres cartes au repos, sauf la 2ᵉ qui montre le survol.</p>
+<div class="col">
+  <div class="rows">
+    <div class="card">
+      <div class="text">verbatimModuleSyntax sur tsconfig ça fait quoi</div>
+      <div class="meta"><span class="stage"><span class="dot d3"></span>Prêt</span></div>
+    </div>
+    <div class="card hover">
+      <div class="text">module nodenext vs moduleResolution</div>
+      <div class="meta"><span class="stage"><span class="dot"></span>Capturé</span></div>
+    </div>
+    <div class="card tint bord3">
+      <div class="text">OutDir/rootDir</div>
+      <div class="meta"><span class="stage"><span class="dot"></span>Capturé</span><span class="versions">3 versions</span></div>
+    </div>
+    <div class="card">
+      <div class="text">Git work tree</div>
+      <div class="meta"><span class="stage"><span class="dot d2"></span>Maturation</span><span class="versions">2 versions</span></div>
+    </div>
+  </div>
+</div>
+
+<hr class="rule" />
+<h2>2 · Le coin haut-gauche, grossi ×8</h2>
+<p class="sub">Même couleur, même épaisseur, même fond. Seule la technique change.</p>
+
+<div class="zoomrow">
+  <div class="zcell">
+    <p class="zlabel">Pseudo-élément <span>— ce que je t'avais montré</span></p>
+    <div class="zoom z8">
+      <div class="inner">
+        <div class="card tint pseudo"><div class="text">OutDir</div></div>
+      </div>
+    </div>
+    <p class="verdict ko">✗ La barre s'arrête net. Le coin arrondi reste gris.</p>
+    <p class="caption">
+      Le navigateur écrase un rayon de 10 px sur un élément large de 3 px : il le
+      réduit à 1,5 px. Le vert ne peut pas suivre l'arc.
+    </p>
+  </div>
+
+  <div class="zcell">
+    <p class="zlabel">Bordure gauche <span>— ce que je propose</span></p>
+    <div class="zoom z8">
+      <div class="inner">
+        <div class="card tint bord3"><div class="text">OutDir</div></div>
+      </div>
+    </div>
+    <p class="verdict ok">✓ Le vert s'enroule autour de l'angle et se fond dans la bordure claire.</p>
+    <p class="caption">
+      La bordure appartient à la carte : elle hérite de son rayon sans qu'on ait
+      à le lui demander, et décrit l'arc complet.
+    </p>
+  </div>
+</div>
+
+<hr class="rule" />
+<h2>3 · L'épaisseur — 2, 3 ou 4 px</h2>
+<p class="sub">Au vrai format en haut de chaque colonne, puis le même coin grossi ×8.</p>
+
+<div class="zoomrow">
+  <div class="zcell">
+    <p class="zlabel">2 px <span>— discret</span></p>
+    <div class="col" style="margin-bottom: 12px">
+      <div class="card tint bord2">
+        <div class="text">OutDir/rootDir</div>
+        <div class="meta"><span class="stage"><span class="dot"></span>Capturé</span><span class="versions">3 versions</span></div>
+      </div>
+    </div>
+    <div class="zoom z8"><div class="inner"><div class="card tint bord2"><div class="text">OutDir</div></div></div></div>
+  </div>
+
+  <div class="zcell">
+    <p class="zlabel">3 px <span>— ma recommandation</span></p>
+    <div class="col" style="margin-bottom: 12px">
+      <div class="card tint bord3">
+        <div class="text">OutDir/rootDir</div>
+        <div class="meta"><span class="stage"><span class="dot"></span>Capturé</span><span class="versions">3 versions</span></div>
+      </div>
+    </div>
+    <div class="zoom z8"><div class="inner"><div class="card tint bord3"><div class="text">OutDir</div></div></div></div>
+  </div>
+
+  <div class="zcell">
+    <p class="zlabel">4 px <span>— affirmé</span></p>
+    <div class="col" style="margin-bottom: 12px">
+      <div class="card tint bord4">
+        <div class="text">OutDir/rootDir</div>
+        <div class="meta"><span class="stage"><span class="dot"></span>Capturé</span><span class="versions">3 versions</span></div>
+      </div>
+    </div>
+    <div class="zoom z8"><div class="inner"><div class="card tint bord4"><div class="text">OutDir</div></div></div></div>
+  </div>
+</div>

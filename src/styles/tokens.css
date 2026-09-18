@@ -47,6 +47,13 @@
   --label-7: #9c5f7e;
   --label-8: #8a6b3f;
 
+  /* The selected card. --selbg is atmosphere, never the signal: pushed far
+   * enough to read against --surface it lands within 1.01:1 of --sunken, and
+   * the card dissolves into the panel behind it. The 3px --accent border on the
+   * leading edge is what carries the state. */
+  --selbg: #f2f9f9;
+  --selbd: #cfe0e6;
+
   /* Danger — the only warm color, reserved for destructive actions (delete) */
   --danger: #c0453b;
   --danger-bg: #f6ece9;

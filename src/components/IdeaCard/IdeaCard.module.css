@@ -2,14 +2,25 @@
  * browser repairs a nested button by closing the outer one early — the layout
  * breaks and the clicks land elsewhere. */
 .card {
+  position: relative;
   background: var(--surface);
   border: 1px solid var(--cardbd);
   border-radius: var(--radius-md);
   padding: var(--space-2) var(--space-3);
   font-family: var(--font-sans);
+  cursor: pointer;
 }
 
-/* Covers the text only, so clicking the stage does not open the idea. */
+@media (prefers-reduced-motion: no-preference) {
+  /* Colours only. Transitioning the border width would move the text every
+   * time the selection lands here. */
+  .card {
+    transition:
+      border-color 120ms ease-out,
+      background-color 120ms ease-out;
+  }
+}
+
 .open {
   display: block;
   width: 100%;
@@ -22,8 +33,21 @@
   cursor: pointer;
 }
 
+/* Stretches the opening button over the whole card. The stage picker is raised
+ * above it below, so classifying an idea never opens it on the way. */
+.open::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.stage {
+  position: relative;
+  z-index: 1;
+}
+
 .card:hover {
-  border-color: var(--panelbd);
+  border-color: var(--faint);
 }
 
 /* Preview of the latest variation, clamped to two lines. */
@@ -55,11 +79,14 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Border and halo, never a different fill: a third surface would undo the two
- * the palette settles on (css.md). */
+/* The 3px edge is the signal; the fill only goes along with it. Do not make
+ * the fill carry the state — see the note on --selbg in tokens.css. */
 .selected {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgb(3 140 140 / 0.13);
+  background: var(--selbg);
+  border-color: var(--selbd);
+  border-left: 3px solid var(--accent);
+  /* Takes back the 2px the thicker edge costs, so the text does not shift. */
+  padding-left: calc(var(--space-3) - 2px);
 }
 
 /* Shown, but the server has not confirmed it yet. Dimmed rather than hidden:
@@ -69,7 +96,10 @@
   opacity: 0.5;
 }
 
-.open:focus-visible {
+/* The ring goes on the card because the hit area does. Not :focus-within — it
+ * fires for the stage picker too, and would ring the whole card while the
+ * focus sits on the pill. */
+.card:has(.open:focus-visible) {
   outline: var(--focus-outline);
   outline-offset: var(--focus-offset);
 }

@@ -1,0 +1,20 @@
+/* Callers that need to hide this must beat this rule's specificity — a single
+ * class of their own would tie with it, and the winner would then depend on the
+ * order the bundler happens to emit the two modules in. */
+.back {
+  display: flex;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.back:hover {
+  color: var(--ink);
+}
+
+.back:focus-visible {
+  outline: var(--focus-outline);
+  outline-offset: var(--focus-offset);
+}

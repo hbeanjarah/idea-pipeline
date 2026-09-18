@@ -47,6 +47,9 @@ Objectif : des composants **réutilisables et découplés**, sans sur-ingénieri
   (`role="status"`), sans il est `aria-hidden`, parce qu'un bouton qui dit déjà
   « Connexion en cours… » ne doit pas l'être deux fois. Sa **taille** reste chez
   l'appelant via `className`, comme le glyphe d'`ActionMenu`.
+- Et `BackButton`, le jour où l'écran des étapes a voulu la même flèche que le
+  détail. Ce qu'il absorbe : le libellé d'accessibilité. Deux boutons identiques
+  annoncés différemment, ce sont deux gestes à apprendre.
 - Et `LabelDot`, le jour où le sélecteur d'étape et le filtre ont eu besoin de
   la même pastille. Ce qu'il absorbe : la traduction du `color` — un rang de 1 à
   8 — en variable CSS. Les appelants ne connaissent aucune couleur.
