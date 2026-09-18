@@ -14,7 +14,7 @@ process.env.NOTE_KEY_V1 =
 // not empty a database. Emptying it belongs here, where no test file can
 // forget it.
 beforeEach(async () => {
-  await sql`TRUNCATE users, sessions, ideas, variations CASCADE`.execute(
+  await sql`TRUNCATE users, sessions, ideas, variations, labels, idea_labels CASCADE`.execute(
     db(),
   );
 });
