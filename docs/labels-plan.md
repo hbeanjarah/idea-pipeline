@@ -31,9 +31,11 @@ panneau restera inutilisable pendant ce temps ; c'est attendu.
 
 L'autre ordre, celui qui ne se rattrape pas :
 
-> **Tâche 7 (convertir) passe avant tâche 8 (supprimer la colonne).** Inversé,
-> le classement des idées existantes est perdu sans retour. C'est la leçon de la
-> tâche 7 du plan sécurité.
+> **La colonne `ideas.status` se supprime en dernier — tâche 16, après la
+> production.** Le script de reprise la lit ; le supprimer plus tôt tue le
+> script avant que la production l'ait lancé, et le classement des idées
+> existantes serait perdu sans retour. C'est la leçon de la tâche 7 du plan
+> sécurité.
 
 ---
 
@@ -628,6 +630,9 @@ export async function setLabel(
 
 ## Lot 3 — La reprise
 
+> La suppression de la colonne `ideas.status` **ne fait pas partie de ce lot**.
+> Elle est devenue la tâche 16, en toute fin de plan : voir la raison là-bas.
+
 ### Tâche 7 : les quatre étapes par défaut
 
 **Pourquoi.** Deux populations, une seule règle. Un compte neuf reçoit ses
@@ -822,29 +827,6 @@ Il affiche `Comptes pourvus: N. Déjà pourvus: M. Liens créés: K.`
 - [ ] Supprimer toutes ses étapes dans le panneau, se déconnecter, se
       reconnecter : **elles ne doivent pas revenir**. Si elles reviennent, le
       semis s'appuie sur « aucune étape » au lieu de « compte créé ».
-
----
-
-### Tâche 8 : supprimer la colonne
-
-**Pourquoi.** Séparée de la tâche 7, et **après** elle. Fusionner les deux
-rendrait la perte irréversible en cas d'erreur de reprise.
-
-- [ ] Créer `server/migrations/004_drop_status.sql` :
-
-```sql
-ALTER TABLE ideas DROP CONSTRAINT ideas_status_check;
-ALTER TABLE ideas DROP COLUMN status;
-```
-
-**Vérification**
-
-```bash
-cd server && pnpm run db:migrate && pnpm run db:types
-```
-
-- [ ] `schema.generated.ts` n'a plus `status` sur `ideas`.
-- [ ] `pnpm test` vert · `pnpm --dir server typecheck` vert.
 
 ---
 
@@ -1265,3 +1247,46 @@ letting a hidden scrollbar take stages off screen.
 ```
 docs: record configurable stages across the rules
 ```
+
+### Tâche 16 : supprimer la colonne — **en tout dernier**
+
+**Pourquoi si tard.** `adopt-labels.ts` lit `ideas.status` en SQL brut, ce qui
+le met à l'abri de la **compilation** — mais pas de l'**exécution**. Le conteneur
+de test rejoue toutes les migrations : le jour où celle-ci existe, la reprise et
+ses tests meurent.
+
+Or la production a besoin du script (tâche 15). Le supprimer avant qu'elle l'ait
+lancé obligerait à **deux déploiements**. Cette tâche passe donc après tout le
+reste, production comprise.
+
+En attendant, la colonne reste là sans gêner : plus personne ne la lit, et les
+idées neuves y reçoivent `captured` en silence.
+
+- [ ] Créer `server/migrations/004_drop_status.sql` :
+
+```sql
+ALTER TABLE ideas DROP CONSTRAINT ideas_status_check;
+ALTER TABLE ideas DROP COLUMN status;
+```
+
+**Vérification**
+
+```bash
+cd server && pnpm run db:migrate && pnpm run db:types
+```
+
+- [ ] `schema.generated.ts` n'a plus `status` sur `ideas`.
+- [ ] `pnpm test` vert · `pnpm --dir server typecheck` vert.
+
+---
+
+- [ ] Supprimer `server/src/store/adopt-labels.ts`, `adopt-labels-cli.ts`,
+      `adopt-labels.test.ts` et le script `db:labels`. Le travail est fait, et
+      un script qui ne peut plus tourner est du code mort.
+
+**Vérification**
+
+- [ ] `pnpm test` vert · `pnpm --dir server typecheck` vert.
+- [ ] `grep -rn "status" server/src/` ne rend plus que des codes HTTP.
+
+---

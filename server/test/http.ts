@@ -7,6 +7,8 @@ import { app } from '#app';
 import { createUserWithSession } from '#test/factories';
 
 interface HttpHarness {
+  // A function, not a value: the account is made anew before each test.
+  userId: () => string;
   api: (path: string, init?: RequestInit) => Promise<Response>;
   send: (
     method: string,
@@ -21,6 +23,7 @@ export function httpHarness(): HttpHarness {
   let server: Server;
   let base: string;
   let token: string;
+  let userId: string;
 
   beforeEach(async () => {
     server = app.listen(0);
@@ -28,7 +31,7 @@ export function httpHarness(): HttpHarness {
       server.once('listening', resolve),
     );
     base = `http://localhost:${(server.address() as AddressInfo).port}`;
-    ({ token } = await createUserWithSession());
+    ({ token, userId } = await createUserWithSession());
   });
 
   afterEach(
@@ -49,5 +52,5 @@ export function httpHarness(): HttpHarness {
       body: JSON.stringify(body),
     });
 
-  return { api, send };
+  return { userId: () => userId, api, send };
 }

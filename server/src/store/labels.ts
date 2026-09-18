@@ -1,4 +1,4 @@
-import type { Selectable } from 'kysely';
+import type { Kysely, Selectable } from 'kysely';
 
 import type { Label } from '#domain/types';
 import { db } from '#store/db';
@@ -26,6 +26,35 @@ function nextColor(used: number[]): number {
   }
 
   return (used.length % PALETTE) + 1;
+}
+
+export const DEFAULT_LABELS = [
+  'Capturé',
+  'Maturation',
+  'Prêt',
+  'Publié',
+] as const;
+
+// Takes the executor so the account's creation can seed inside its own
+// transaction: an account must never exist without its stages.
+export async function seedDefaultLabels(
+  userId: string,
+  executor: Kysely<DB> = db(),
+): Promise<Label[]> {
+  const rows = await executor
+    .insertInto('labels')
+    .values(
+      DEFAULT_LABELS.map((name, index) => ({
+        user_id: userId,
+        name: seal(name, userId),
+        color: index + 1,
+        position: index + 1,
+      })),
+    )
+    .returningAll()
+    .execute();
+
+  return rows.map(toLabel);
 }
 
 export async function listLabels(userId: string): Promise<Label[]> {
