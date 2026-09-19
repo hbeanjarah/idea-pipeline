@@ -56,7 +56,7 @@ Une migration seule. Personne ne lit la colonne encore, donc tout reste vert.
 - Créer : `server/migrations/005_title.sql`
 - Régénérer : `server/src/store/schema.generated.ts` (non versionné)
 
-- [ ] **Étape 1 : écrire la migration**
+- [x] **Étape 1 : écrire la migration**
 
 `server/migrations/005_title.sql` :
 
@@ -67,7 +67,7 @@ Une migration seule. Personne ne lit la colonne encore, donc tout reste vert.
 ALTER TABLE ideas ADD COLUMN title text;
 ```
 
-- [ ] **Étape 2 : l'appliquer**
+- [x] **Étape 2 : l'appliquer**
 
 ```bash
 docker compose up -d --wait
@@ -76,7 +76,7 @@ pnpm --dir server db:migrate
 
 Attendu : la migration `005_title` est appliquée.
 
-- [ ] **Étape 3 : régénérer les types de la base**
+- [x] **Étape 3 : régénérer les types de la base**
 
 ```bash
 pnpm --dir server db:types
@@ -89,7 +89,7 @@ dans l'interface `Ideas`. Vérifier :
 grep -n "title" server/src/store/schema.generated.ts
 ```
 
-- [ ] **Étape 4 : vérifier que rien n'a bougé**
+- [x] **Étape 4 : vérifier que rien n'a bougé**
 
 ```bash
 pnpm typecheck
@@ -98,7 +98,7 @@ pnpm vitest run --project server
 
 Attendu : tout passe. La colonne existe, personne ne la lit.
 
-- [ ] **Étape 5 : commit**
+- [x] **Étape 5 : commit**
 
 ```
 feat(db): give an idea a column for its title
