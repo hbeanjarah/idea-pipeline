@@ -20,7 +20,6 @@
     "build": "tsc -p tsconfig.build.json",
     "db:migrate": "tsx --env-file=.env --conditions=development src/store/migrate-cli.ts",
     "db:seal": "tsx --env-file=.env --conditions=development src/store/seal-cli.ts",
-    "db:labels": "tsx --env-file=.env --conditions=development src/store/adopt-labels-cli.ts",
     "db:types": "kysely-codegen --dialect postgres --out-file src/store/schema.generated.ts"
   },
   "keywords": [],

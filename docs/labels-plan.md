@@ -1148,15 +1148,45 @@ ssh <ton-vps> "cd /srv/idea-pipeline && docker compose exec -T db \
 > capturer. Les notes de ce fichier sont chiffrées — mais les `status`, eux,
 > sont en clair, et c'est justement ce qu'on s'apprête à convertir.
 
-#### C. Migrer, puis convertir — dans cet ordre
+#### C. Déployer le code, puis migrer, puis convertir
+
+**Le déploiement vient en premier, et ce n'est pas un détail d'ordre.**
+`db:labels` est un script du code neuf : sur une machine qui tourne encore
+l'ancien, la commande n'existe pas. Pousser les commits avant de monter sur le
+VPS.
 
 ```bash
-cd /srv/idea-pipeline/server && pnpm run db:migrate   # 003
-cd /srv/idea-pipeline/server && pnpm run db:labels    # la conversion
+cd /srv/idea-pipeline
+git pull
+pnpm install && pnpm --dir server install
+pnpm --dir server db:migrate   # applique 003
+pnpm --dir server db:types     # après la migration, jamais avant
+pnpm --dir server build
 ```
 
-- [ ] Le nombre de comptes traités par `db:labels` doit **égaler** le nombre de
-      comptes noté en A.
+> **On ne redémarre pas ici.** L'API reste arrêtée depuis B jusqu'à la fin de la
+> conversion : une écriture qui arriverait entre la migration et `db:labels`
+> naîtrait sans étape, dans une base à moitié convertie. C'est l'étape D qui la
+> relance.
+
+- [ ] `003_labels.sql` apparaît dans `schema_migrations` — la table s'appelle
+      ainsi, pas `migrations`. Lire les **noms** plutôt que les compter : un
+      total ne dit pas laquelle a été appliquée.
+
+```bash
+docker compose exec -T db psql -U idea -d idea_pipeline \
+  -c 'SELECT name FROM schema_migrations ORDER BY name;'
+```
+
+Puis, et seulement là, la conversion :
+
+```bash
+cd /srv/idea-pipeline/server && pnpm run db:labels
+```
+
+- [ ] Le nombre de comptes traités doit **égaler** le nombre noté en A, et le
+      nombre de liens créés doit égaler le nombre d'idées — chaque idée portait
+      un `status`, donc chacune reçoit une étape.
 
 > **La colonne `status` n'est pas supprimée ici.** `004` n'existe pas encore :
 > elle est écrite à la tâche 16, une fois la production convertie. Tant qu'elle

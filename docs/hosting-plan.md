@@ -615,7 +615,8 @@ docker compose exec -T db psql -U idea -d restore_test -c 'SELECT count(*) FROM 
 docker compose exec -T db dropdb -U idea restore_test
 ```
 
-Attendu : **28**.
+Attendu : **le nombre d'idées du compte**, celui que montre l'extension — pas un
+nombre figé ici, il monte à chaque capture.
 
 - [ ] **Étape 3 : la documentation**
 
