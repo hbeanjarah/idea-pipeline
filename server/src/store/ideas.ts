@@ -46,6 +46,23 @@ const labelOf = async (
   return row?.label_id ?? null;
 };
 
+// The tail every write shares: the variations are reread through the executor
+// and not through db(), which would not see the transaction's own uncommitted
+// rows — the same reason labelOf takes it.
+const reload = async (
+  executor: Kysely<DB>,
+  row: IdeaRow,
+): Promise<Idea> => {
+  const variations = await executor
+    .selectFrom('variations')
+    .selectAll()
+    .where('idea_id', '=', row.id)
+    .orderBy('position')
+    .execute();
+
+  return toIdea(row, variations, await labelOf(executor, row.id));
+};
+
 export async function listIdeas(userId: string): Promise<Idea[]> {
   const rows = await db()
     .selectFrom('ideas')
@@ -178,14 +195,7 @@ export async function setLabel(
           .execute();
       }
 
-      const variations = await trx
-        .selectFrom('variations')
-        .selectAll()
-        .where('idea_id', '=', id)
-        .orderBy('position')
-        .execute();
-
-      return toIdea(idea, variations, labelId);
+      return reload(trx, idea);
     });
 }
 
@@ -212,14 +222,7 @@ export async function setTitle(
 
       if (!idea) return null;
 
-      const variations = await trx
-        .selectFrom('variations')
-        .selectAll()
-        .where('idea_id', '=', id)
-        .orderBy('position')
-        .execute();
-
-      return toIdea(idea, variations, await labelOf(trx, id));
+      return reload(trx, idea);
     });
 }
 
@@ -262,14 +265,7 @@ export async function addVariation(
         .returningAll()
         .executeTakeFirstOrThrow();
 
-      const variations = await trx
-        .selectFrom('variations')
-        .selectAll()
-        .where('idea_id', '=', id)
-        .orderBy('position')
-        .execute();
-
-      return toIdea(idea, variations, await labelOf(trx, id));
+      return reload(trx, idea);
     });
 }
 
@@ -318,13 +314,6 @@ export async function editVariation(
         .returningAll()
         .executeTakeFirstOrThrow();
 
-      const variations = await trx
-        .selectFrom('variations')
-        .selectAll()
-        .where('idea_id', '=', id)
-        .orderBy('position')
-        .execute();
-
-      return toIdea(idea, variations, await labelOf(trx, id));
+      return reload(trx, idea);
     });
 }

@@ -36,6 +36,19 @@ export default tseslint.config(
     },
   },
   {
+    // A test file's length measures how many cases it covers, not how much the
+    // module does — which is what max-lines is looking for. Splitting one in
+    // two would also break the one-test-file-per-module colocation of
+    // .claude/rules/structure.md.
+    files: ['**/*.test.{ts,tsx}'],
+    rules: {
+      'max-lines': [
+        'warn',
+        { max: 400, skipBlankLines: true, skipComments: true },
+      ],
+    },
+  },
+  {
     files: ['server/**/*.ts'],
     languageOptions: {
       globals: { ...globals.node },
