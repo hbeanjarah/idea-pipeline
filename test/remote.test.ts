@@ -39,6 +39,7 @@ describe('the messaging repository', () => {
     await repository.addVariation('i', 'x');
     await repository.editVariation('i', 'v', 'x');
     await repository.setLabel('i', 'l');
+    await repository.setTitle('i', 'Un titre');
     await repository.delete('i');
     await labels.list();
     await labels.create('Prêt');
@@ -58,6 +59,7 @@ describe('the messaging repository', () => {
         text: 'x',
       },
       { kind: 'ideas/setLabel', ideaId: 'i', labelId: 'l' },
+      { kind: 'ideas/setTitle', ideaId: 'i', title: 'Un titre' },
       { kind: 'ideas/delete', ideaId: 'i' },
       { kind: 'labels/list' },
       { kind: 'labels/create', name: 'Prêt' },

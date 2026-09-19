@@ -105,6 +105,16 @@ export const setIdeaLabel = (
     body: { labelId },
   });
 
+export const setIdeaTitle = (
+  token: string,
+  ideaId: string,
+  title: string | null,
+) =>
+  call<Idea>(token, `/ideas/${ideaId}/title`, {
+    method: 'PATCH',
+    body: { title },
+  });
+
 export const listLabels = (token: string) =>
   call<Label[]>(token, '/labels');
 

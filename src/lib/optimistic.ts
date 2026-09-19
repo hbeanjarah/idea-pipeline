@@ -16,6 +16,7 @@ export function provisionalIdea(
   return {
     id,
     labelId: null,
+    title: null,
     createdAt: now,
     updatedAt: now,
     variations: [{ id: `${id}-v1`, text, createdAt: now }],

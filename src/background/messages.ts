@@ -98,6 +98,10 @@ export async function handle(request: Request): Promise<AnyReply> {
       return withToken((token) =>
         api.setIdeaLabel(token, request.ideaId, request.labelId),
       );
+    case 'ideas/setTitle':
+      return withToken((token) =>
+        api.setIdeaTitle(token, request.ideaId, request.title),
+      );
     case 'ideas/delete':
       return withToken((token) =>
         api.deleteIdea(token, request.ideaId),

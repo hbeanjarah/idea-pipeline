@@ -11,6 +11,7 @@ export type Request =
       text: string;
     }
   | { kind: 'ideas/setLabel'; ideaId: string; labelId: string | null }
+  | { kind: 'ideas/setTitle'; ideaId: string; title: string | null }
   | { kind: 'ideas/delete'; ideaId: string }
   | { kind: 'labels/list' }
   | { kind: 'labels/create'; name: string }
@@ -40,6 +41,7 @@ export interface ReplyData {
   'ideas/addVariation': Idea;
   'ideas/editVariation': Idea;
   'ideas/setLabel': Idea;
+  'ideas/setTitle': Idea;
   // null and not void: a value has to cross sendMessage, where undefined
   // already means the channel broke.
   'ideas/delete': null;

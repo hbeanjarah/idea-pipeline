@@ -833,7 +833,7 @@ Cinq couches, aucune sautable. Rien à l'écran encore.
 setTitle(ideaId: string, title: string | null): Promise<Idea>
 ```
 
-- [ ] **Étape 1 : écrire le test qui échoue**
+- [x] **Étape 1 : écrire le test qui échoue**
 
 Dans `test/remote.test.ts`, dans le test « names every operation the way the
 worker expects », ajouter l'appel et l'attente correspondante :
@@ -848,7 +848,7 @@ et, dans le tableau attendu, à sa place dans l'ordre des appels :
       { kind: 'ideas/setTitle', ideaId: 'i', title: 'Un titre' },
 ```
 
-- [ ] **Étape 2 : le lancer, vérifier qu'il échoue**
+- [x] **Étape 2 : le lancer, vérifier qu'il échoue**
 
 ```bash
 pnpm vitest run --project front remote
@@ -856,7 +856,7 @@ pnpm vitest run --project front remote
 
 Attendu : ÉCHEC — `setTitle` n'existe pas sur le dépôt.
 
-- [ ] **Étape 3 : le type**
+- [x] **Étape 3 : le type**
 
 Dans `src/storage/types.ts`, interface `Idea`, après `labelId` :
 
@@ -864,10 +864,12 @@ Dans `src/storage/types.ts`, interface `Idea`, après `labelId` :
 title: string | null;
 ```
 
-- [ ] **Étape 4 : réparer les trois constructions littérales**
+- [x] **Étape 4 : réparer les trois constructions littérales**
 
-Le champ est requis : `pnpm typecheck` nomme exactement les endroits. Ce sont
-ces trois-là.
+Le champ est requis : `pnpm typecheck` nomme exactement les endroits. Il y en a
+**quatre** — un relevé fait au `grep` n'en avait trouvé que trois, parce que le
+quatrième construit son `Idea` dans une fonction fléchée. C'est `typecheck` qui
+fait foi, pas la liste ci-dessous.
 
 `src/lib/optimistic.ts`, `provisionalIdea` :
 
@@ -885,6 +887,9 @@ return {
 `test/optimistic.test.ts`, la fixture `existing` : ajouter `title: null,`
 après `labelId`.
 
+`test/variations.test.ts`, la fabrique `ideaWith` : ajouter `title: null,`
+après `labelId`.
+
 `test/filterIdeas.test.ts`, `makeIdea` : ajouter un paramètre optionnel, parce
 que la tâche 8 en aura besoin —
 
@@ -899,7 +904,7 @@ function makeIdea(
 
 et `title,` dans l'objet retourné.
 
-- [ ] **Étape 5 : le protocole**
+- [x] **Étape 5 : le protocole**
 
 Dans `src/lib/protocol.ts`, dans l'union `Request`, après `ideas/setLabel` :
 
@@ -913,7 +918,7 @@ et dans `ReplyData`, après `'ideas/setLabel'` :
   'ideas/setTitle': Idea;
 ```
 
-- [ ] **Étape 6 : l'appel HTTP**
+- [x] **Étape 6 : l'appel HTTP**
 
 Dans `src/background/api.ts`, après `setIdeaLabel` :
 
@@ -929,7 +934,7 @@ export const setIdeaTitle = (
   });
 ```
 
-- [ ] **Étape 7 : le routage du worker**
+- [x] **Étape 7 : le routage du worker**
 
 Dans `src/background/messages.ts`, après le cas `'ideas/setLabel'` :
 
@@ -940,7 +945,7 @@ Dans `src/background/messages.ts`, après le cas `'ideas/setLabel'` :
       );
 ```
 
-- [ ] **Étape 8 : le dépôt du panneau**
+- [x] **Étape 8 : le dépôt du panneau**
 
 Dans `src/storage/remote.ts`, dans l'interface `IdeaRepository`, après
 `setLabel` :
@@ -960,7 +965,7 @@ et dans `MessagingIdeaRepository` :
   }
 ```
 
-- [ ] **Étape 9 : couvrir le worker**
+- [x] **Étape 9 : couvrir le worker**
 
 Le test « route each kind to its own operation » appelle chaque message puis
 compare la liste des `MÉTHODE chemin` réellement atteints. Deux ajouts, et ils
@@ -986,7 +991,7 @@ et, dans le tableau attendu, juste après `'PATCH /ideas/i'` :
 Une branche mal câblée répondrait `ok` sur le mauvais endpoint : c'est
 exactement ce que cette liste attrape.
 
-- [ ] **Étape 10 : relancer**
+- [x] **Étape 10 : relancer**
 
 ```bash
 pnpm vitest run --project front
@@ -995,7 +1000,7 @@ pnpm typecheck
 
 Attendu : vert.
 
-- [ ] **Étape 11 : remettre le modèle de la règle d'aplomb**
+- [x] **Étape 11 : remettre le modèle de la règle d'aplomb**
 
 Toujours `.claude/rules/storage.md`, section « Modèle » : l'interface `Idea`
 gagne son champ, **après `labelId`** —
@@ -1011,7 +1016,7 @@ après `setLabel` —
   setTitle(ideaId: string, title: string | null): Promise<Idea>; // null retire
 ```
 
-- [ ] **Étape 12 : commit**
+- [x] **Étape 12 : commit**
 
 ```
 feat(panel): carry setTitle from the panel to the API
