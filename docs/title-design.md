@@ -30,7 +30,7 @@ première retouche du contrat depuis la mise en ligne.
 | Obligatoire ?    | **non** — nullable, une idée peut n'en avoir jamais                        |
 | À la capture     | **jamais demandé** — le composer ne change pas                             |
 | Où on le pose    | dans le **détail**, en tête du corps, au-dessus de l'étape                 |
-| Affordance       | ligne **toujours présente**, « Ajouter un titre » en `--muted` quand vide  |
+| Affordance       | ligne **toujours présente**, « Cliquer pour ajouter un titre » quand vide  |
 | Édition          | **en place** au clic, comme « Modifier » et la pastille d'étape            |
 | Validation       | `⏎` enregistre · `Échap` annule · **perdre le focus enregistre**           |
 | Aide             | sa **hauteur est réservée** au repos — rien ne bouge quand elle paraît     |

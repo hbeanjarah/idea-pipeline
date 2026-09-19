@@ -184,7 +184,9 @@
   À gauche <b>ce qui est en ligne</b>, défauts compris — la boîte y est
   réellement rognée à gauche, comme sur ta capture. À droite la proposition,
   pilotée par les boutons. <b>Clique la ligne de titre</b> des deux côtés pour
-  passer en édition ; tape pour voir le compteur apparaître.
+  passer en édition ; tape pour voir le compteur apparaître. La ligne invite
+  au clic, le champ qui s'ouvre se contente de nommer ce qu'il attend —
+  <b>deux libellés, pas un</b>.
 </p>
 
 <div class="panel">
@@ -192,22 +194,22 @@
 
   <div class="row">
     <span class="lab">2 · Hiérarchie</span>
-    <label class="sw"><input type="radio" name="h" value="hA" checked /> A <small>— titre 24px, un 6ᵉ jeton (recommandé)</small></label>
+    <label class="sw"><input type="radio" name="h" value="hA" /> A <small>— titre 24px, un 6ᵉ jeton (recommandé)</small></label>
     <label class="sw"><input type="radio" name="h" value="hB" /> B <small>— le corps descend à 16px</small></label>
-    <label class="sw"><input type="radio" name="h" value="hC" /> C <small>— on garde 20/20</small></label>
+    <label class="sw"><input type="radio" name="h" value="hC" checked /> C <small>— on garde 20/20</small></label>
   </div>
   <div class="sep"></div>
   <div class="row">
     <span class="lab">3 · Aide</span>
-    <label class="sw"><input type="radio" name="a" value="aidNone" checked /> Retirée <small>— plus de saut (recommandé)</small></label>
-    <label class="sw"><input type="radio" name="a" value="aidRoom" /> Hauteur réservée <small>— gardée, sans saut</small></label>
+    <label class="sw"><input type="radio" name="a" value="aidNone" /> Retirée <small>— plus de saut (recommandé)</small></label>
+    <label class="sw"><input type="radio" name="a" value="aidRoom" checked /> Hauteur réservée <small>— gardée, sans saut</small></label>
     <label class="sw"><input type="radio" name="a" value="aidKeep" /> Telle quelle <small>— elle saute</small></label>
   </div>
   <div class="sep"></div>
   <div class="row">
     <span class="lab">4 · Limite 80</span>
-    <label class="sw"><input type="radio" name="c" value="yesCount" checked /> Compteur dès 70 <small>(recommandé)</small></label>
-    <label class="sw"><input type="radio" name="c" value="noCount" /> Rien <small>— le clavier cesse de répondre</small></label>
+    <label class="sw"><input type="radio" name="c" value="yesCount" /> Compteur dès 70 <small>(recommandé)</small></label>
+    <label class="sw"><input type="radio" name="c" value="noCount" checked /> Rien <small>— le clavier cesse de répondre</small></label>
   </div>
   <div class="sep"></div>
   <div class="row">
@@ -234,7 +236,7 @@
     <div class="detail today" id="paneToday">
       <div class="bar"><button class="dots">⋯</button></div>
       <div class="body">
-        <button class="tline empty">Ajouter un titre</button>
+        <button class="tline empty">Cliquer pour ajouter un titre</button>
         <div class="tbox" hidden>
           <input class="tinput" placeholder="Ajouter un titre" maxlength="80" />
           <span class="count off">0/80</span>
@@ -248,16 +250,16 @@
   </div>
 
   <div class="pane">
-    <p class="ptitle">Proposé <span class="flag ok">les 5 corrigés</span></p>
+    <p class="ptitle">Retenu <span class="flag ok">en ligne</span></p>
     <p class="pnote">
-      Titre à 24 px · aide retirée · compteur dès 70 · deux écarts verticaux
-      seulement. Et le champ <b>nu</b> : lecture et édition partagent la même
-      abscisse, donc le texte ne bouge plus d'un pixel au clic.
+      <b>Ce qui est en ligne</b> : champ nu, aide à hauteur réservée, pas de
+      compteur, 20/20 conservé, deux écarts verticaux. Les boutons rejouent ce
+      qui a été écarté.
     </p>
-    <div class="detail next hA aidNone bare" id="paneNext">
+    <div class="detail next hC aidRoom noCount bare" id="paneNext">
       <div class="bar"><button class="dots">⋯</button></div>
       <div class="body">
-        <button class="tline empty">Ajouter un titre</button>
+        <button class="tline empty">Cliquer pour ajouter un titre</button>
         <div class="tbox" hidden>
           <input class="tinput" placeholder="Ajouter un titre" maxlength="80" />
           <span class="count off">0/80</span>
@@ -272,6 +274,9 @@
 </div>
 
 <script>
+  // The line invites the click; the field, already clicked into, only names
+  // what it holds. Two labels, not one.
+  const INVITE = 'Cliquer pour ajouter un titre';
   const EMPTY = 'Ajouter un titre';
   const SHORT = 'verbatimModuleSyntax, en clair';
   const LONG = 'Ce que verbatimModuleSyntax change vraiment dans un tsconfig moderne, en clair';
@@ -295,7 +300,7 @@
 
   function paint(p) {
     const empty = p.title === '';
-    p.line.textContent = empty ? EMPTY : p.title;
+    p.line.textContent = empty ? INVITE : p.title;
     p.line.classList.toggle('empty', empty);
   }
 
