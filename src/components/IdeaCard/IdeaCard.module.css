@@ -50,6 +50,20 @@
   border-color: var(--faint);
 }
 
+/* One line, cut rather than wrapped: the extract below already carries the
+ * detail, and a title on three lines would push it out of the card. */
+.title {
+  display: block;
+  margin-bottom: 2px;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: var(--text-body);
+  font-weight: 700;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Preview of the latest variation, clamped to two lines. */
 .text {
   display: -webkit-box;
@@ -59,6 +73,12 @@
   color: var(--ink);
   font-size: var(--text-body);
   line-height: 1.4;
+}
+
+/* After .text, never before: same specificity, so source order is what decides
+ * which colour wins on an element carrying both. */
+.secondary {
+  color: var(--muted);
 }
 
 .meta {

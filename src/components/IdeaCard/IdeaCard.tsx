@@ -36,7 +36,17 @@ export default function IdeaCard({
       ].join(' ')}
     >
       <button type="button" className={styles.open} onClick={onClick}>
-        <span className={styles.text}>{text}</span>
+        {idea.title !== null && (
+          <span className={styles.title}>{idea.title}</span>
+        )}
+        <span
+          className={[
+            styles.text,
+            idea.title !== null ? styles.secondary : '',
+          ].join(' ')}
+        >
+          {text}
+        </span>
       </button>
 
       <div className={styles.meta}>

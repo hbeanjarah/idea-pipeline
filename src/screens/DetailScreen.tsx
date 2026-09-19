@@ -5,6 +5,7 @@ import { useLabels } from '@/hooks/useLabels';
 import Alert from '@/components/Alert/Alert';
 import CurrentVersion from '@/components/CurrentVersion/CurrentVersion';
 import IdeaHeader from '@/components/IdeaHeader/IdeaHeader';
+import IdeaTitle from '@/components/IdeaTitle/IdeaTitle';
 import LabelPicker from '@/components/LabelPicker/LabelPicker';
 import VariationEditor from '@/components/VariationEditor/VariationEditor';
 import VariationThread from '@/components/VariationThread/VariationThread';
@@ -68,6 +69,8 @@ export default function DetailScreen({ navigate, ideaId }: Props) {
       {!loading &&
         (idea ? (
           <div className={styles.body}>
+            <IdeaTitle title={idea.title} />
+
             <LabelPicker
               className={styles.stage}
               labels={labels}
