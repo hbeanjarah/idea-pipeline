@@ -55,6 +55,7 @@ interface Variation {
 interface Idea {
   id: string;
   labelId: string | null; // null = libre, sans étape
+  title: string | null; // null = sans titre ; jamais demandé à la capture
   variations: Variation[]; // toujours >= 1 (la capture initiale)
   createdAt: string; // ISO 8601
   updatedAt: string; // ISO 8601, rafraîchi à chaque mutation
@@ -77,6 +78,7 @@ interface IdeaRepository {
     text: string,
   ): Promise<Idea>;
   setLabel(ideaId: string, labelId: string | null): Promise<Idea>; // null détache
+  setTitle(ideaId: string, title: string | null): Promise<Idea>; // null retire
   delete(ideaId: string): Promise<void>; // suppression définitive
 }
 

@@ -14,6 +14,7 @@ const NOW = '2026-09-17T10:00:00.000Z';
 const existing: Idea = {
   id: 'server-1',
   labelId: 'l-maturing',
+  title: null,
   createdAt: '2026-09-01T00:00:00.000Z',
   updatedAt: '2026-09-01T00:00:00.000Z',
   variations: [

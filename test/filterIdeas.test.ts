@@ -11,6 +11,7 @@ function makeIdea(
   id: string,
   labelId: string | null,
   texts: string[] = [id],
+  title: string | null = null,
 ): Idea {
   const variations: Variation[] = texts.map((text, index) => ({
     id: `${id}-v${index + 1}`,
@@ -20,6 +21,7 @@ function makeIdea(
   return {
     id,
     labelId,
+    title,
     variations,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',

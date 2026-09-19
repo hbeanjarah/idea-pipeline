@@ -19,6 +19,7 @@ export interface Variation {
 export interface Idea {
   id: string;
   labelId: string | null;
+  title: string | null;
   variations: Variation[]; // always >= 1 (the initial capture)
   createdAt: string; // ISO 8601
   updatedAt: string; // ISO 8601, refreshed on every mutation

@@ -85,6 +85,11 @@ describe('the idea requests', () => {
       ideaId: 'i',
       labelId: 'l',
     });
+    await handle({
+      kind: 'ideas/setTitle',
+      ideaId: 'i',
+      title: 'Un titre',
+    });
     await handle({ kind: 'ideas/delete', ideaId: 'i' });
     await handle({ kind: 'labels/list' });
     await handle({ kind: 'labels/create', name: 'Prêt' });
@@ -110,6 +115,7 @@ describe('the idea requests', () => {
       'POST /ideas/i/variations',
       'PATCH /ideas/i/variations/v',
       'PATCH /ideas/i',
+      'PATCH /ideas/i/title',
       'DELETE /ideas/i',
       'GET /labels',
       'POST /labels',

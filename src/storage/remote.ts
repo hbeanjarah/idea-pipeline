@@ -43,6 +43,7 @@ export interface IdeaRepository {
     text: string,
   ): Promise<Idea>; // fixes a variation's text in place (id/createdAt frozen)
   setLabel(ideaId: string, labelId: string | null): Promise<Idea>;
+  setTitle(ideaId: string, title: string | null): Promise<Idea>; // null clears it
   delete(ideaId: string): Promise<void>; // permanent deletion
 }
 
@@ -85,6 +86,13 @@ export class MessagingIdeaRepository implements IdeaRepository {
     labelId: string | null,
   ): Promise<Idea> {
     return ask({ kind: 'ideas/setLabel', ideaId, labelId });
+  }
+
+  async setTitle(
+    ideaId: string,
+    title: string | null,
+  ): Promise<Idea> {
+    return ask({ kind: 'ideas/setTitle', ideaId, title });
   }
 
   async delete(ideaId: string): Promise<void> {
