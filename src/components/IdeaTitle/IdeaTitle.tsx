@@ -3,6 +3,9 @@ import type { KeyboardEvent } from 'react';
 import styles from './IdeaTitle.module.css';
 
 const MAX = 80;
+// The line invites the click; the field, already clicked into, only names what
+// it holds.
+const INVITE = 'Cliquer pour ajouter un titre';
 const EMPTY = 'Ajouter un titre';
 const HINT = '⏎ pour enregistrer · Échap pour annuler';
 
@@ -71,7 +74,7 @@ export default function IdeaTitle({ title, onChange }: Props) {
           ].join(' ')}
           onClick={() => setEditing(true)}
         >
-          {title ?? EMPTY}
+          {title ?? INVITE}
         </button>
       )}
 

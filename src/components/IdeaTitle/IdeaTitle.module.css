@@ -63,8 +63,8 @@
   line-height: 1.35;
 }
 
-/* Same words as the line it replaces: clicking "Ajouter un titre" should not
- * land on a field that has stopped saying so. */
+/* Echoes the tail of the invitation it replaces: the line asks for a click,
+ * and the field that opens still names what it is waiting for. */
 .input::placeholder {
   color: var(--muted);
   font-weight: 400;
