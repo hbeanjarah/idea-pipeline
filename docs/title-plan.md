@@ -1182,7 +1182,7 @@ La première fois qu'on peut titrer une idée.
 setTitle: (ideaId: string, title: string | null) => Promise<Idea>;
 ```
 
-- [ ] **Étape 1 : la signature du contexte**
+- [x] **Étape 1 : la signature du contexte**
 
 Dans `src/hooks/useIdeas.ts`, dans `IdeasContextValue`, après `setLabel` :
 
@@ -1190,7 +1190,7 @@ Dans `src/hooks/useIdeas.ts`, dans `IdeasContextValue`, après `setLabel` :
 setTitle: (ideaId: string, title: string | null) => Promise<Idea>;
 ```
 
-- [ ] **Étape 2 : l'écriture optimiste**
+- [x] **Étape 2 : l'écriture optimiste**
 
 Dans `src/hooks/IdeasProvider.tsx`, après `setLabel`, la même forme :
 
@@ -1222,9 +1222,15 @@ const setTitle = useCallback(
 Puis l'ajouter aux **deux** listes de la valeur du contexte, à côté de
 `setLabel` — l'objet passé au provider et son tableau de dépendances.
 
-- [ ] **Étape 3 : le composant interactif**
+- [x] **Étape 3 : le composant interactif**
 
-`src/components/IdeaTitle/IdeaTitle.tsx`, réécrit :
+> **Réécrit après l'audit d'ergonomie.** Le bloc ci-dessous est le fichier
+> tel qu'il est livré, pas le premier jet : le PO a retenu le champ **nu**
+> (pas de boîte, un filet de 2 px porte le focus), l'aide à **hauteur
+> réservée** et **aucun compteur**. Les options écartées restent jouables
+> dans `design/mockup-title-audit.html`.
+
+`src/components/IdeaTitle/IdeaTitle.tsx` :
 
 ```tsx
 import { useLayoutEffect, useRef, useState } from 'react';
@@ -1237,16 +1243,16 @@ const HINT = '⏎ pour enregistrer · Échap pour annuler';
 
 interface Props {
   title: string | null;
-  // Rejects when the write failed; the screen shows it and the title on
-  // display is the one the provider restored.
+  // Rejects when the write failed; what stays on screen is then the title the
+  // provider put back.
   onChange: (title: string | null) => Promise<unknown>;
 }
 
 export default function IdeaTitle({ title, onChange }: Props) {
   const [editing, setEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  // Escape unmounts the input, and removing a focused node fires blur in
-  // Chrome: without this latch, cancelling would save on the way out.
+  // Escape unmounts the input, and removing a focused node fires blur: without
+  // this latch, cancelling would save on the way out.
   const closing = useRef(false);
 
   useLayoutEffect(() => {
@@ -1283,64 +1289,80 @@ export default function IdeaTitle({ title, onChange }: Props) {
     }
   };
 
-  if (editing) {
-    return (
-      <>
+  return (
+    <>
+      {editing ? (
         <input
           ref={inputRef}
           className={styles.input}
           defaultValue={title ?? ''}
+          placeholder={EMPTY}
           maxLength={MAX}
           aria-label="Titre de l'idée"
           onKeyDown={handleKeyDown}
           onBlur={() => close(true)}
         />
-        <p className={styles.hint}>{HINT}</p>
-      </>
-    );
-  }
+      ) : (
+        <button
+          type="button"
+          className={[
+            styles.line,
+            title === null ? styles.empty : '',
+          ].join(' ')}
+          onClick={() => setEditing(true)}
+        >
+          {title ?? EMPTY}
+        </button>
+      )}
 
-  return (
-    <button
-      type="button"
-      className={[
-        styles.line,
-        title === null ? styles.empty : '',
-      ].join(' ')}
-      onClick={() => setEditing(true)}
-    >
-      {title ?? EMPTY}
-    </button>
+      {/* Always rendered, hidden at rest rather than removed: mounting it only
+          while editing moved the stage, the text and Reformuler down on every
+          single click. */}
+      <p
+        className={[styles.hint, editing ? '' : styles.silent].join(
+          ' ',
+        )}
+      >
+        {HINT}
+      </p>
+    </>
   );
 }
 ```
 
-- [ ] **Étape 4 : son style**
+- [x] **Étape 4 : son style**
 
-`src/components/IdeaTitle/IdeaTitle.module.css`, réécrit :
+`src/components/IdeaTitle/IdeaTitle.module.css` :
 
 ```css
+/* Read and edit share their padding and their type, so the title sits at the
+ * very same place in both — clicking it moves no pixel, horizontally or
+ * vertically. Change one, change the other. */
+
 /* The line is there even when empty. With no visible sign an in-place editor
  * does not exist — the grey placeholder is the whole affordance. */
 .line {
   display: block;
   width: 100%;
-  margin: 0 calc(var(--space-2) * -1) var(--space-1);
+  max-width: 58ch;
+  margin: 0;
   border: none;
-  border-radius: var(--radius-sm);
   background: none;
-  padding: 2px var(--space-2);
+  padding: var(--space-1) 0;
+  color: var(--ink);
   font-family: var(--font-sans);
   font-size: var(--text-hero);
   font-weight: 700;
   line-height: 1.35;
-  color: var(--ink);
   text-align: left;
+  overflow-wrap: anywhere;
   cursor: text;
 }
 
+/* A rule underneath, not a filled background: with no horizontal padding to
+ * bleed into, a fill would hug the glyphs and read as a selection. */
 .line:hover {
-  background: var(--ring);
+  box-shadow: inset 0 -1px 0 var(--capbd);
 }
 
 .line:focus-visible {
@@ -1348,41 +1370,62 @@ export default function IdeaTitle({ title, onChange }: Props) {
   outline-offset: var(--focus-offset);
 }
 
-/* --muted, never --faint: --faint carries no text (css.md). */
+/* After .line, never before: same specificity, so source order is what decides
+ * which colour and weight win on an element carrying both.
+ * --muted, never --faint: --faint carries no text (css.md). */
 .empty {
   color: var(--muted);
   font-weight: 400;
 }
 
+/* Deliberate exception to css.md's "every focusable element carries a ring":
+ * a bordered box cannot align its text with the read line without indenting
+ * the title away from its own body. The 2px --accent rule is the focus
+ * indicator instead — 4.02:1 on --surface, past the 3:1 WCAG 2.2 asks of a
+ * non-text cue. Do not add an outline on top: the two would stack. */
 .input {
   display: block;
   width: 100%;
-  margin: 0 0 var(--space-1);
-  border: 1px solid var(--capbd);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  padding: 1px calc(var(--space-2) - 1px);
+  max-width: 58ch;
+  margin: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  box-shadow: inset 0 -2px 0 var(--accent);
+  padding: var(--space-1) 0;
+  color: var(--ink);
   font-family: var(--font-sans);
   font-size: var(--text-hero);
   font-weight: 700;
   line-height: 1.35;
-  color: var(--ink);
 }
 
-.input:focus-visible {
-  outline: var(--focus-outline);
-  outline-offset: var(--focus-offset);
-}
-
-/* Only while editing: at rest it would be noise on every idea. */
-.hint {
-  margin: 0 0 var(--space-2);
-  font-size: var(--text-xs);
+/* Same words as the line it replaces: clicking "Ajouter un titre" should not
+ * land on a field that has stopped saying so. */
+.input::placeholder {
   color: var(--muted);
+  font-weight: 400;
+}
+
+/* Its height is held at rest, never removed from the flow: showing it only
+ * while editing moved everything below it on every click. */
+.hint {
+  margin: 0 0 var(--space-3);
+  min-height: 15px;
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+.silent {
+  visibility: hidden;
 }
 ```
 
-- [ ] **Étape 5 : brancher l'écran**
+- [x] **Étape 5 : brancher l'écran, et régler le rythme**
+
+`src/screens/DetailScreen.module.css` : `.reformulate` passe de `--space-4` à
+`--space-5`. Le volet ne tient plus que deux écarts — `--space-3` entre blocs
+voisins, `--space-5` là où la nature du bloc change.
 
 Dans `src/screens/DetailScreen.tsx` : tirer `setTitle` de `useIdeas()`, et
 passer la fonction au composant.
@@ -1394,7 +1437,7 @@ passer la fonction au composant.
 />
 ```
 
-- [ ] **Étape 6 : vérifier**
+- [x] **Étape 6 : vérifier**
 
 ```bash
 pnpm typecheck
@@ -1415,7 +1458,7 @@ pnpm test
 Le 4 est le seul qui compte. Un affichage optimiste qui ne sait pas se
 rétracter est un mensonge.
 
-- [ ] **Étape 8 : commit**
+- [x] **Étape 8 : commit**
 
 ```
 feat(panel): let an idea be titled from the detail pane
@@ -1435,7 +1478,7 @@ that was there.
 - Modifier : `src/lib/filterIdeas.ts`
 - Modifier : `test/filterIdeas.test.ts`
 
-- [ ] **Étape 1 : écrire les tests qui échouent**
+- [x] **Étape 1 : écrire les tests qui échouent**
 
 Dans `test/filterIdeas.test.ts`, dans le bloc de recherche :
 
@@ -1475,7 +1518,7 @@ it('still finds an untitled idea by its text', () => {
 });
 ```
 
-- [ ] **Étape 2 : les lancer, vérifier qu'ils échouent**
+- [x] **Étape 2 : les lancer, vérifier qu'ils échouent**
 
 ```bash
 pnpm vitest run --project front filterIdeas
@@ -1483,7 +1526,7 @@ pnpm vitest run --project front filterIdeas
 
 Attendu : ÉCHEC sur le premier — l'idée `a` n'est pas trouvée.
 
-- [ ] **Étape 3 : couvrir le titre**
+- [x] **Étape 3 : couvrir le titre**
 
 Dans `src/lib/filterIdeas.ts`, le dernier filtre :
 
@@ -1497,7 +1540,7 @@ return byLabel.filter(
 );
 ```
 
-- [ ] **Étape 4 : relancer**
+- [x] **Étape 4 : relancer**
 
 ```bash
 pnpm vitest run --project front filterIdeas
@@ -1507,7 +1550,7 @@ pnpm lint
 pnpm format
 ```
 
-- [ ] **Étape 5 : commit**
+- [x] **Étape 5 : commit**
 
 ```
 feat(panel): search titles alongside the text
@@ -1519,15 +1562,21 @@ A title you cannot find back does half its job.
 
 ## Vérification finale
 
-- [ ] `pnpm test` — les deux projets, vert.
-- [ ] `pnpm typecheck`, `pnpm lint`, `pnpm format` — sans erreur.
-- [ ] Sur un **clone neuf** : `pnpm install`, `pnpm --dir server install`,
+- [x] `pnpm test` — les deux projets, vert. **286 tests, 31 fichiers.**
+- [x] `pnpm typecheck`, `pnpm lint`, `pnpm format` — sans erreur. `lint`
+      sort 5 avertissements `max-lines`, dont 2 nés de cette brique.
+- [x] Les deux fichiers générés, **supprimés puis reconstruits** par
+      `generate:types` et `db:types` : `typecheck` passe de 6 erreurs à zéro et
+      la suite reste verte. Le clone neuf reste à faire par le PO — il demande
+      son `server/.env`.
+- [ ] ~~Sur un **clone neuf**~~ : `pnpm install`, `pnpm --dir server install`,
       `docker compose up -d --wait`, `pnpm --dir server db:migrate`,
       `pnpm --dir server db:types`, `pnpm test`. Les deux fichiers générés ne
       sont pas versionnés : c'est le seul moyen de vérifier qu'ils se
       reconstruisent.
 - [ ] Les quatre manipulations de la tâche 7, étape 7.
-- [ ] `docs/title-design.md` décrit encore ce qui a été construit. S'il a
+- [x] `docs/title-design.md` décrit encore ce qui a été construit — remis à
+      jour après l'audit d'ergonomie. S'il a
       dérivé, c'est le document qu'on corrige, pas la mémoire.
 
 ## Ce que ce plan ne fait pas

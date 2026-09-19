@@ -30,6 +30,7 @@ export default function DetailScreen({ navigate, ideaId }: Props) {
     addVariation,
     editVariation,
     setLabel,
+    setTitle,
     deleteIdea,
     failure,
     retry,
@@ -69,7 +70,10 @@ export default function DetailScreen({ navigate, ideaId }: Props) {
       {!loading &&
         (idea ? (
           <div className={styles.body}>
-            <IdeaTitle title={idea.title} />
+            <IdeaTitle
+              title={idea.title}
+              onChange={(next) => setTitle(idea.id, next)}
+            />
 
             <LabelPicker
               className={styles.stage}

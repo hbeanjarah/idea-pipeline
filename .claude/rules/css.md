@@ -193,6 +193,15 @@ Le cas n'est pas théorique : `VariationEditor` prend le focus au montage, donc
 son `:focus-within` est l'état **permanent** de l'éditeur ouvert, pas un état de
 passage. La double bordure y restait affichée tout le temps de l'édition.
 
+**Une entorse, une seule : le champ de titre.** `IdeaTitle` n'a ni boîte ni
+anneau — son focus est un **filet de 2 px en `--accent`** sous la ligne. La
+raison est géométrique, pas esthétique : une boîte bordée doit loger son
+rembourrage quelque part, et le titre s'indenterait alors de 12 px par rapport
+au corps qu'il coiffe. Le filet tient la même promesse — 4,02:1 sur
+`--surface`, au-delà des 3:1 que WCAG 2.2 demande à un repère non textuel, et
+il court sur toute la largeur du champ. **Ne pas y ajouter d'`outline`** : les
+deux se superposeraient. Conception dans `docs/title-design.md`.
+
 **L'anneau est en `--accent` plein, et ce n'est pas un choix esthétique.** WCAG
 2.2 exige 3:1 contre les couleurs voisines. Le turquoise plein donne 4,02:1 sur
 `--surface` et 3,32:1 sur `--sunken` ; **dès 75 % d'opacité il tombe à 2,79 et
