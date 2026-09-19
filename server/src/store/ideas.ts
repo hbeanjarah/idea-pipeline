@@ -25,6 +25,7 @@ const toIdea = (
 ): Idea => ({
   id: row.id,
   labelId,
+  title: row.title === null ? null : open(row.title, row.id),
   createdAt: row.created_at.toISOString(),
   updatedAt: row.updated_at.toISOString(),
   variations: variations.map(toVariation),
