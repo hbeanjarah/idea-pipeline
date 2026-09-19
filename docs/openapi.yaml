@@ -166,6 +166,60 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
 
+  /ideas/{id}/title:
+    parameters:
+      - $ref: '#/components/parameters/IdeaId'
+
+    patch:
+      operationId: setIdeaTitle
+      summary: Donne un titre à une idée, ou le retire
+      description: |
+        Écrit le titre de l'idée. `null` — ou une chaîne qui ne contient que
+        des espaces — le retire : l'idée redevient sans titre.
+
+        Le titre n'est **jamais** demandé à la capture : `POST /ideas` ne le
+        connaît pas. Voir `docs/title-design.md`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetIdeaTitleRequest'
+      responses:
+        '200':
+          description: Idée mise à jour.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Idea'
+        '400':
+          description: |
+            Requête invalide. Messages possibles :
+            - `Le champ "title" est obligatoire.` — champ absent, ou d'un type autre qu'une chaîne ou `null` ; corps vide inclus.
+            - `Le titre est trop long.` — plus de 80 caractères.
+            - `Champs non autorisés.` — au moins un champ hors du schéma est présent.
+            - `Corps de requête JSON invalide.` — JSON malformé.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: |
+            `Idée introuvable.` — l'`id` ne correspond à aucune idée du compte.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+        '500':
+          description: |
+            `Erreur inattendue côté serveur.`
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
   /ideas/{id}/variations:
     parameters:
       - $ref: '#/components/parameters/IdeaId'
@@ -823,3 +877,18 @@ components:
             L'étape visée, ou `null` pour détacher l'idée. `null` est une
             valeur comme une autre : il n'y a pas d'endpoint séparé pour
             détacher.
+
+    SetIdeaTitleRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          maxLength: 80
+          nullable: true
+          description: |
+            Le titre voulu, ou `null` pour le retirer. Une chaîne qui ne
+            contient que des espaces vaut `null` : il n'y a pas d'endpoint
+            séparé pour effacer un titre.

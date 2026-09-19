@@ -39,6 +39,21 @@ export const setLabel: RequestHandler<IdeaParams> = async (
     );
 };
 
+export const setTitle: RequestHandler<IdeaParams> = async (
+  req,
+  res,
+) => {
+  res
+    .status(200)
+    .json(
+      await ideaService.setIdeaTitle(
+        userIdOf(req),
+        req.params.id,
+        req.body,
+      ),
+    );
+};
+
 export const addVariation: RequestHandler<IdeaParams> = async (
   req,
   res,

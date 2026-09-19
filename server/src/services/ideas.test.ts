@@ -233,3 +233,129 @@ describe('setIdeaLabel', () => {
     expect(freed.variations).toHaveLength(1);
   });
 });
+
+const REQUIRED_TITLE = {
+  status: 400,
+  message: 'Le champ "title" est obligatoire.',
+};
+
+describe('setIdeaTitle validation', () => {
+  let ideaId: string;
+
+  beforeEach(async () => {
+    const idea = await service.createIdea(userId, {
+      text: 'une idée',
+    });
+    ideaId = idea.id;
+  });
+
+  it('rejects an absent body', async () => {
+    await expect(
+      service.setIdeaTitle(userId, ideaId, undefined),
+    ).rejects.toMatchObject(REQUIRED_TITLE);
+  });
+
+  it('rejects a missing title', async () => {
+    await expect(
+      service.setIdeaTitle(userId, ideaId, {}),
+    ).rejects.toMatchObject(REQUIRED_TITLE);
+  });
+
+  it('rejects a title that is neither a string nor null', async () => {
+    await expect(
+      service.setIdeaTitle(userId, ideaId, { title: 7 }),
+    ).rejects.toMatchObject(REQUIRED_TITLE);
+  });
+
+  it('rejects a title beyond 80 characters', async () => {
+    await expect(
+      service.setIdeaTitle(userId, ideaId, { title: 'a'.repeat(81) }),
+    ).rejects.toMatchObject({
+      status: 400,
+      message: 'Le titre est trop long.',
+    });
+  });
+
+  it('rejects a field outside the schema', async () => {
+    await expect(
+      service.setIdeaTitle(userId, ideaId, { title: 'x', color: 1 }),
+    ).rejects.toMatchObject({
+      status: 400,
+      message: 'Champs non autorisés.',
+    });
+  });
+
+  it('answers 404 on an idea that does not exist', async () => {
+    await expect(
+      service.setIdeaTitle(
+        userId,
+        '00000000-0000-4000-8000-000000000000',
+        { title: 'x' },
+      ),
+    ).rejects.toMatchObject({
+      status: 404,
+      message: 'Idée introuvable.',
+    });
+  });
+});
+
+describe('setIdeaTitle', () => {
+  it('trims the stored title', async () => {
+    const created = await service.createIdea(userId, {
+      text: 'une idée',
+    });
+
+    const idea = await service.setIdeaTitle(userId, created.id, {
+      title: '  Un titre  ',
+    });
+
+    expect(idea.title).toBe('Un titre');
+  });
+
+  it('reads null and a blank string as the same removal', async () => {
+    const created = await service.createIdea(userId, {
+      text: 'une idée',
+    });
+    await service.setIdeaTitle(userId, created.id, {
+      title: 'Un titre',
+    });
+
+    const blanked = await service.setIdeaTitle(userId, created.id, {
+      title: '   ',
+    });
+    expect(blanked.title).toBeNull();
+
+    await service.setIdeaTitle(userId, created.id, {
+      title: 'Un titre',
+    });
+    const nulled = await service.setIdeaTitle(userId, created.id, {
+      title: null,
+    });
+    expect(nulled.title).toBeNull();
+  });
+
+  it('accepts a title of exactly 80 characters', async () => {
+    const created = await service.createIdea(userId, {
+      text: 'une idée',
+    });
+
+    const idea = await service.setIdeaTitle(userId, created.id, {
+      title: 'a'.repeat(80),
+    });
+
+    expect(idea.title).toHaveLength(80);
+  });
+
+  it('leaves the text and the stage alone', async () => {
+    const created = await service.createIdea(userId, {
+      text: 'une idée',
+    });
+
+    const idea = await service.setIdeaTitle(userId, created.id, {
+      title: 'Un titre',
+    });
+
+    expect(idea.labelId).toBeNull();
+    expect(idea.variations[0]?.text).toBe('une idée');
+  });
+});
