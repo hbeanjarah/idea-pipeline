@@ -55,9 +55,16 @@ Le second axe est donc celui dont on sait qu'il échoue le plus souvent. Ne pas
 le construire, c'est décliner, pas différer.
 
 **Conséquence de conception** : la liste proposée à l'amorçage est l'opinion du
-produit. En montrant « Capturé · Maturation · Prêt · Publié », elle enseigne de
+produit. En montrant « Capturé · Maturation · Prêt · Terminé », elle enseigne de
 quelle **nature** une étape doit être. C'est le garde-fou le moins cher contre
 la prolifération.
+
+La dernière s'est appelée « Publié » jusqu'au 2026-09-19. C'était le seul
+endroit du produit où le cadre éditorial était affirmé à un nouvel arrivant, et
+les données d'usage montraient cette étape vide. Elle est **remplacée, pas
+retirée** : un cycle qui s'arrête à « Prêt » ne se termine jamais, et tout
+s'empilerait à la dernière étape. Le dossier est dans
+`docs/product-frame-dossier.md`.
 
 ## Le modèle : une table de liaison contrainte à un
 
