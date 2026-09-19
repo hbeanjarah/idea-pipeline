@@ -684,6 +684,7 @@ components:
       required:
         - id
         - labelId
+        - title
         - createdAt
         - updatedAt
         - variations
@@ -700,6 +701,14 @@ components:
             L'étape où se trouve l'idée, ou `null` : une idée naît **libre** et
             peut le rester. Toujours présent, jamais absent — le front lit
             `null`, pas `undefined`.
+        title:
+          type: string
+          nullable: true
+          description: |
+            Le titre de l'idée, ou `null`. Il n'est **jamais** demandé à la
+            capture : une idée naît sans titre et peut le rester. Toujours
+            présent, jamais absent — le front lit `null`, pas `undefined`.
+            Voir `docs/title-design.md`.
         createdAt:
           type: string
           format: date-time

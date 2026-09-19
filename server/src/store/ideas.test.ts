@@ -53,6 +53,12 @@ describe('createIdea', () => {
     expect(idea.createdAt).toMatch(ISO);
     expect(idea.variations[0]?.createdAt).toMatch(ISO);
   });
+
+  it('is born without a title', async () => {
+    const idea = await store.createIdea(userId, 'une idée');
+
+    expect(idea.title).toBeNull();
+  });
 });
 
 describe('deleteIdea', () => {

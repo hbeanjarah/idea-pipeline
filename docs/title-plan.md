@@ -123,7 +123,7 @@ Le champ entre dans `openapi.yaml`, les types générés le portent, et
 **Interfaces produites :** `Idea.title: string | null` — requis, jamais
 `undefined`. Toutes les tâches suivantes en dépendent.
 
-- [ ] **Étape 1 : écrire le test qui échoue**
+- [x] **Étape 1 : écrire le test qui échoue**
 
 Dans `server/src/store/ideas.test.ts`, à la fin du bloc
 `describe('createIdea', …)` :
@@ -136,7 +136,7 @@ it('is born without a title', async () => {
 });
 ```
 
-- [ ] **Étape 2 : le lancer, vérifier qu'il échoue**
+- [x] **Étape 2 : le lancer, vérifier qu'il échoue**
 
 ```bash
 pnpm vitest run --project server ideas -t "is born without a title"
@@ -145,7 +145,7 @@ pnpm vitest run --project server ideas -t "is born without a title"
 Attendu : ÉCHEC — `title` n'existe pas sur `Idea` (erreur de type, puis
 `undefined` au lieu de `null`).
 
-- [ ] **Étape 3 : déclarer le champ dans le contrat**
+- [x] **Étape 3 : déclarer le champ dans le contrat**
 
 Dans `docs/openapi.yaml`, schéma `Idea` : ajouter `- title` à la liste
 `required`, **après** `- labelId`, puis la propriété, **après** `labelId` :
@@ -161,13 +161,13 @@ title:
     Voir `docs/title-design.md`.
 ```
 
-- [ ] **Étape 4 : régénérer les types de l'API**
+- [x] **Étape 4 : régénérer les types de l'API**
 
 ```bash
 pnpm --dir server generate:types
 ```
 
-- [ ] **Étape 5 : ouvrir le titre à la lecture**
+- [x] **Étape 5 : ouvrir le titre à la lecture**
 
 Dans `server/src/store/ideas.ts`, `toIdea` — une ligne, après `labelId` :
 
@@ -189,7 +189,7 @@ const toIdea = (
 C'est le **seul** endroit à toucher : les quatre fonctions du store construisent
 toutes leur `Idea` par ici.
 
-- [ ] **Étape 6 : relancer, vérifier que ça passe**
+- [x] **Étape 6 : relancer, vérifier que ça passe**
 
 ```bash
 pnpm vitest run --project server ideas
@@ -200,7 +200,7 @@ pnpm typecheck
 Attendu : vert partout. `domain/types.test.ts` régénère le fichier dans un
 dossier temporaire et le compare — il échoue si l'étape 4 a été oubliée.
 
-- [ ] **Étape 7 : commit**
+- [x] **Étape 7 : commit**
 
 ```
 feat(api): carry an idea's title through the contract
