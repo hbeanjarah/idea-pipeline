@@ -32,7 +32,7 @@ export const DEFAULT_LABELS = [
   'Capturé',
   'Maturation',
   'Prêt',
-  'Publié',
+  'Terminé',
 ] as const;
 
 // Takes the executor so the account's creation can seed inside its own

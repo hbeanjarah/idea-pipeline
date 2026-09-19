@@ -10,14 +10,14 @@ const stageNames = async (userId: string): Promise<string[]> =>
   (await labels.listLabels(userId)).map((label) => label.name);
 
 describe('an account and its stages', () => {
-  it('is born with the four historical ones, in order', async () => {
+  it('is born with the four the product proposes, in order', async () => {
     const user = await upsertUser(sub(), 'moi@example.test');
 
     expect(await stageNames(user.id)).toEqual([
       'Capturé',
       'Maturation',
       'Prêt',
-      'Publié',
+      'Terminé',
     ]);
   });
 
@@ -59,7 +59,7 @@ describe('an account and its stages', () => {
       'À explorer',
       'Maturation',
       'Prêt',
-      'Publié',
+      'Terminé',
     ]);
   });
 
