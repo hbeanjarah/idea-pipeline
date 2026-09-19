@@ -44,8 +44,10 @@ aujourd'hui aussi cher que capturer une idée neuve.**
 | Statut             | Pastille + libellé sur la carte. **Pas** de rail coloré                        |
 | Carte sélectionnée | Bordure gauche turquoise de 3 px. Le rail dit « ouverte », jamais l'étape      |
 | Suppression        | Confirmation en deux temps, bouton **rouge plein** — seul aplat rouge de l'app |
-| Corriger           | Affordance **sur le texte**, au survol — répare sans créer de version          |
-| Reformuler         | Bouton permanent, brouillon **pré-rempli** de la version courante              |
+| Modifier           | Bouton **permanent et primaire** sur le texte — répare sans créer de version   |
+| Reformuler         | Bouton **secondaire**, brouillon **pré-rempli** de la version courante         |
+| Touches            | `⏎` va à la ligne, `Ctrl+⏎` enregistre — voir `writing-keys-design.md`         |
+| Titre              | L'idée porte un titre, en tête du détail — voir `title-design.md`              |
 | Écriture           | **Affichage optimiste**, retrait et restitution du texte en cas d'échec        |
 | Couleurs de texte  | Toute couleur portant du texte atteint **4,5:1** (WCAG AA)                     |
 | Longueur de ligne  | Le corps de texte est borné à **58ch** (~66 caractères visés)                  |
@@ -131,29 +133,41 @@ en toutes lettres vaut le défilement supplémentaire.
 
 ## Le volet détail
 
-De haut en bas : la pastille de statut (elle reste le déclencheur du
-`StatusPicker`), le rang de version et la date, le menu ⋮ ; puis le **texte
-courant**, borné à `58ch` ; puis le bouton **Reformuler** ; puis les versions
-précédentes.
+De haut en bas : la **ligne de titre** (`title-design.md`), la pastille de
+statut (elle reste le déclencheur du `StatusPicker`), le rang de version et la
+date, le menu ⋮ ; puis le **texte courant**, borné à `58ch`, et son bouton
+**Modifier** ; puis **Reformuler** ; puis les versions précédentes.
 
 L'ordre compte. Aujourd'hui le champ de reformulation est en bas, séparé du
 texte par l'historique et par 128 px de vide. Il remonte **directement sous ce
 qu'il transforme**, et l'historique devient ce qui occupe le bas — une
 respiration au lieu d'un trou.
 
-### Corriger et Reformuler sont deux gestes, pas un
+### Modifier et Reformuler sont deux gestes, pas un
 
 Le modèle les distingue déjà ; l'interface doit le rendre visible.
 
-| Geste          | Ce que ça fait                           | Appel           | Affordance                           |
-| -------------- | ---------------------------------------- | --------------- | ------------------------------------ |
-| **✎ Corriger** | répare la version courante **sur place** | `editVariation` | apparaît **sur le texte**, au survol |
-| **Reformuler** | ajoute une **nouvelle** version          | `addVariation`  | bouton permanent sous le texte       |
+| Geste          | Ce que ça fait                             | Appel           | Affordance                     |
+| -------------- | ------------------------------------------ | --------------- | ------------------------------ |
+| **Modifier**   | remplace la version courante **sur place** | `editVariation` | bouton **permanent**, primaire |
+| **Reformuler** | ajoute une **nouvelle** version            | `addVariation`  | bouton **secondaire**          |
 
 La découvrabilité est le défaut connu de l'édition en place — la littérature le
 nomme explicitement : une affordance doit être présentée, sinon la fonction
-n'existe pas. Aujourd'hui « Modifier » est enterré dans un menu ⋮ par variation,
-et c'est probablement pour cette raison qu'aucune correction n'a jamais eu lieu.
+n'existe pas.
+
+**Le premier retour de test a montré que la présenter au survol ne suffit pas,
+et que le mot était faux.** Une personne qui venait modifier sa note n'a pas
+reconnu son geste dans « Corriger » — le mot promet une faute de frappe — et a
+conclu que la seule façon de changer un texte était d'en créer une version.
+L'interface enseignait l'inverse de ce que le modèle permet : le geste gratuit
+était caché sous un nom minuscule, le geste qui coûte une version était le seul
+affiché.
+
+D'où le rééquilibrage : le geste ordinaire s'appelle **Modifier**, il est
+permanent et il est le premier ; **Reformuler** reste offert, en second. Le
+pipeline ne perd pas son geste de signature — il cesse d'être le seul chemin
+visible pour changer un mot.
 
 Les versions précédentes gardent leur propre menu ⋮ pour être corrigées, mais
 elles ne sont plus le chemin principal : le chemin principal est le texte en
@@ -164,7 +178,8 @@ haut.
 « Reformuler » ouvre un éditeur **contenant déjà le texte de la version
 courante**, curseur en fin. On retouche au lieu de réécrire.
 
-- `⌘⏎` enregistre, `Échap` abandonne.
+- `Ctrl+⏎` (`Cmd+⏎` sur macOS) enregistre, `Échap` abandonne, `⏎` va à la
+  ligne — voir `writing-keys-design.md`.
 - « Repartir d'une page blanche » vide le brouillon d'un clic — le cas existe,
   il n'est simplement plus le défaut.
 - Un brouillon identique au texte courant n'enregistre rien : ce serait une
@@ -446,7 +461,7 @@ est celui des tests ci-dessus, et il est optionnel.
   (ce serait une v4 dont le texte est celui de la v1), et Drafts comme Figma le
   proposent. Ce n'est pas décidé.
 - **Palette de commandes `⌘K`** et navigation complète au clavier. Seuls
-  `⌘⏎` et `Échap` entrent, parce qu'ils appartiennent au brouillon.
+  `Ctrl+⏎` et `Échap` entrent, parce qu'ils appartiennent au brouillon.
 - **Mode focus** qui estompe tout sauf le texte pendant l'écriture.
 - **Annoter ou commenter une idée** — le « discuter autour de l'idée » évoqué
   par le PO n'existe pas dans le modèle et n'est pas ouvert ici.
@@ -479,5 +494,19 @@ est celui des tests ci-dessus, et il est optionnel.
   livraison les compteurs ne bougent toujours pas, c'est que l'usage réel — des
   notes de travail plutôt que des idées de publications — diverge de la thèse du
   produit. Ce serait alors une question de produit, pas de design.
+- **L'hypothèse ci-dessus a reçu sa réponse, et c'est la seconde branche.** Le
+  premier retour de test décrit l'outil comme un endroit où l'on garde ses
+  notes, et le geste attendu y est « je modifie », pas « je fais une version ».
+  Le rééquilibrage Modifier/Reformuler répond au symptôme ; la question de
+  produit — le cadre s'élargit-il au-delà du post LinkedIn ? — a été posée au PO
+  et **reste ouverte**.
+- **Le résurfaçage est demandé et reste hors-scope.** « J'oublie très vite »
+  décrit un besoin de faire remonter ce qu'on a écrit et laissé : rappels,
+  revue, relance. Rien n'est construit — signalé, en attente d'une décision.
+- **Le retour « classement automatique » est gelé.** Quatre lectures
+  possibles : deviner l'étape (exclu, pas d'IA), lire les compteurs comme un
+  aperçu, suivre des tâches en attente, grouper la liste par étape (hors
+  périmètre). Le testeur est rappelé avant qu'on en conçoive quoi que ce soit.
+
 - Cette spec suit la convention du dépôt (`docs/<sujet>-design.md`) plutôt que
   l'emplacement par défaut de la méthode de conception.

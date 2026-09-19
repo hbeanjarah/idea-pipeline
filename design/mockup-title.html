@@ -1,0 +1,388 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>Titre d'une idée — à essayer</title>
+<style>
+  :root {
+    --sunken: #e2e8f2;
+    --surface: #fcfdff;
+    --panelbd: #dce4f0;
+    --cardbd: #e4ebf4;
+    --capbd: #cdddf0;
+    --ring: #e3edf9;
+    --ink: #323859;
+    --muted: #5d667e;
+    --faint: #aab2c4;
+    --accent: #038c8c;
+    --tagbg: #e7eef8;
+    --tagink: #5b6480;
+    --selbg: #f2f9f9;
+    --selbd: #cfe0e6;
+    --danger: #c0453b;
+    --label-1: #a68776;
+    --label-2: #4a3f73;
+    --label-3: #038c8c;
+    --text-hero: 20px;
+    --text-title: 16px;
+    --text-body: 13px;
+    --text-sm: 12px;
+    --text-xs: 11px;
+    --focus-outline: 2px solid var(--accent);
+    --focus-offset: 2px;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+    --shadow-popover: 0 6px 20px rgba(50, 56, 89, 0.16);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 26px;
+    background: #f4f6fa;
+    font-family: var(--font-sans);
+    color: var(--ink);
+  }
+  h1 { font-size: 18px; margin: 0 0 6px; }
+  .sub { font-size: 12.5px; color: var(--muted); margin: 0 0 18px; max-width: 900px; line-height: 1.6; }
+  .sub b { color: var(--ink); }
+  .sub code { font-family: var(--font-mono); font-size: 11.5px; background: #eaeff6; padding: 1px 4px; border-radius: 3px; }
+
+  /* ---------------- controls ---------------- */
+  .panel {
+    background: #fff;
+    border: 1px solid #dce3ed;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin: 0 0 22px;
+    max-width: 900px;
+  }
+  .panel h3 { font-size: 12px; margin: 0 0 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+  .ctl { display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: center; }
+  label.sw { display: flex; align-items: center; gap: 7px; font-size: 13px; cursor: pointer; }
+  label.sw input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+  label.sw small { color: var(--muted); font-size: 11.5px; }
+  .sep { width: 100%; height: 1px; background: #e8edf4; margin: 4px 0; }
+  .hint { font-size: 11.5px; color: var(--muted); margin: 10px 0 0; line-height: 1.55; }
+
+  /* ---------------- panes ---------------- */
+  .panes { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; }
+  .ptitle { font-size: 13px; font-weight: 700; margin: 0 0 3px; }
+  .pnote { font-size: 11.5px; color: var(--muted); margin: 0 0 10px; line-height: 1.5; min-height: 30px; max-width: 420px; }
+
+  /* ---------------- the list ---------------- */
+  .list { width: 344px; }
+  .col { background: var(--sunken); border-radius: 12px; padding: 12px; }
+  .rows { display: flex; flex-direction: column; gap: 8px; }
+  .card {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--cardbd);
+    border-radius: 10px;
+    padding: 8px 12px;
+    cursor: pointer;
+  }
+  .card:hover { border-color: var(--faint); }
+  .card.sel {
+    background: var(--selbg);
+    border-color: var(--selbd);
+    border-left: 3px solid var(--accent);
+    padding-left: 10px;
+  }
+  /* The card title: same size as the extract would be too weak, so it takes
+     --text-title and the weight. */
+  .ctitle {
+    display: block;
+    font-size: var(--text-body);
+    font-weight: 700;
+    line-height: 1.35;
+    color: var(--ink);
+    margin-bottom: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ctext {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    color: var(--ink);
+    font-size: var(--text-body);
+    line-height: 1.4;
+  }
+  /* When a title is there, the extract steps back so the title leads. */
+  .card.titled .ctext { color: var(--muted); }
+  .meta { display: flex; align-items: center; gap: 6px; margin-top: 5px; font-size: var(--text-xs); color: var(--muted); }
+  .picker {
+    display: inline-flex; align-items: center; gap: 5px;
+    border: 0; border-radius: 999px;
+    background: var(--tagbg); color: var(--tagink);
+    padding: 2px 8px; font-family: inherit; font-size: var(--text-xs); cursor: pointer;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; background: var(--label-1); }
+  .d2 { background: var(--label-2); }
+  .d3 { background: var(--label-3); }
+  .versions { margin-left: auto; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  /* ---------------- the detail ---------------- */
+  .detailpane { width: 440px; }
+  .detail {
+    background: var(--surface);
+    border: 1px solid var(--cardbd);
+    border-radius: 14px;
+    padding: 12px;
+  }
+  .bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .back, .menuIcon {
+    border: none; background: none; padding: 4px 6px;
+    font-family: inherit; font-size: var(--text-body); color: var(--muted); cursor: pointer;
+    border-radius: 6px;
+  }
+  .back:hover, .menuIcon:hover { background: var(--ring); color: var(--ink); }
+  .menuWrap { position: relative; }
+  .menu {
+    position: absolute; right: 0; top: 28px; z-index: 5;
+    background: var(--surface); border: 1px solid var(--panelbd);
+    border-radius: 10px; box-shadow: var(--shadow-popover);
+    padding: 4px; min-width: 180px;
+  }
+  .menu button {
+    display: block; width: 100%; text-align: left;
+    border: none; background: none; border-radius: 7px;
+    padding: 7px 10px; font-family: inherit; font-size: var(--text-body); color: var(--ink); cursor: pointer;
+  }
+  .menu button:hover { background: var(--ring); }
+  .menu button.danger { color: var(--danger); }
+
+  /* THE TITLE LINE — the thing to judge */
+  .titleline {
+    display: block; width: 100%; text-align: left;
+    border: none; background: none; padding: 2px 6px; margin: 0 -6px 4px;
+    border-radius: 7px;
+    font-family: inherit;
+    font-size: var(--text-hero);
+    font-weight: 700;
+    line-height: 1.35;
+    color: var(--ink);
+    cursor: text;
+  }
+  .titleline:hover { background: var(--ring); }
+  .titleline.ph { color: var(--muted); font-weight: 400; }
+  .titleinput {
+    display: block; width: calc(100% + 12px); margin: 0 -6px 4px;
+    border: 1px solid var(--capbd); border-radius: 7px;
+    background: var(--surface);
+    padding: 1px 5px;
+    font-family: inherit; font-size: var(--text-hero); font-weight: 700; line-height: 1.35; color: var(--ink);
+  }
+  .titleinput:focus { outline: var(--focus-outline); outline-offset: var(--focus-offset); }
+  .titlehint { font-size: var(--text-xs); color: var(--muted); margin: 0 0 8px; }
+
+  .stage {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 0; border-radius: 999px;
+    background: var(--tagbg); color: var(--tagink);
+    padding: 4px 12px; margin: 0 0 12px;
+    font-family: inherit; font-size: var(--text-body); cursor: pointer;
+  }
+  .current { position: relative; }
+  .fix {
+    float: right; margin-left: 12px; opacity: 0;
+    border: none; border-radius: 7px; background: var(--ring); color: var(--accent);
+    font-family: inherit; font-size: var(--text-xs); padding: 3px 9px; cursor: pointer;
+  }
+  .current:hover .fix { opacity: 1; }
+  .ctextbig { margin: 0; white-space: pre-wrap; max-width: 58ch; font-size: var(--text-hero); line-height: 1.5; }
+  .current::after { content: ''; display: block; clear: both; }
+  .reformulate {
+    margin-top: 16px; border: 1px solid var(--capbd); border-radius: 10px;
+    background: var(--surface); color: var(--accent);
+    padding: 8px 16px; font-family: inherit; font-size: var(--text-body); font-weight: 600; cursor: pointer;
+  }
+  .history { margin-top: 20px; padding-top: 12px; border-top: 1px solid var(--cardbd); }
+  .eyebrow { margin: 0 0 8px; font-size: var(--text-xs); letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+  .old { font-size: var(--text-body); color: var(--muted); line-height: 1.5; margin: 0; }
+
+  .hidden { display: none !important; }
+</style>
+
+<h1>Titre d'une idée — à essayer</h1>
+<p class="sub">
+  Le titre appartient à <b>l'idée</b>, pas à la variation : reformuler ne le touche pas.
+  Il ne se demande <b>jamais à la capture</b> — il s'ajoute depuis le détail.
+  <b>Clique sur la ligne de titre</b> pour l'éditer : <code>⏎</code> enregistre, <code>Échap</code> annule,
+  un champ vidé retire le titre.
+</p>
+
+<div class="panel">
+  <h3>À essayer</h3>
+  <div class="ctl">
+    <label class="sw"><input type="radio" name="opt" value="a" checked /> Option A <small>— ligne toujours présente, grise quand vide</small></label>
+    <label class="sw"><input type="radio" name="opt" value="b" /> Option B <small>— rien, l'entrée vit dans le menu ⋮</small></label>
+  </div>
+  <div class="sep"></div>
+  <div class="ctl">
+    <label class="sw"><input type="checkbox" id="hasTitle" /> L'idée ouverte a déjà un titre</label>
+    <label class="sw"><input type="checkbox" id="showHint" /> Afficher l'aide sous le champ en édition</label>
+  </div>
+  <div class="sep"></div>
+  <div class="ctl">
+    <span style="font-size:13px">Libellé quand c'est vide :</span>
+    <label class="sw"><input type="radio" name="ph" value="Ajouter un titre" checked /> Ajouter un titre</label>
+    <label class="sw"><input type="radio" name="ph" value="Sans titre" /> Sans titre</label>
+    <label class="sw"><input type="radio" name="ph" value="Nommer cette idée" /> Nommer cette idée</label>
+  </div>
+  <p class="hint">
+    Le gris utilisé est <code>--muted</code> (4,65:1), pas <code>--faint</code> : ce dernier ne porte jamais de texte (<code>css.md</code>).
+    Le titre est à <code>--text-hero</code> comme le corps — c'est le <b>gras</b> qui les sépare, pour ne pas ajouter un sixième jeton de taille.
+  </p>
+</div>
+
+<div class="panes">
+  <div class="list">
+    <p class="ptitle">La liste</p>
+    <p class="pnote">Titre + extrait. Une idée sans titre garde exactement la carte d'aujourd'hui.</p>
+    <div class="col">
+      <div class="rows">
+        <div class="card titled">
+          <span class="ctitle">Le vrai coût du no-code</span>
+          <span class="ctext">On vend la vitesse de démarrage et on tait la facture de sortie. Trois ans plus tard, la migration…</span>
+          <div class="meta">
+            <span class="picker"><i class="dot d2"></i> Maturation</span>
+            <span class="versions">3 versions</span>
+          </div>
+        </div>
+
+        <div class="card sel" id="cardSel">
+          <span class="ctitle hidden" id="cardTitle"></span>
+          <span class="ctext" id="cardText">Je ne poste plus le lundi. Personne ne lit un post de fond un lundi matin — les gens vident leur boîte, ils ne réfléchissent pas.</span>
+          <div class="meta">
+            <span class="picker"><i class="dot d3"></i> Prêt</span>
+            <span class="versions">2 versions</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <span class="ctext">Note rapide : demander à M. le retour sur l'atelier avant vendredi.</span>
+          <div class="meta">
+            <span class="picker"><i class="dot"></i> Capturé</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="detailpane">
+    <p class="ptitle">Le détail</p>
+    <p class="pnote">Le titre est en tête du corps, au-dessus de l'étape : c'est le titre du document, il vient avant tout le reste.</p>
+    <div class="detail">
+      <div class="bar">
+        <button class="back">← Retour</button>
+        <div class="menuWrap">
+          <button class="menuIcon" id="menuBtn">⋮</button>
+          <div class="menu hidden" id="menu">
+            <button id="menuAddTitle" class="hidden">Ajouter un titre</button>
+            <button class="danger">Supprimer l'idée</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="titleline ph" id="titleLine">Ajouter un titre</button>
+      <input class="titleinput hidden" id="titleInput" maxlength="80" />
+      <p class="titlehint hidden" id="titleHint">⏎ pour enregistrer · Échap pour annuler · 80 caractères au plus</p>
+
+      <button class="stage"><i class="dot d3"></i> Prêt</button>
+
+      <div class="current">
+        <button class="fix">Corriger</button>
+        <p class="ctextbig">Je ne poste plus le lundi. Personne ne lit un post de fond un lundi matin — les gens vident leur boîte, ils ne réfléchissent pas.</p>
+      </div>
+
+      <button class="reformulate">Reformuler</button>
+
+      <div class="history">
+        <p class="eyebrow">Versions précédentes</p>
+        <p class="old">Le lundi est le pire jour pour poster. Test sur six semaines.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const line = document.getElementById('titleLine');
+  const input = document.getElementById('titleInput');
+  const hint = document.getElementById('titleHint');
+  const cardTitle = document.getElementById('cardTitle');
+  const cardText = document.getElementById('cardText');
+  const cardSel = document.getElementById('cardSel');
+  const hasTitle = document.getElementById('hasTitle');
+  const showHint = document.getElementById('showHint');
+  const menu = document.getElementById('menu');
+  const menuBtn = document.getElementById('menuBtn');
+  const menuAddTitle = document.getElementById('menuAddTitle');
+
+  const SAMPLE = 'Pourquoi je ne poste plus le lundi';
+  let title = '';
+
+  const placeholder = () =>
+    document.querySelector('input[name="ph"]:checked').value;
+  const option = () =>
+    document.querySelector('input[name="opt"]:checked').value;
+
+  function render() {
+    const empty = title === '';
+
+    line.textContent = empty ? placeholder() : title;
+    line.classList.toggle('ph', empty);
+    // Option B keeps the line out of the way entirely while there is no title.
+    line.classList.toggle('hidden', empty && option() === 'b');
+    menuAddTitle.classList.toggle('hidden', !(empty && option() === 'b'));
+
+    cardTitle.textContent = title;
+    cardTitle.classList.toggle('hidden', empty);
+    cardSel.classList.toggle('titled', !empty);
+    hasTitle.checked = !empty;
+  }
+
+  function edit() {
+    input.value = title;
+    line.classList.add('hidden');
+    input.classList.remove('hidden');
+    hint.classList.toggle('hidden', !showHint.checked);
+    input.focus();
+    input.select();
+  }
+
+  function close(save) {
+    if (save) title = input.value.trim();
+    input.classList.add('hidden');
+    hint.classList.add('hidden');
+    line.classList.remove('hidden');
+    render();
+  }
+
+  line.addEventListener('click', edit);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); close(true); }
+    if (e.key === 'Escape') { e.preventDefault(); close(false); }
+  });
+  input.addEventListener('blur', () => close(true));
+
+  hasTitle.addEventListener('change', () => {
+    title = hasTitle.checked ? SAMPLE : '';
+    render();
+  });
+  document.querySelectorAll('input[name="ph"], input[name="opt"]')
+    .forEach((el) => el.addEventListener('change', render));
+
+  menuBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    menu.classList.toggle('hidden');
+  });
+  menuAddTitle.addEventListener('click', () => {
+    menu.classList.add('hidden');
+    line.classList.remove('hidden');
+    edit();
+  });
+  document.addEventListener('click', () => menu.classList.add('hidden'));
+
+  render();
+</script>
