@@ -129,7 +129,8 @@ appel réseau et ne voit jamais le jeton de session.
 
 ## Chiffrement au repos
 
-`variations.text` et `labels.name` **ne contiennent jamais de texte lisible**.
+`variations.text`, `labels.name` et `ideas.title` **ne contiennent jamais de
+texte lisible**.
 Le nom d'une étape est du contenu utilisateur au même titre qu'une note : il
 dit sur quoi la personne travaille. La couche `store/` chiffre à l'écriture et
 déchiffre à la lecture (`store/notes.ts`, AES-256-GCM) ; rien au-dessus ne le
@@ -152,8 +153,9 @@ Cinq conséquences à connaître avant de toucher au store :
 - **Le serveur ne peut pas compter les idées par étape.** Trier ou grouper sur
   un nom scellé n'a pas de sens ; ces comptes se font côté panneau.
 
-Un identifiant est mêlé à la signature : celui de l'idée pour une variation,
-celui du compte pour une étape. Une ligne recopiée ailleurs ne s'ouvre plus.
+Un identifiant est mêlé à la signature : celui de l'idée pour une variation
+**et pour son titre**, celui du compte pour une étape. Une ligne recopiée
+ailleurs ne s'ouvre plus.
 Détail dans `docs/security-design.md`.
 
 ## Les étapes n'ont pas de libellé à traduire

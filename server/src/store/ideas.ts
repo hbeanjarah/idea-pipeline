@@ -189,6 +189,40 @@ export async function setLabel(
     });
 }
 
+export async function setTitle(
+  userId: string,
+  id: string,
+  title: string | null,
+): Promise<Idea | null> {
+  if (!isUuid(id)) return null;
+
+  return db()
+    .transaction()
+    .execute(async (trx) => {
+      const idea = await trx
+        .updateTable('ideas')
+        .set({
+          title: title === null ? null : seal(title, id),
+          updated_at: touch(),
+        })
+        .where('id', '=', id)
+        .where('user_id', '=', userId)
+        .returningAll()
+        .executeTakeFirst();
+
+      if (!idea) return null;
+
+      const variations = await trx
+        .selectFrom('variations')
+        .selectAll()
+        .where('idea_id', '=', id)
+        .orderBy('position')
+        .execute();
+
+      return toIdea(idea, variations, await labelOf(trx, id));
+    });
+}
+
 export async function addVariation(
   userId: string,
   id: string,

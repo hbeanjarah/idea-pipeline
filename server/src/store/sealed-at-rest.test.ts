@@ -36,12 +36,24 @@ const storedNames = async (owner: string): Promise<string[]> => {
   return result.rows.map((row) => row.name);
 };
 
+// Same reason again, third column: toIdea decrypts, so the store cannot be
+// asked what the column holds.
+const storedTitle = async (
+  ideaId: string,
+): Promise<string | null> => {
+  const result = await sql<{ title: string | null }>`
+    SELECT title FROM ideas WHERE id = ${ideaId}
+  `.execute(db());
+
+  return result.rows[0]?.title ?? null;
+};
+
 const MARKER = 'CONFIDENTIEL-marqueur-unique-42';
 
 // The unit tests prove the sealing works; these prove it is wired to every way
-// user-written text can reach the database — note content and stage names
-// alike. One missed path would leave plaintext rows that no other test would
-// notice.
+// user-written text can reach the database — note content, stage names and
+// idea titles alike. One missed path would leave plaintext rows that no other
+// test would notice.
 describe('what the database holds of a note', () => {
   it('not the text a capture was made of', async () => {
     const idea = await store.createIdea(userId, MARKER);
@@ -138,6 +150,46 @@ describe('what the database holds of a stage name', () => {
 
     const result = await sql<{ row: string }>`
       SELECT labels::text AS row FROM labels WHERE user_id = ${userId}
+    `.execute(db());
+
+    expect(result.rows[0]?.row).not.toContain(MARKER);
+  });
+});
+
+describe("what the database holds of an idea's title", () => {
+  it('not the title itself', async () => {
+    const idea = await store.createIdea(userId, 'une idée');
+
+    await store.setTitle(userId, idea.id, MARKER);
+
+    const title = await storedTitle(idea.id);
+    expect(title).toMatch(/^v1\./);
+    expect(title).not.toContain(MARKER);
+  });
+
+  it('and gives it back intact', async () => {
+    const idea = await store.createIdea(userId, 'une idée');
+
+    await store.setTitle(userId, idea.id, MARKER);
+
+    const [reread] = await store.listIdeas(userId);
+    expect(reread?.title).toBe(MARKER);
+  });
+
+  it('nothing at all while the idea has no title', async () => {
+    const idea = await store.createIdea(userId, 'une idée');
+
+    expect(await storedTitle(idea.id)).toBeNull();
+  });
+
+  it('nor the title in any other column of the row', async () => {
+    // Fails the day a user-written column is added to this table without
+    // being sealed.
+    const idea = await store.createIdea(userId, 'une idée');
+    await store.setTitle(userId, idea.id, MARKER);
+
+    const result = await sql<{ row: string }>`
+      SELECT ideas::text AS row FROM ideas WHERE id = ${idea.id}
     `.execute(db());
 
     expect(result.rows[0]?.row).not.toContain(MARKER);

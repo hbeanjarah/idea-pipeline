@@ -228,7 +228,7 @@ setTitle(userId: string, id: string, title: string | null): Promise<Idea | null>
 `null` en retour = idée introuvable ou d'un autre compte, exactement comme
 `setLabel`.
 
-- [ ] **Étape 1 : écrire les tests qui échouent**
+- [x] **Étape 1 : écrire les tests qui échouent**
 
 Dans `server/src/store/ideas.test.ts`, un bloc nouveau à la fin :
 
@@ -299,7 +299,7 @@ describe('setTitle', () => {
 });
 ```
 
-- [ ] **Étape 2 : les lancer, vérifier qu'ils échouent**
+- [x] **Étape 2 : les lancer, vérifier qu'ils échouent**
 
 ```bash
 pnpm vitest run --project server ideas -t "setTitle"
@@ -307,7 +307,7 @@ pnpm vitest run --project server ideas -t "setTitle"
 
 Attendu : ÉCHEC — `store.setTitle` n'existe pas.
 
-- [ ] **Étape 3 : écrire `setTitle`**
+- [x] **Étape 3 : écrire `setTitle`**
 
 Dans `server/src/store/ideas.ts`, après `setLabel` :
 
@@ -347,13 +347,13 @@ export async function setTitle(
 }
 ```
 
-- [ ] **Étape 4 : relancer, vérifier que ça passe**
+- [x] **Étape 4 : relancer, vérifier que ça passe**
 
 ```bash
 pnpm vitest run --project server ideas
 ```
 
-- [ ] **Étape 5 : prouver que rien n'atteint la base en clair**
+- [x] **Étape 5 : prouver que rien n'atteint la base en clair**
 
 Ce fichier interroge Postgres en **SQL brut**, jamais par le store : passer
 par le store appellerait `toIdea`, qui déchiffre. Il lui faut donc son propre
@@ -405,14 +405,34 @@ describe("what the database holds of an idea's title", () => {
 });
 ```
 
-- [ ] **Étape 6 : relancer**
+- [x] **Étape 6 : relancer**
 
 ```bash
 pnpm vitest run --project server sealed-at-rest
 pnpm typecheck
 ```
 
-- [ ] **Étape 7 : commit**
+- [x] **Étape 7 : remettre la règle de stockage d'aplomb**
+
+`.claude/rules/storage.md` dit ce que la base ne contient jamais en clair.
+Deux phrases deviennent fausses ici.
+
+Section « Chiffrement au repos », première phrase — `ideas.title` rejoint les
+deux autres colonnes scellées :
+
+> `variations.text`, `labels.name` et `ideas.title` **ne contiennent jamais de
+> texte lisible**.
+
+Et la phrase qui clôt la section, sur le contexte mêlé à la signature :
+
+> Un identifiant est mêlé à la signature : celui de l'idée pour une variation
+> **et pour son titre**, celui du compte pour une étape. Une ligne recopiée
+> ailleurs ne s'ouvre plus.
+
+Laisser cette règle décrire un stockage périmé, c'est travailler demain sur une
+carte fausse — elle est chargée à chaque session.
+
+- [x] **Étape 8 : commit**
 
 ```
 feat(db): write and clear an idea's title
@@ -975,7 +995,23 @@ pnpm typecheck
 
 Attendu : vert.
 
-- [ ] **Étape 11 : commit**
+- [ ] **Étape 11 : remettre le modèle de la règle d'aplomb**
+
+Toujours `.claude/rules/storage.md`, section « Modèle » : l'interface `Idea`
+gagne son champ, **après `labelId`** —
+
+```typescript
+title: string | null; // null = sans titre ; jamais demandé à la capture
+```
+
+et l'interface `IdeaRepository` de la section « Repository » gagne sa méthode,
+après `setLabel` —
+
+```typescript
+  setTitle(ideaId: string, title: string | null): Promise<Idea>; // null retire
+```
+
+- [ ] **Étape 12 : commit**
 
 ```
 feat(panel): carry setTitle from the panel to the API

@@ -178,3 +178,68 @@ describe('listIdeas ordering', () => {
     expect(ids).toEqual([...ids].sort().reverse());
   });
 });
+
+describe('setTitle', () => {
+  it('writes a title and hands the idea back', async () => {
+    const created = await store.createIdea(userId, 'une idée');
+
+    const idea = await store.setTitle(
+      userId,
+      created.id,
+      'Le vrai coût du no-code',
+    );
+
+    expect(idea?.title).toBe('Le vrai coût du no-code');
+  });
+
+  it('survives a reread', async () => {
+    const created = await store.createIdea(userId, 'une idée');
+    await store.setTitle(userId, created.id, 'Un titre');
+
+    const [idea] = await store.listIdeas(userId);
+
+    expect(idea?.title).toBe('Un titre');
+  });
+
+  it('removes the title when given null', async () => {
+    const created = await store.createIdea(userId, 'une idée');
+    await store.setTitle(userId, created.id, 'Un titre');
+
+    const idea = await store.setTitle(userId, created.id, null);
+
+    expect(idea?.title).toBeNull();
+  });
+
+  it('leaves the variations alone', async () => {
+    const created = await store.createIdea(userId, 'une idée');
+
+    const idea = await store.setTitle(userId, created.id, 'Un titre');
+
+    expect(idea?.variations).toHaveLength(1);
+    expect(idea?.variations[0]?.text).toBe('une idée');
+  });
+
+  it('touches updated_at', async () => {
+    const created = await store.createIdea(userId, 'une idée');
+    await backdate(created.id, '2026-01-01T00:00:00.000Z');
+
+    const idea = await store.setTitle(userId, created.id, 'Un titre');
+
+    expect(idea?.updatedAt).not.toBe('2026-01-01T00:00:00.000Z');
+  });
+
+  it('refuses an idea that belongs to another account', async () => {
+    const created = await store.createIdea(userId, 'une idée');
+    const { userId: other } = await createUserWithSession();
+
+    expect(
+      await store.setTitle(other, created.id, 'Un titre'),
+    ).toBeNull();
+  });
+
+  it('answers null on an id that is not a uuid', async () => {
+    expect(
+      await store.setTitle(userId, 'pas-un-uuid', 'x'),
+    ).toBeNull();
+  });
+});
