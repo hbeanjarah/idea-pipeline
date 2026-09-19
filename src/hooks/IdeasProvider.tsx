@@ -124,20 +124,24 @@ export function IdeasProvider({ children }: Props) {
 
   // Known gap: two changes started within one round trip make the second
   // capture the first one's optimistic value as its "before", so a failure
-  // restores a stage the server never had. Retrying re-syncs it.
-  const setLabel = useCallback(
-    (ideaId: string, labelId: string | null) =>
+  // restores a value the server never had. Retrying re-syncs it.
+  const patch = useCallback(
+    (
+      ideaId: string,
+      change: Partial<Idea>,
+      write: () => Promise<Idea>,
+    ) =>
       attempt(async () => {
         const before = state.ideas.find((item) => item.id === ideaId);
 
         onIdeas((ideas) =>
           ideas.map((item) =>
-            item.id === ideaId ? { ...item, labelId } : item,
+            item.id === ideaId ? { ...item, ...change } : item,
           ),
         );
 
         try {
-          const idea = await ideaRepository.setLabel(ideaId, labelId);
+          const idea = await write();
           replace(idea);
           return idea;
         } catch (error) {
@@ -148,27 +152,20 @@ export function IdeasProvider({ children }: Props) {
     [attempt, replace, onIdeas, state.ideas],
   );
 
+  const setLabel = useCallback(
+    (ideaId: string, labelId: string | null) =>
+      patch(ideaId, { labelId }, () =>
+        ideaRepository.setLabel(ideaId, labelId),
+      ),
+    [patch],
+  );
+
   const setTitle = useCallback(
     (ideaId: string, title: string | null) =>
-      attempt(async () => {
-        const before = state.ideas.find((item) => item.id === ideaId);
-
-        onIdeas((ideas) =>
-          ideas.map((item) =>
-            item.id === ideaId ? { ...item, title } : item,
-          ),
-        );
-
-        try {
-          const idea = await ideaRepository.setTitle(ideaId, title);
-          replace(idea);
-          return idea;
-        } catch (error) {
-          if (before) replace(before);
-          throw error;
-        }
-      }),
-    [attempt, replace, onIdeas, state.ideas],
+      patch(ideaId, { title }, () =>
+        ideaRepository.setTitle(ideaId, title),
+      ),
+    [patch],
   );
 
   // Without it the panel keeps showing cards pointing at a stage that is gone:
