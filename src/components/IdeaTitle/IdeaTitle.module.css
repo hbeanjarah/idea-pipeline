@@ -1,0 +1,11 @@
+/* Same size as the body text: the weight is what separates them, so the type
+ * scale keeps its five tokens. */
+.line {
+  margin: 0 0 var(--space-1);
+  max-width: 58ch;
+  color: var(--ink);
+  font-size: var(--text-hero);
+  font-weight: 700;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}

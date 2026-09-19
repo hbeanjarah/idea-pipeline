@@ -1040,7 +1040,7 @@ l'écran, en écrire un à la main contre l'API locale (étape 6).
 - Créer : `src/components/IdeaTitle/IdeaTitle.module.css`
 - Modifier : `src/screens/DetailScreen.tsx`
 
-- [ ] **Étape 1 : la carte**
+- [x] **Étape 1 : la carte**
 
 Dans `src/components/IdeaCard/IdeaCard.tsx`, dans le bouton d'ouverture :
 
@@ -1060,7 +1060,7 @@ Dans `src/components/IdeaCard/IdeaCard.tsx`, dans le bouton d'ouverture :
 </button>
 ```
 
-- [ ] **Étape 2 : son style**
+- [x] **Étape 2 : son style**
 
 Dans `src/components/IdeaCard/IdeaCard.module.css`, après `.text` :
 
@@ -1086,7 +1086,7 @@ Dans `src/components/IdeaCard/IdeaCard.module.css`, après `.text` :
 }
 ```
 
-- [ ] **Étape 3 : la ligne de titre du détail, en lecture seule**
+- [x] **Étape 3 : la ligne de titre du détail, en lecture seule**
 
 `src/components/IdeaTitle/IdeaTitle.tsx` :
 
@@ -1120,7 +1120,7 @@ export default function IdeaTitle({ title }: Props) {
 }
 ```
 
-- [ ] **Étape 4 : la poser en tête du corps**
+- [x] **Étape 4 : la poser en tête du corps**
 
 Dans `src/screens/DetailScreen.tsx`, importer le composant et le placer
 **avant** `<LabelPicker …>` dans la branche `idea` :
@@ -1129,7 +1129,7 @@ Dans `src/screens/DetailScreen.tsx`, importer le composant et le placer
 <IdeaTitle title={idea.title} />
 ```
 
-- [ ] **Étape 5 : vérifier**
+- [x] **Étape 5 : vérifier**
 
 ```bash
 pnpm typecheck
@@ -1152,7 +1152,7 @@ curl -X PATCH http://localhost:3000/ideas/<ID>/title \
 Attendu : le titre en gras en tête du détail, et sur la carte au-dessus d'un
 extrait devenu gris.
 
-- [ ] **Étape 7 : commit**
+- [x] **Étape 7 : commit**
 
 ```
 feat(panel): show the title an idea carries
