@@ -94,8 +94,6 @@ idea-pipeline/
 │           ├── uuid.ts             # isUuid — un id malformé doit faire 404, pas 500
 │           ├── seal.ts             # reprise des lignes écrites avant le chiffrement
 │           ├── seal-cli.ts         # point d'entrée de `db:seal`
-│           ├── adopt-labels.ts     # reprise des `status` en étapes — temporaire
-│           ├── adopt-labels-cli.ts # point d'entrée de `db:labels`
 │           ├── migrations.ts       # runner : applique les fichiers .sql
 │           ├── migrate-cli.ts      # point d'entrée de `db:migrate`
 │           └── schema.generated.ts # GÉNÉRÉ depuis la base, non versionné
@@ -105,6 +103,10 @@ idea-pipeline/
 │   ├── labels-design.md    # les étapes configurables
 │   └── …                   # persistence, auth, google-signin, security, hosting…
 ├── docker-compose.yml      # PostgreSQL de développement
+├── .env                    # NON versionné — VITE_API_URL + le mot de passe du
+│                           #   conteneur. En production, des vrais secrets.
+│                           #   server/.env porte les siens : Compose ne le lit
+│                           #   pas, les deux doivent rester d'accord.
 ├── README.md               # prérequis, installation, comment lancer les deux moitiés
 ├── CLAUDE.md
 ├── package.json

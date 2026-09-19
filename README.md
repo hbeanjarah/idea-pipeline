@@ -93,20 +93,6 @@ Idempotent : une ligne déjà chiffrée est comptée, pas retouchée. Le script
 le signe que `NOTE_KEY_V1` n'est pas la clé qui a servi à l'écrire, et la
 rechiffrer par-dessus serait sans retour.
 
-### Convertir les anciens statuts en étapes
-
-```bash
-pnpm --dir server db:labels
-```
-
-À lancer **une fois**, sur une base qui date d'avant les étapes configurables :
-chaque compte reçoit les quatre étapes historiques, et ses idées sont rattachées
-à celle qui correspond à leur ancien `status`.
-
-Idempotent : un compte qui a déjà des étapes est sauté, sans rien créer. Relancer
-le script est donc la façon de vérifier que la conversion est complète — il doit
-alors n'annoncer que des comptes « déjà pourvus » et zéro lien.
-
 ### Après avoir écrit une migration
 
 ```bash
@@ -129,8 +115,19 @@ Puis dans Chrome :
 Le panneau s'ouvre par un clic sur l'icône ou par `Ctrl+Shift+Y`
 (`Cmd+Shift+Y` sur macOS).
 
+> **Si le raccourci ne répond pas**, il n'est probablement pas attribué. Chrome
+> n'applique `suggested_key` qu'**à l'installation** : une extension chargée
+> avant que le manifeste ne déclare la commande, ou une combinaison déjà prise à
+> ce moment-là, et la touche reste vide — sans un mot. Un rechargement ne
+> rattrape rien. Aller dans `chrome://extensions/shortcuts`, et la saisir à la
+> main.
+>
+> La colonne **Scope** y vaut « In Chrome » par défaut : le raccourci n'existe
+> alors que si Chrome a le focus. La passer à **Global** le rend joignable
+> depuis n'importe quelle application — c'est ce qui fait la capture immédiate.
+
 **Il se redimensionne**, en tirant sur son bord, d'environ 320 à 1000 px — et
-l'interface s'adapte. Au-delà de **720 px**, la liste et le détail s'affichent
+l'interface s'adapte. Au-delà de **750 px**, la liste et le détail s'affichent
 côte à côte ; en dessous, un seul volet à la fois, celui que la sélection
 désigne. C'est la première chose qu'un nouvel arrivant ne devine pas : ouvert
 étroit, l'outil paraît deux fois plus pauvre qu'il ne l'est.
@@ -177,6 +174,70 @@ Dans **Google Auth Platform** (`console.cloud.google.com/auth`) :
 Puis reporter le **même** `client_id` dans `server/.env` et `.env`, et le secret
 dans `server/.env` **seulement** — un préfixe `VITE_` l'embarquerait dans le
 bundle.
+
+## Production
+
+L'API est hébergée sur un VPS OVH et servie en HTTPS par Caddy :
+
+```
+https://api.hevinote.duckdns.org
+```
+
+**Cette adresse est provisoire.** Aucun domaine n'est acheté ; le sous-domaine
+DuckDNS lève l'obstacle du certificat sans rien dépenser. Le jour où un vrai
+domaine arrive, quatre choses changent et rien d'autre : un enregistrement `A`,
+une ligne du `Caddyfile`, `VITE_API_URL` et un `pnpm build`. Détail dans
+`docs/hosting-plan.md`.
+
+### Déployer
+
+Il n'y a pas de déploiement automatique — c'est un `git pull` à la main, décidé
+comme tel. Sur le VPS :
+
+```bash
+cd /srv/idea-pipeline
+git pull
+pnpm install && pnpm --dir server install
+pnpm --dir server db:migrate
+pnpm --dir server db:types
+pnpm --dir server build
+sudo systemctl restart idea-pipeline
+```
+
+`db:types` régénère les types depuis la base : l'ordre compte, régénérer avant
+d'avoir migré produit une interface `DB` vide sans lever la moindre erreur.
+
+### Voir ce qui se passe
+
+```bash
+sudo systemctl status idea-pipeline --no-pager
+journalctl -u idea-pipeline -f
+```
+
+### Les sauvegardes
+
+`/srv/idea-pipeline/backup.sh` tourne à 3 h du matin par `cron`. Il écrit un
+`pg_dump` gzippé dans `/var/backups/idea-pipeline/` et efface ce qui dépasse
+**quatorze jours** — assez pour remarquer une corruption, assez peu pour tenir
+sur le disque sans surveillance.
+
+Le script **n'est pas versionné** : il porte des chemins propres à cette
+machine. S'il est perdu, il se réécrit depuis `docs/hosting-plan.md`.
+
+Restaurer un dump dans une base jetable, pour vérifier qu'il en est bien un :
+
+```bash
+cd /srv/idea-pipeline
+docker compose exec -T db createdb -U idea restore_test
+gunzip -c /var/backups/idea-pipeline/<date>.sql.gz \
+  | docker compose exec -T db psql -U idea -d restore_test
+docker compose exec -T db psql -U idea -d restore_test -c 'SELECT count(*) FROM ideas;'
+docker compose exec -T db dropdb -U idea restore_test
+```
+
+> Les notes et les noms d'étapes sont **scellés** dans le dump, et les jetons de
+> session n'y figurent que hachés. Restent en clair l'adresse e-mail du compte
+> et les dates.
 
 ## Commandes
 

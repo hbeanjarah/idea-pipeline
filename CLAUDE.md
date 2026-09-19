@@ -23,9 +23,9 @@ jeton de session, et seul à parler au réseau.
 
 Les comptes, les sessions révocables, le cloisonnement et la **connexion
 Google** sont en place : on se connecte avec son compte, et une idée d'autrui
-répond `404`. **Ce qui est décidé n'est pas encore construit** se réduit
-désormais à l'**hébergement** : l'API tourne en local, et l'extension pointe
-`localhost`.
+répond `404`. **L'API est hébergée** et servie en HTTPS ; l'extension la joint
+depuis n'importe quel navigateur. Plus rien n'est décidé sans être construit —
+voir la section « Production » du `README.md`.
 
 ## Méthode de travail
 
