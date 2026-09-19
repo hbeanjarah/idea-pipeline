@@ -148,6 +148,29 @@ export function IdeasProvider({ children }: Props) {
     [attempt, replace, onIdeas, state.ideas],
   );
 
+  const setTitle = useCallback(
+    (ideaId: string, title: string | null) =>
+      attempt(async () => {
+        const before = state.ideas.find((item) => item.id === ideaId);
+
+        onIdeas((ideas) =>
+          ideas.map((item) =>
+            item.id === ideaId ? { ...item, title } : item,
+          ),
+        );
+
+        try {
+          const idea = await ideaRepository.setTitle(ideaId, title);
+          replace(idea);
+          return idea;
+        } catch (error) {
+          if (before) replace(before);
+          throw error;
+        }
+      }),
+    [attempt, replace, onIdeas, state.ideas],
+  );
+
   // Without it the panel keeps showing cards pointing at a stage that is gone:
   // the server freed them, this state did not.
   const forgetLabel = useCallback(
@@ -196,6 +219,7 @@ export function IdeasProvider({ children }: Props) {
       addVariation,
       editVariation,
       setLabel,
+      setTitle,
       forgetLabel,
       deleteIdea,
     }),
@@ -208,6 +232,7 @@ export function IdeasProvider({ children }: Props) {
       addVariation,
       editVariation,
       setLabel,
+      setTitle,
       forgetLabel,
       deleteIdea,
     ],

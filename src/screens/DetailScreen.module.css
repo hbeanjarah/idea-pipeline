@@ -48,7 +48,9 @@
 /* Directly under the text it transforms. It used to sit at the bottom, past the
  * history and 128px of nothing — a messaging layout applied to writing. */
 .reformulate {
-  margin-top: var(--space-4);
+  /* --space-5, not --space-4: the pane runs on two gaps only — --space-3
+   * between neighbours, --space-5 where the nature of the block changes. */
+  margin-top: var(--space-5);
   border: 1px solid var(--capbd);
   border-radius: var(--radius-md);
   background: var(--surface);

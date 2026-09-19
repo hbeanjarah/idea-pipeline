@@ -27,9 +27,11 @@ export function filterIdeas(
   const term = query?.trim().toLowerCase();
   if (!term) return byLabel;
 
-  return byLabel.filter((idea) =>
-    idea.variations.some((variation) =>
-      variation.text.toLowerCase().includes(term),
-    ),
+  return byLabel.filter(
+    (idea) =>
+      idea.title?.toLowerCase().includes(term) === true ||
+      idea.variations.some((variation) =>
+        variation.text.toLowerCase().includes(term),
+      ),
   );
 }

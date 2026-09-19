@@ -100,6 +100,45 @@ describe('filterIdeas', () => {
       expect(result.map((idea) => idea.id)).toEqual(['history']);
     });
 
+    it('finds an idea by its title', () => {
+      const titled: Idea[] = [
+        makeIdea(
+          'a',
+          null,
+          ['un texte sans rapport'],
+          'Le vrai coût du no-code',
+        ),
+        makeIdea('b', null, ['un autre texte'], null),
+      ];
+
+      const result = filterIdeas(titled, {
+        label: ALL,
+        query: 'no-code',
+      });
+
+      expect(result.map((idea) => idea.id)).toEqual(['a']);
+    });
+
+    it('ignores case in a title', () => {
+      const titled: Idea[] = [
+        makeIdea('a', null, ['un texte'], 'Le Coût Du No-Code'),
+      ];
+
+      expect(
+        filterIdeas(titled, { label: ALL, query: 'coût' }),
+      ).toHaveLength(1);
+    });
+
+    it('still finds an untitled idea by its text', () => {
+      const titled: Idea[] = [
+        makeIdea('a', null, ['un texte trouvable'], null),
+      ];
+
+      expect(
+        filterIdeas(titled, { label: ALL, query: 'trouvable' }),
+      ).toHaveLength(1);
+    });
+
     it('treats an empty or blank query as a no-op', () => {
       expect(filterIdeas(corpus, { label: ALL, query: '' })).toEqual(
         corpus,

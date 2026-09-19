@@ -33,10 +33,12 @@ première retouche du contrat depuis la mise en ligne.
 | Affordance       | ligne **toujours présente**, « Ajouter un titre » en `--muted` quand vide  |
 | Édition          | **en place** au clic, comme « Modifier » et la pastille d'étape            |
 | Validation       | `⏎` enregistre · `Échap` annule · **perdre le focus enregistre**           |
-| Aide             | affichée **sous le champ pendant l'édition**, jamais au repos              |
+| Aide             | sa **hauteur est réservée** au repos — rien ne bouge quand elle paraît     |
 | Retirer le titre | **vider le champ** — pas d'action « supprimer le titre » séparée           |
 | Longueur         | **80 caractères** au plus                                                  |
 | Taille à l'écran | `--text-hero`, **le gras** le sépare du corps — pas de 6ᵉ jeton de taille  |
+| Champ en édition | **nu** : pas de boîte, un filet de 2 px en `--accent` tient le focus       |
+| Limite atteinte  | **muette** — `maxLength` arrête la frappe, rien ne l'annonce               |
 | Sur la carte     | **titre + extrait** ; l'extrait recule en `--muted` quand un titre le suit |
 | Carte sans titre | **inchangée** — une seule forme de carte, avec ou sans sa première ligne   |
 | Recherche        | le titre est **cherché** comme le texte des variations, côté client        |
@@ -189,6 +191,13 @@ la 6.
 - **L'état « sans titre » est définitif dans l'interface.** La colonne est
   nullable, donc chaque surface qui montre un titre montre aussi son absence.
   C'est assumé : le rendre obligatoire coûterait la promesse de capture.
+- **Trois points d'ergonomie ont été relevés puis écartés par le PO, en
+  connaissance de cause.** Le titre garde la taille du corps, donc la
+  hiérarchie tient à la seule graisse ; l'aide occupe une ligne vide sous
+  chaque titre au repos ; et la limite de 80 caractères arrête la frappe sans
+  rien annoncer — de ces trois, c'est celui-là qui se remarquera le premier.
+  Les options écartées restent jouables dans
+  `design/mockup-title-audit.html`.
 - **Le retrait optimiste ne se teste pas automatiquement, et ce n'est pas
   propre au titre.** La rétractation vit dans `IdeasProvider`, un composant
   React, et le dépôt n'a pas de harnais DOM : `test/optimistic.test.ts`
