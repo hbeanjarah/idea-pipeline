@@ -84,6 +84,11 @@ describe('two accounts', () => {
         `/ideas/${idea.id}/variations/${variationId}`,
         JSON.stringify({ text: 'x' }),
       ],
+      [
+        'PATCH',
+        `/ideas/${idea.id}/title`,
+        JSON.stringify({ title: 'Un titre' }),
+      ],
     ] as const) {
       const res = await as(bob.token, path, { method, body });
 

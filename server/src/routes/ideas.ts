@@ -12,6 +12,8 @@ ideasRouter.delete('/:id', ideasController.remove);
 
 ideasRouter.patch('/:id', ideasController.setLabel);
 
+ideasRouter.patch('/:id/title', ideasController.setTitle);
+
 ideasRouter.post('/:id/variations', ideasController.addVariation);
 
 ideasRouter.patch(

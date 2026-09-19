@@ -15,6 +15,10 @@ const LabelBody = z.strictObject({
   labelId: z.string().nullable(),
 });
 
+const TitleBody = z.strictObject({
+  title: z.string().trim().max(80).nullable(),
+});
+
 const hasUnknownField = (error: z.ZodError): boolean =>
   error.issues.some((issue) => issue.code === 'unrecognized_keys');
 
@@ -44,6 +48,28 @@ function parseLabelBody(body: unknown): string | null {
       ? 'Champs non autorisés.'
       : 'Le champ "labelId" est obligatoire.',
   );
+}
+
+function parseTitleBody(body: unknown): string | null {
+  const result = TitleBody.safeParse(body);
+
+  if (result.success) {
+    // A blank string and null are the same removal; the contract refuses to
+    // have two ways of saying it.
+    return result.data.title === null || result.data.title === ''
+      ? null
+      : result.data.title;
+  }
+
+  if (hasUnknownField(result.error)) {
+    throw new ApiError(400, 'Champs non autorisés.');
+  }
+
+  if (result.error.issues.some((issue) => issue.code === 'too_big')) {
+    throw new ApiError(400, 'Le titre est trop long.');
+  }
+
+  throw new ApiError(400, 'Le champ "title" est obligatoire.');
 }
 
 const requireIdea = (idea: Idea | null): Idea => {
@@ -123,4 +149,14 @@ export async function editVariation(
   }
 
   return result;
+}
+
+export async function setIdeaTitle(
+  userId: string,
+  ideaId: string,
+  body: unknown,
+): Promise<Idea> {
+  return requireIdea(
+    await store.setTitle(userId, ideaId, parseTitleBody(body)),
+  );
 }

@@ -463,7 +463,7 @@ route sans chemin.
 setIdeaTitle(userId: string, ideaId: string, body: unknown): Promise<Idea>
 ```
 
-- [ ] **Étape 1 : écrire les tests de validation qui échouent**
+- [x] **Étape 1 : écrire les tests de validation qui échouent**
 
 Dans `server/src/services/ideas.test.ts`, à la fin :
 
@@ -582,7 +582,7 @@ describe('setIdeaTitle', () => {
 });
 ```
 
-- [ ] **Étape 2 : les lancer, vérifier qu'ils échouent**
+- [x] **Étape 2 : les lancer, vérifier qu'ils échouent**
 
 ```bash
 pnpm vitest run --project server services/ideas
@@ -590,7 +590,7 @@ pnpm vitest run --project server services/ideas
 
 Attendu : ÉCHEC — `service.setIdeaTitle` n'existe pas.
 
-- [ ] **Étape 3 : écrire la validation et le service**
+- [x] **Étape 3 : écrire la validation et le service**
 
 Dans `server/src/services/ideas.ts`, sous `LabelBody` :
 
@@ -640,7 +640,7 @@ export async function setIdeaTitle(
 }
 ```
 
-- [ ] **Étape 4 : le controller**
+- [x] **Étape 4 : le controller**
 
 Dans `server/src/controllers/ideas.ts`, après `setLabel` :
 
@@ -661,7 +661,7 @@ export const setTitle: RequestHandler<IdeaParams> = async (
 };
 ```
 
-- [ ] **Étape 5 : la route**
+- [x] **Étape 5 : la route**
 
 Dans `server/src/routes/ideas.ts`, après `ideasRouter.patch('/:id', …)` :
 
@@ -669,7 +669,7 @@ Dans `server/src/routes/ideas.ts`, après `ideasRouter.patch('/:id', …)` :
 ideasRouter.patch('/:id/title', ideasController.setTitle);
 ```
 
-- [ ] **Étape 6 : vérifier que le test de contrat échoue maintenant**
+- [x] **Étape 6 : vérifier que le test de contrat échoue maintenant**
 
 ```bash
 pnpm vitest run --project server contract
@@ -678,7 +678,7 @@ pnpm vitest run --project server contract
 Attendu : ÉCHEC — `PATCH /ideas/{id}/title` est monté mais absent du spec.
 C'est le test qui fait son travail.
 
-- [ ] **Étape 7 : déclarer le chemin dans le contrat**
+- [x] **Étape 7 : déclarer le chemin dans le contrat**
 
 Dans `docs/openapi.yaml`, après le bloc `/ideas/{id}:` et avant
 `/ideas/{id}/variations:` :
@@ -758,7 +758,7 @@ SetIdeaTitleRequest:
         séparé pour effacer un titre.
 ```
 
-- [ ] **Étape 8 : régénérer et relancer**
+- [x] **Étape 8 : régénérer et relancer**
 
 ```bash
 pnpm --dir server generate:types
@@ -768,7 +768,7 @@ pnpm vitest run --project server services/ideas
 
 Attendu : vert.
 
-- [ ] **Étape 9 : le cloisonnement**
+- [x] **Étape 9 : le cloisonnement**
 
 Ce fichier n'appelle pas le service : il passe par **HTTP**, avec le helper
 `as(token, path, init)`, et il éprouve toutes les écritures dans **une seule
@@ -787,7 +787,7 @@ dans le tableau du test « get 404 and never 403 on the ideas of the other »,
 C'est tout : la boucle vérifie déjà le `404`, le corps `Idée introuvable.`, et
 qu'aucun de ces appels n'a touché l'idée d'alice.
 
-- [ ] **Étape 10 : la suite serveur entière**
+- [x] **Étape 10 : la suite serveur entière**
 
 ```bash
 pnpm vitest run --project server
@@ -795,7 +795,7 @@ pnpm typecheck
 pnpm lint
 ```
 
-- [ ] **Étape 11 : commit**
+- [x] **Étape 11 : commit**
 
 ```
 feat(api): add PATCH /ideas/:id/title
